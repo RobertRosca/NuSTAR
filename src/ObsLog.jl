@@ -1,4 +1,8 @@
-function Log(local_archive="I:/.nustar_archive", local_archive_clean="I:/.nustar_archive_cl")
+function Log(local_archive="default", local_archive_clean="")
+    if local_archive = "default"
+        local_archive, local_archive_clean = NuSTAR.find_default_path()
+    end
+
     ftp_init()
 
     options = RequestOptions(hostname="heasarc.gsfc.nasa.gov")

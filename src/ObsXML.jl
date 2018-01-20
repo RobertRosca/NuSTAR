@@ -75,7 +75,7 @@ function XML(ObsIDs, XML_out_dir="I:/FileZilla.xml", verbose=false)
 
     info("Header done")
 
-    local_archive = "I:/.nustar_archive"
+    local_archive = NuSTAR.find_default_path()
     if !isdir(local_archive)
         error("Local archive not found at \"$(local_archive)\"")
     end
@@ -129,7 +129,12 @@ function XML(ObsIDs, XML_out_dir="I:/FileZilla.xml", verbose=false)
     save_file(filezilla_xml, XML_out_dir)
 end
 
-function XMLBatch(local_archive="I:/.nustar_archive", log_file="I:/.nustar_archive/00000000000 - utility/download_log.csv", batch_size=100)
+function XMLBatch(local_archive="default", log_file="", batch_size=100)
+    if local_archive = "default"
+        local_archive = NuSTAR.find_default_path()[1]
+        log_file = string(local_archive, "/00000000000 - utility/download_log.csv")
+    end
+
     observations = CSV.read(log_file)
 
     queue = []
