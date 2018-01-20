@@ -9,6 +9,8 @@ using LightXML
 
 include("ObsLog.jl")
 include("ObsXML.jl")
+include("MiscTools.jl")
+include("ObsCal.jl")
 
 #export ObsLog, ObsGenerateXML, ObsGenerateXMLBatch
 
