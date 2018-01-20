@@ -1,8 +1,4 @@
 function Calibrate(ObsIDs)
-    if length(ObsIDs) > 4
-        error("Max 4 simultaneous calibrations")
-    end
-
     for ObsID in ObsIDs
         run(`gnome-terminal -e "/home/robert/pipeline_vm.sh $ObsID"`)
     end
