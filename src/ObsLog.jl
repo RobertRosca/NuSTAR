@@ -111,7 +111,7 @@ function Log(local_archive="I:/.nustar_archive", local_archive_clean="I:/.nustar
         CSV.write(log_file, observations)
     catch ex
         warn("Could not write to file, is file open?")
-        log_file_temp = string(log_file[1:end-4], tempname()[end-7:end-4], ".csv")
+        log_file_temp = string(log_file[1:end-4], "_", tempname()[end-7:end-4], ".csv")
         info("Saving as temp file - $(log_file_temp)")
 
         CSV.write(log_file_temp, observations)
