@@ -11,7 +11,7 @@ function Calibrate(ObsIDs)
 end
 
 function CalBatch(local_archive="default", log_file="", batch_size=4)
-    if local_archive = "default"
+    if local_archive == "default"
         local_archive = NuSTAR.find_default_path()[1]
         log_file = string(local_archive, "/00000000000 - utility/download_log.csv")
     end

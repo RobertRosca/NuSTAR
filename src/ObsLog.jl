@@ -1,5 +1,5 @@
 function Log(local_archive="default", local_archive_clean="")
-    if local_archive = "default"
+    if local_archive == "default"
         local_archive, local_archive_clean = NuSTAR.find_default_path()
     end
 
