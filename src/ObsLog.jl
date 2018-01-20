@@ -1,4 +1,4 @@
-function Log(local_archive="I:/.nustar_archive")
+function Log(local_archive="I:/.nustar_archive", local_archive_clean="I:/.nustar_archive_cl")
     ftp_init()
 
     options = RequestOptions(hostname="heasarc.gsfc.nasa.gov")
@@ -70,6 +70,20 @@ function Log(local_archive="I:/.nustar_archive")
     end
 
     observations[:Downloaded] = ObsDownl
+
+    info("Finding calibrated files")
+    file_list_local = readdir(local_archive_clean)
+
+    ObsClean = zeros(length(file_list))
+    for (itr, obs) in enumerate(file_list)
+        if observations[:ObsID][itr] in file_list_local
+            ObsClean[itr] = 1
+        else
+            ObsClean[itr] = 0
+        end
+    end
+
+    observations[:Cleaned] = ObsClean
 
     # Finally, sort by date:
     sort!(observations, cols=(:Date))
