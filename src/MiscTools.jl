@@ -74,3 +74,31 @@ function check_obs_publicity(ObsID, connection_context)
 
     return Public
 end
+
+function check_obs_publicity_local(local_archive; purge=false)
+    file_list_local = readdir(local_archive)[2:end]
+
+    Publicity = zeros(Int, length(file_list_local))
+
+    for (itr, local_obs) in enumerate(file_list_local)
+        event_path   = string(local_archive, "/$local_obs/event_uf/")
+        uf_first     = readdir(event_path)[1]
+        uf_first     = basename(uf_first)
+        uf_first_ext = split(uf_first, ".")[end]
+
+        if uf_first_ext == "gpg"
+            Publicity[itr] = 0
+            if purge
+                mv(string(local_archive, "/$local_obs"), string("I:/.nustar_archive_private", "/$local_obs/"))
+            end
+        elseif uf_first_ext == "gz"
+            Publicity[itr] = 1
+        else
+            Publicity[itr] = -1
+        end
+    end
+
+    println("Public: $(count(x -> x == 1, Publicity[:])) / $(length(Publicity))")
+
+    return Publicity
+end
