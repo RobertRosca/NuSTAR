@@ -135,6 +135,13 @@ function XMLBatch(local_archive="default", log_file="", batch_size=100)
         log_file = string(local_archive, "/00000000000 - utility/download_log.csv")
     end
 
+    ftp_init()
+
+    options = RequestOptions(hostname="heasarc.gsfc.nasa.gov")
+
+    connection = ftp_connect(options)
+    connection_context = connection[1]
+
     observations = CSV.read(log_file)
 
     queue = []
@@ -142,17 +149,30 @@ function XMLBatch(local_archive="default", log_file="", batch_size=100)
     println("Added to queue:")
     obs_count = size(observations)[1]; bs = 0
     for i = 0:obs_count-1 # -1 for the utility folder
-        if Int(observations[obs_count-i, :Downloaded]) == 0 # Index from end, backwards
-            append!(queue, [observations[obs_count-i, :ObsID]])
-            print(string(observations[obs_count-i, :ObsID], ", "))
-            bs += 1
+        ObsID = string(observations[obs_count-i, :ObsID])
+        Publicity = Int(observations[obs_count-i, :Public])
+
+        if Publicity == -1 # If there is no data on the publicity
+            observations[obs_count-i, :Public] = check_obs_publicity(ObsID, connection_context)
+            Publicity = observations[obs_count-i, :Public]
         end
 
-        if bs >= batch_size
-            println("\n")
-            break
+        if Publicity == 1
+            if Int(observations[obs_count-i, :Downloaded]) == 0 # Index from end, backwards
+                append!(queue, [ObsID])
+                print(ObsID, ", ")
+                bs += 1
+            end
+
+            if bs >= batch_size
+                println("\n")
+                break
+            end
         end
     end
+
+    ftp_close_connection(connection_context)
+    ftp_cleanup()
 
     XML(queue)
 end

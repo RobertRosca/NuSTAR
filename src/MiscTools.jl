@@ -56,3 +56,21 @@ function pull_file_list(hostname="heasarc.gsfc.nasa.gov"; path="/nustar/.nustar_
 
     return file_list
 end
+
+function check_obs_publicity(ObsID, connection_context)
+    obs_uf_list = ftp_command(connection_context, "NLST /nustar/.nustar_archive/$obs/event_uf")
+    obs_uf_list = String(take!(obs_uf_list.body))
+    uf_first    = split(obs_uf_list, "\r")[1]
+    uf_first    = basename(uf_first)
+    uf_first_ext= split(uf_first, ".")
+
+    Public = -1
+
+    if uf_first_ext != "gpg"
+        Public = 1
+    else
+        Public = 0
+    end
+
+    return Public
+end
