@@ -99,7 +99,7 @@ function NumasterSummary(;numaster_path="")
         numaster_path = string(local_archive, "/00000000000 - utility/numaster_df.csv")
     end
 
-    numaster_df = CSV.read(numaster_path, rows_for_type_detect=3000, nullable=true)
+    numaster_df = read_numaster(numaster_path)
 
     total = size(numaster_df, 1)
     downloaded = sum(numaster_df[:Downloaded])
