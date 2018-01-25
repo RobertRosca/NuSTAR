@@ -11,6 +11,7 @@ include("ObsLog.jl")
 include("ObsXML.jl")
 include("MiscTools.jl")
 include("ObsCal.jl")
+include("Numaster.jl")
 
 #export ObsLog, ObsGenerateXML, ObsGenerateXMLBatch
 

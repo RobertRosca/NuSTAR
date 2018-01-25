@@ -58,7 +58,7 @@ function pull_file_list(hostname="heasarc.gsfc.nasa.gov"; path="/nustar/.nustar_
 end
 
 function check_obs_publicity(ObsID, connection_context)
-    obs_uf_list = ftp_command(connection_context, "NLST /nustar/.nustar_archive/$obs/event_uf")
+    obs_uf_list = ftp_command(connection_context, "NLST /nustar/.nustar_archive/$ObsID/event_uf")
     obs_uf_list = String(take!(obs_uf_list.body))
     uf_first    = split(obs_uf_list, "\r")[1]
     uf_first    = basename(uf_first)
@@ -101,4 +101,8 @@ function check_obs_publicity_local(local_archive; purge=false)
     println("Public: $(count(x -> x == 1, Publicity[:])) / $(length(Publicity))")
 
     return Publicity
+end
+
+function read_numaster(numaster_path)
+    CSV.read(numaster_path, rows_for_type_detect=3000, nullable=true, types=Dict("obsid"=>String))
 end

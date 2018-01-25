@@ -1,4 +1,21 @@
-function XML(ObsIDs, XML_out_dir="I:/FileZilla.xml", verbose=false)
+function XML(ObsIDs; XML_out_dir="I:/FileZilla.xml", verbose=false, local_archive="default")
+    if local_archive == "default"
+        local_archive = NuSTAR.find_default_path()[1]
+        numaster_path = string(local_archive, "/00000000000 - utility/numaster_df.csv")
+    end
+
+    numaster_df   = NuSTAR.read_numaster(numaster_path)
+    caldb_file    = searchindex.(readdir(string(local_archive, "/00000000000 - utility/")), "goodfiles")
+    caldb_file    = find(x -> x == 1, caldb_file)
+    caldb_version = readdir(string(local_archive, "/00000000000 - utility/"))[caldb_file][1]
+    caldb_version = caldb_version[22:end-7]
+
+    if typeof(caldb_version) != Int
+        caldb_version = parse(Int, caldb_version)
+    end
+
+    info("Caldb version: $caldb_version")
+
     ftp_init()
 
     options = RequestOptions(hostname="heasarc.gsfc.nasa.gov")
@@ -18,16 +35,6 @@ function XML(ObsIDs, XML_out_dir="I:/FileZilla.xml", verbose=false)
         println(connection)
     else
         info("Connection established, passive mode")
-    end
-
-    function get_list_for_folder(ObsID, folder)
-        list = ftp_command(connection_context, "NLST /nustar/.nustar_archive/$(ObsID)/$(folder)/")
-        list = takebuf_string(list.body)
-        #list = string(take!(list.body))
-        list = split(list, "\n")[1:end-1]
-        list = replace.(list, "\r", "")
-
-        return list
     end
 
     info("Generating XML for FileZilla3")
@@ -75,7 +82,17 @@ function XML(ObsIDs, XML_out_dir="I:/FileZilla.xml", verbose=false)
 
     info("Header done")
 
-    local_archive = NuSTAR.find_default_path()
+    function get_list_for_folder(ObsID, folder)
+        list = ftp_command(connection_context, "NLST /nustar/.nustar_archive/$(ObsID)/$(folder)/")
+        list = takebuf_string(list.body)
+        #list = string(take!(list.body))
+        list = split(list, "\n")[1:end-1]
+        list = replace.(list, "\r", "")
+
+        return list
+    end
+
+    local_archive = find_default_path()[1]
     if !isdir(local_archive)
         error("Local archive not found at \"$(local_archive)\"")
     end
@@ -86,9 +103,16 @@ function XML(ObsIDs, XML_out_dir="I:/FileZilla.xml", verbose=false)
         list_hk       = get_list_for_folder(ObsID, "hk")
         list_event_uf = get_list_for_folder(ObsID, "event_uf")
 
-        #list_pipelog = "/nustar/.nustar_archive/$(ObsID)/pipe.log"
+        obs_caldb = numaster_df[:caldb_version][numaster_df[:obsid] .== ObsID][1]
 
-        download_list = [list_auxil; list_hk; list_event_uf]
+        # If calibration is outdated, ignore cleaned files
+        if obs_caldb < caldb_version
+            download_list = [list_auxil; list_hk; list_event_uf]
+        elseif obs_caldb >= caldb_version
+            list_event_cl = get_list_for_folder(ObsID, "event_cl")
+            download_list = [list_auxil; list_hk; list_event_uf; list_event_cl]
+        end
+
         info("Generating file list for $(ObsID) $(files_done)/$(length(ObsIDs)). Found $(length(download_list)) files")
 
         for (itr, file) in enumerate(download_list)
@@ -129,36 +153,24 @@ function XML(ObsIDs, XML_out_dir="I:/FileZilla.xml", verbose=false)
     save_file(filezilla_xml, XML_out_dir)
 end
 
-function XMLBatch(local_archive="default", log_file="", batch_size=100)
+function XMLBatch(local_archive="default"; log_file="", batch_size=100)
     if local_archive == "default"
         local_archive = NuSTAR.find_default_path()[1]
-        log_file = string(local_archive, "/00000000000 - utility/download_log.csv")
+        numaster_path = string(local_archive, "/00000000000 - utility/numaster_df.csv")
     end
 
-    ftp_init()
-
-    options = RequestOptions(hostname="heasarc.gsfc.nasa.gov")
-
-    connection = ftp_connect(options)
-    connection_context = connection[1]
-
-    observations = CSV.read(log_file)
+    numaster_df = CSV.read(numaster_path, rows_for_type_detect=3000, nullable=true)
 
     queue = []
 
     println("Added to queue:")
-    obs_count = size(observations)[1]; bs = 0
+    obs_count = size(numaster_df, 1)[1]; bs = 0
     for i = 0:obs_count-1 # -1 for the utility folder
-        ObsID = string(observations[obs_count-i, :ObsID])
-        Publicity = Int(observations[obs_count-i, :Public])
+        ObsID = string(numaster_df[obs_count-i, :obsid])
+        Publicity = numaster_df[obs_count-i, :public_date] < Base.Dates.today()
 
-        if Publicity == -1 # If there is no data on the publicity
-            observations[obs_count-i, :Public] = check_obs_publicity(ObsID, connection_context)
-            Publicity = observations[obs_count-i, :Public]
-        end
-
-        if Publicity == 1
-            if Int(observations[obs_count-i, :Downloaded]) == 0 # Index from end, backwards
+        if Publicity
+            if Int(numaster_df[obs_count-i, :Downloaded]) == 0 # Index from end, backwards
                 append!(queue, [ObsID])
                 print(ObsID, ", ")
                 bs += 1
@@ -170,9 +182,6 @@ function XMLBatch(local_archive="default", log_file="", batch_size=100)
             end
         end
     end
-
-    ftp_close_connection(connection_context)
-    ftp_cleanup()
 
     XML(queue)
 end
