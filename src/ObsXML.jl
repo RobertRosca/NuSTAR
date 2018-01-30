@@ -168,8 +168,9 @@ function XMLBatch(local_archive="default"; log_file="", batch_size=100)
     for i = 0:obs_count-1 # -1 for the utility folder
         ObsID = string(numaster_df[obs_count-i, :obsid])
         Publicity = numaster_df[obs_count-i, :public_date] < Base.Dates.today()
+        ObsCal    = numaster_df[obs_count-i, :obs_type] == "CAL" # Exclude calibration sets
 
-        if Publicity
+        if Publicity && !ObsCal
             if Int(numaster_df[obs_count-i, :Downloaded]) == 0 # Index from end, backwards
                 append!(queue, [ObsID])
                 print(ObsID, ", ")

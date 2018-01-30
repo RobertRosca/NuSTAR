@@ -88,7 +88,7 @@ function Numaster(;local_archive="default", local_archive_clean="")
         rethrow(ex)
     end
 
-    Info("Done")
+    info("Done")
 
     #CSV.read("D:\\Users\\Robert\\Desktop\\numaster.csv", rows_for_type_detect=3000, nullable=true)
 end
