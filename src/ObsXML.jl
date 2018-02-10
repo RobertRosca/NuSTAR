@@ -153,7 +153,7 @@ function XML(ObsIDs; XML_out_dir="I:/FileZilla.xml", verbose=false, local_archiv
     save_file(filezilla_xml, XML_out_dir)
 end
 
-function XMLBatch(local_archive="default"; log_file="", batch_size=100)
+function XMLBatch(;local_archive="default", log_file="", batch_size=100)
     if local_archive == "default"
         local_archive = NuSTAR.find_default_path()[1]
         numaster_path = string(local_archive, "/00000000000 - utility/numaster_df.csv")
@@ -169,8 +169,9 @@ function XMLBatch(local_archive="default"; log_file="", batch_size=100)
         ObsID = string(numaster_df[obs_count-i, :obsid])
         Publicity = numaster_df[obs_count-i, :public_date] < Base.Dates.today()
         ObsCal    = numaster_df[obs_count-i, :obs_type] == "CAL" # Exclude calibration sets
+        ObsSci    = numaster_df[obs_count-i, :observation_mode] == "SCIENCE" # Exclude slew/other non-scientific observations
 
-        if Publicity && !ObsCal
+        if Publicity && !ObsCal && ObsSci
             if Int(numaster_df[obs_count-i, :Downloaded]) == 0 # Index from end, backwards
                 append!(queue, [ObsID])
                 print(ObsID, ", ")
