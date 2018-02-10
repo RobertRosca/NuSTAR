@@ -106,3 +106,26 @@ end
 function read_numaster(numaster_path)
     CSV.read(numaster_path, rows_for_type_detect=3000, nullable=true, types=Dict("obsid"=>String))
 end
+
+function sgolay(order, frameLen)
+    S = (-(frameLen-1)/2:((frameLen-1)/2)) .^ (0:order)'
+    (Q, R) = qr(S)
+    B = Q*Q'
+    G = Q / R'
+
+    return B, G
+end
+
+
+function sgolayfilt(x, order, frameLen)
+    B = sgolay(order, frameLen)[1]
+    x = x[:]
+
+    @assert ndims(x) == 1
+
+    ybegin = B[end:-1:round(Int, (frameLen-1)/2 + 2), :] * x[frameLen:-1:1, :]
+    ycentre = filt(B[round(Int, (frameLen-1)./2 + 1), :], 1, x)
+    yend = B[round(Int, (frameLen-1)/2):-1:1, :] * x[end:-1:end-(frameLen-1), :]
+
+    return y = [ybegin; ycentre[frameLen:end, :]; yend]
+end
