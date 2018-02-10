@@ -101,11 +101,12 @@ function NumasterSummary(;numaster_path="")
 
     numaster_df = read_numaster(numaster_path)
 
-    total = size(numaster_df, 1)
+    total = count(numaster_df[:observation_mode] .== "SCIENCE")
     downloaded = sum(numaster_df[:Downloaded])
     cleaned = sum(numaster_df[:Cleaned])
 
-    println("$total archived observations")
+    println("$(size(numaster_df, 1)) archived observations")
+    println("$total archived observations - SCIENTIFIC")
     println("$downloaded / $total downloaded")
     println("$cleaned / $total cleaned")
 end
