@@ -1,4 +1,4 @@
-#__precompile__() Precompiling completely breaks FTPClient for some reason
+__precompile__(false) # Precompiling completely breaks FTPClient for some reason
 
 module NuSTAR
 
@@ -7,15 +7,20 @@ using DataFrames
 using CSV
 using LightXML
 using FITSIO
-using WCS
+
+if is_linux()
+    using WCS
+else
+    info("Not Linux, running with reduced functionality")
+end
 
 #include("ObsLog.jl")
 include("ObsXML.jl")
 include("MiscTools.jl")
 include("ObsCal.jl")
 include("Numaster.jl")
-include("Analysis/FITSWCS.jl")
-include("Analysis/SourceDetect.jl")
+include("Analysis\\FITSWCS.jl")
+include("Analysis\\SourceDetect.jl")
 
 #export ObsLog, ObsGenerateXML, ObsGenerateXMLBatch
 
