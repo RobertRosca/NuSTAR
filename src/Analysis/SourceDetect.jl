@@ -102,7 +102,8 @@ function MakeSourceReg(path)
 
     run(command)
 
-    response = input("Correct region y/n?")
+    info("Correct region y/n?")
+    response = readline(STDIN)
 
     if response == "y"
         mv(source_reg_file_unchecked, string(obs_path, "source.reg"))
@@ -119,7 +120,7 @@ using FITSIO, WCS, DataFrames
 
 function RegBatch(;local_archive="default", log_file="", batch_size=100)
     if local_archive == "default"
-        local_archive = NuSTAR.find_default_path()[1]
+        local_archive, local_archive_cl = NuSTAR.find_default_path()
         numaster_path = string(local_archive, "/00000000000 - utility/numaster_df.csv")
     end
 
@@ -130,11 +131,12 @@ function RegBatch(;local_archive="default", log_file="", batch_size=100)
     println("Added to queue:")
     obs_count = size(numaster_df, 1)[1]; bs = 0
     for i = 0:obs_count-1 # -1 for the utility folder
-        ObsID  = string(numaster_df[obs_count-i, :obsid])
-        ObsSci = numaster_df[obs_count-i, :ValidSci] == 1 # Exclude slew/other non-scientific observations
+        ObsID  = string(get(numaster_df[obs_count-i, :obsid]))
+        ObsSci = get(numaster_df[obs_count-i, :ValidSci] == Nullable(1)) # Exclude slew/other non-scientific observations
+        # `get` required to deal with Nullable{Bool} type
 
         if ObsSci
-            append!(queue, string(local_archive, "/$ObsID/pipeline_out/nu$ObsID", "A01_cl.evt"))
+            append!(queue, [string(local_archive_cl, "/$ObsID/pipeline_out/nu$ObsID", "A01_cl.evt")])
 
             if bs >= batch_size
                 println("\n")

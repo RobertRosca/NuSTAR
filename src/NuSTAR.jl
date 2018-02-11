@@ -19,8 +19,8 @@ include("ObsXML.jl")
 include("MiscTools.jl")
 include("ObsCal.jl")
 include("Numaster.jl")
-include("Analysis\\FITSWCS.jl")
-include("Analysis\\SourceDetect.jl")
+include("Analysis/FITSWCS.jl")
+include("Analysis/SourceDetect.jl")
 
 #export ObsLog, ObsGenerateXML, ObsGenerateXMLBatch
 
