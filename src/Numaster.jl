@@ -50,8 +50,10 @@ function Numaster(;local_archive="default", local_archive_clean="")
     file_list_local       = readdir(local_archive)[2:end]
     file_list_local_clean = readdir(local_archive_clean)[2:end]
 
-    downloaded = zeros(Int, size(numaster_df, 1))
-    cleaned    = zeros(Int, size(numaster_df, 1))
+    numaster_df_n = size(numaster_df, 1)
+
+    downloaded = zeros(Int, numaster_df_n)
+    cleaned    = zeros(Int, numaster_df_n)
 
     for (itr, obs) in enumerate(numaster_df[:obsid])
         downloaded[itr] = obs in file_list_local ? 1 : 0
@@ -60,6 +62,22 @@ function Numaster(;local_archive="default", local_archive_clean="")
 
     numaster_df[:Downloaded] = downloaded
     numaster_df[:Cleaned]    = cleaned
+
+    valid_sci  = zeros(Int, numaster_df_n)
+    reg_src    = zeros(Int, numaster_df_n)
+    reg_bkg    = zeros(Int, numaster_df_n)
+
+    for (itr, obs) in enumerate(numaster_df[:obsid])
+        if cleaned[itr] == 1
+            valid_sci[itr]  = isfile(string(local_archive_clean, "/", obs, "/pipeline_out/", "nu", obs, "A01_cl.evt")) ? 1 : 0
+            reg_src[itr] = isfile(string(local_archive_clean, "/", obs, "/source.reg")) ? 1 : 0
+            reg_bkg[itr] = isfile(string(local_archive_clean, "/", obs, "/background.reg")) ? 1 : 0
+        end
+    end
+
+    numaster_df[:ValidSci] = valid_sci
+    numaster_df[:RegSrc]   = reg_src
+    numaster_df[:RegBkg]   = reg_bkg
 
     # Convert modified Julian dates to readable dates
     numaster_df[:time] = map(x -> Base.Dates.julian2datetime(parse(Float64, x) + 2400000.5), numaster_df[:time])
