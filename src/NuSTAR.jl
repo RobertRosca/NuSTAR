@@ -6,18 +6,22 @@ using FTPClient
 using DataFrames
 using CSV
 using LightXML
+using FITSIO
+using WCS
 
-include("ObsLog.jl")
+#include("ObsLog.jl")
 include("ObsXML.jl")
 include("MiscTools.jl")
 include("ObsCal.jl")
 include("Numaster.jl")
+include("Analysis/FITSWCS.jl")
+include("Analysis/SourceDetect.jl")
 
 #export ObsLog, ObsGenerateXML, ObsGenerateXMLBatch
 
 end
 
-using NuSTAR
+# using NuSTAR
 
 # ObsLog() to pull newest data
 
