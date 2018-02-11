@@ -1,5 +1,3 @@
-using DataFrames, CSV, FITSIO, WCS
-
 """
     FITS_Coords(fits_path)
 
@@ -81,34 +79,72 @@ fk5
 circle(6:32:59.243,+5:48:04.08,20")
 =#
 
-path = "/mnt/hgfs/.nustar_archive_cl/80102101004/pipeline_out/nu80102101004A01_cl.evt"
+function MakeSourceReg(path)
+    (ra, dec) = FWXM_Single_Source(path; prcnt=0.5, filt_flag=true, verbose=true)[4]
 
-(ra, dec) = FWXM_Single_Source(path; prcnt=0.5, filt_flag=true, verbose=true)[4]
+    header = "\# Region file format: SourceDetect.jl auotgenerate for $path"
+    coord_type = "fk5"
+    shape = "circle($ra,$dec,20\")"
 
-header = "\# Region file format: SourceDetect.jl auotgenerate for $path"
-coord_type = "fk5"
-shape = "circle($ra,$dec,20\")"
+    lines_source = [header, coord_type, shape]
 
-lines_source = [header, coord_type, shape]
+    obs_path = replace(splitdir(path)[1], "pipeline_out", "") # Get the path to the root obs folder
 
-obs_path = replace(splitdir(path)[1], "pipeline_out", "") # Get the path to the root obs folder
+    source_reg_file_unchecked = string(obs_path, "source_unchecked.reg")
 
-source_reg_file_unchecked = string(obs_path, "source_unchecked.reg")
+    open(source_reg_file_unchecked, "w") do f
+        for line in lines_source
+            write(f, "$line \n")
+        end
+    end
 
-open(source_reg_file_unchecked, "w") do f
-    for line in lines_source
-        write(f, "$line \n")
+    command = `ds9 $path -regions $source_reg_file_unchecked`
+
+    run(command)
+
+    response = input("Correct region y/n?")
+
+    if response == "y"
+        mv(source_reg_file_unchecked, string(obs_path, "source.reg"))
+    elseif response == "n"
+        println("Fix later")
     end
 end
 
-command = `ds9 $path -regions $source_reg_file_unchecked`
+#=
+MakeSourceReg("/mnt/hgfs/.nustar_archive_cl/30202004008/pipeline_out/nu30202004008A01_cl.evt")
 
-run(command)
+using FITSIO, WCS, DataFrames
+=#
 
-response = input("Correct region y/n?")
+function RegBatch(;local_archive="default", log_file="", batch_size=100)
+    if local_archive == "default"
+        local_archive = NuSTAR.find_default_path()[1]
+        numaster_path = string(local_archive, "/00000000000 - utility/numaster_df.csv")
+    end
 
-if response == "y"
-    mv(source_reg_file_unchecked, string(obs_path, "source.reg"))
-elseif response == "n"
-    println("Fix later")
+    numaster_df = CSV.read(numaster_path, rows_for_type_detect=3000, nullable=true)
+
+    queue = []
+
+    println("Added to queue:")
+    obs_count = size(numaster_df, 1)[1]; bs = 0
+    for i = 0:obs_count-1 # -1 for the utility folder
+        ObsID  = string(numaster_df[obs_count-i, :obsid])
+        ObsSci = numaster_df[obs_count-i, :ValidSci] == 1 # Exclude slew/other non-scientific observations
+
+        if ObsSci
+            append!(queue, string(local_archive, "/$ObsID/pipeline_out/nu$ObsID", "A01_cl.evt"))
+
+            if bs >= batch_size
+                println("\n")
+                break
+            end
+        end
+    end
+
+    for obs_evt in queue
+        info("Getting region for $obs_evt")
+        MakeSourceReg(obs_evt)
+    end
 end
