@@ -85,8 +85,6 @@ function Numaster(;local_archive="default", local_archive_clean="")
     numaster_df[:processing_date] = map(x -> Base.Dates.julian2datetime(parse(Float64, x) + 2400000.5), numaster_df[:processing_date])
     numaster_df[:public_date] = map(x -> Base.Dates.julian2datetime(parse(Float64, x) + 2400000.5), numaster_df[:public_date])
 
-    CSV.write("D:\\Users\\Robert\\Desktop\\numaster.csv", numaster_df)
-
     info("Creating CSV")
     numaster_path = string(local_archive, "/00000000000 - utility/numaster_df.csv")
 
@@ -107,8 +105,6 @@ function Numaster(;local_archive="default", local_archive_clean="")
     end
 
     info("Done")
-
-    #CSV.read("D:\\Users\\Robert\\Desktop\\numaster.csv", rows_for_type_detect=3000, nullable=true)
 end
 
 function NumasterSummary(;numaster_path="")
