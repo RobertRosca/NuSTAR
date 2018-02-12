@@ -104,7 +104,21 @@ function check_obs_publicity_local(local_archive; purge=false)
 end
 
 function read_numaster(numaster_path)
-    CSV.read(numaster_path, rows_for_type_detect=3000, nullable=true, types=Dict("obsid"=>String))
+    #name, ra, dec, lii, bii, roll_angle, time, end_time, obsid, exposure_a, exposure_b
+    #ontime_a, ontime_b, observation_mode, instrument_mode, spacecraft_mode, slew_mode
+    #processing_date, public_date, software_version, prnb, abstract, subject_category
+    #category_code, priority, pi_lname, pi_fname, copi_lname, copi_fname, country, cycle
+    #obs_type, title, data_gap, nupsdout, solar_activity, coordinated, issue_flag, comments
+    #status, caldb_version, Downloaded, Cleaned, ValidSci, RegSrc, RegBkg
+
+    numaster_types = [String, Float64, Float64, Float64, Float64, Float64, String, String, String, Float64, Float64,
+    Float64, Float64, String, String, String, String,
+    String, String, String, Int, String, String,
+    Int, String, String, String, String, String, String, Int,
+    String, String, Int, Int, String, String, Int, String,
+    String, String, Int, Int, Int, Int, Int]
+
+    CSV.read(numaster_path, nullable=true, types=numaster_types)
 end
 
 function sgolay(order, frameLen)
