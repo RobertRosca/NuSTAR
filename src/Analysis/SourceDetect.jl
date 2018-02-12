@@ -156,10 +156,9 @@ function RegBatch(;local_archive="", log_file="", batch_size=100)
     println("Added to queue:")
     obs_count = size(numaster_df, 1)[1]; bs = 0
     for i = 0:obs_count-1 # -1 for the utility folder
-        ObsID  = string(get(numaster_df[obs_count-i, :obsid]))
-        ObsSci = get(numaster_df[obs_count-i, :ValidSci] == Nullable(1)) # Exclude slew/other non-scientific observations
-        # `get` required to deal with Nullable{Bool} type
-        ObsSrc = get(numaster_df[obs_count-i, :RegSrc] == Nullable(1))
+        ObsID  = string(numaster_df[obs_count-i, :obsid])
+        ObsSci = numaster_df[obs_count-i, :ValidSci] == Nullable(1) # Exclude slew/other non-scientific observations
+        ObsSrc = numaster_df[obs_count-i, :RegSrc] == Nullable(1)
 
         if ObsSci && !ObsSrc # Is valid science, doesn't already have source file
             append!(queue, [string(local_archive_cl, "/$ObsID/pipeline_out/nu$ObsID", "A01_cl.evt")])
