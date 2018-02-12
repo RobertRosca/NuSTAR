@@ -1,16 +1,17 @@
-function XML(ObsIDs; XML_out_dir="I:/FileZilla.xml", verbose=false, local_archive="default")
-    if local_archive == "default"
-        local_archive = NuSTAR.find_default_path()[1]
-        numaster_path = string(local_archive, "/00000000000 - utility/numaster_df.csv")
+function XML(ObsIDs; XML_out_dir="I:/FileZilla.xml", verbose=false, local_archive="")
+    if local_archive == ""
+        local_archive, local_archive_clean, local_utility = find_default_path()
+        numaster_path = string(local_utility, "/numaster_df.csv")
     end
 
     numaster_df   = NuSTAR.read_numaster(numaster_path)
-    caldb_file    = searchindex.(readdir(string(local_archive, "/00000000000 - utility/")), "goodfiles")
+    caldb_file    = searchindex.(readdir(local_utility), "goodfiles")
     caldb_file    = find(x -> x == 1, caldb_file)
-    caldb_version = readdir(string(local_archive, "/00000000000 - utility/"))[caldb_file][1]
+    caldb_version = readdir(local_utility)[caldb_file][1]
     caldb_version = caldb_version[22:end-7]
 
     if typeof(caldb_version) != Int
+        # Int for easier comparison later on, format is yyyymmdd
         caldb_version = parse(Int, caldb_version)
     end
 
@@ -155,8 +156,8 @@ end
 
 function XMLBatch(;local_archive="default", log_file="", batch_size=100)
     if local_archive == "default"
-        local_archive = NuSTAR.find_default_path()[1]
-        numaster_path = string(local_archive, "/00000000000 - utility/numaster_df.csv")
+        local_archive, local_archive_clean, local_utility = find_default_path()
+        numaster_path = string(local_utility, "/numaster_df.csv")
     end
 
     numaster_df = CSV.read(numaster_path, rows_for_type_detect=3000, nullable=true)

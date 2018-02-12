@@ -1,10 +1,10 @@
-function Numaster(;local_archive="default", local_archive_clean="")
-    if local_archive == "default"
-        local_archive, local_archive_clean = find_default_path()
+function Numaster(;local_archive="", local_archive_clean="", local_utility="")
+    if local_archive == ""
+        local_archive, local_archive_clean, local_utility = find_default_path()
     end
 
     numaster_url  = "https://heasarc.gsfc.nasa.gov/FTP/heasarc/dbase/tdat_files/heasarc_numaster.tdat.gz"
-    numaster_path_live = string(local_archive, "/00000000000 - utility/numaster_live.txt")
+    numaster_path_live = string(local_utility, "/numaster_live.txt")
 
     info("Downloading latest NuSTAR master catalog")
     Base.download(numaster_url, numaster_path_live)
@@ -86,12 +86,12 @@ function Numaster(;local_archive="default", local_archive_clean="")
     numaster_df[:public_date] = map(x -> Base.Dates.julian2datetime(parse(Float64, x) + 2400000.5), numaster_df[:public_date])
 
     info("Creating CSV")
-    numaster_path = string(local_archive, "/00000000000 - utility/numaster_df.csv")
+    numaster_path = string(local_utility, "/numaster_df.csv")
 
     try
         if isfile(numaster_path)
             warn("Catalog file already exists, replacing")
-            mv(numaster_path, string(local_archive, "/00000000000 - utility/numaster_df_old.csv"), remove_destination=true)
+            mv(numaster_path, string(local_utility, "/numaster_df_old.csv"), remove_destination=true)
         end
 
         CSV.write(numaster_path, numaster_df)
@@ -107,10 +107,10 @@ function Numaster(;local_archive="default", local_archive_clean="")
     info("Done")
 end
 
-function NumasterSummary(;numaster_path="")
+function Summary(;numaster_path="")
     if numaster_path == ""
-        local_archive, local_archive_clean = find_default_path()
-        numaster_path = string(local_archive, "/00000000000 - utility/numaster_df.csv")
+        local_archive, local_archive_clean, local_utility = find_default_path()
+        numaster_path = string(local_utility, "/numaster_df.csv")
     end
 
     numaster_df = read_numaster(numaster_path)

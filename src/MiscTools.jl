@@ -1,8 +1,8 @@
 function find_default_path()
     if is_windows()
-        return "I:/.nustar_archive", "I:/.nustar_archive_cl"
+        return "I:/.nustar_archive", "I:/.nustar_archive_cl", "I:/.nustar_archive/00000000000 - utility"
     elseif is_linux()
-        return "/mnt/hgfs/.nustar_archive", "/mnt/hgfs/.nustar_archive_cl"
+        return "/mnt/hgfs/.nustar_archive", "/mnt/hgfs/.nustar_archive_cl", "/mnt/hgfs/.nustar_archive/00000000000 - utility"
     else
         error("Unknwon path")
     end

@@ -143,10 +143,10 @@ MakeSourceReg("/mnt/hgfs/.nustar_archive_cl/30202004008/pipeline_out/nu302020040
 using FITSIO, WCS, DataFrames
 =#
 
-function RegBatch(;local_archive="default", log_file="", batch_size=100)
-    if local_archive == "default"
-        local_archive, local_archive_cl = NuSTAR.find_default_path()
-        numaster_path = string(local_archive, "/00000000000 - utility/numaster_df.csv")
+function RegBatch(;local_archive="", log_file="", batch_size=100)
+    if local_archive == ""
+        local_archive, local_archive_clean, local_utility = find_default_path()
+        numaster_path = string(local_utility, "/numaster_df.csv")
     end
 
     numaster_df = CSV.read(numaster_path, rows_for_type_detect=3000, nullable=true)

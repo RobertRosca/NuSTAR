@@ -8,8 +8,8 @@ end
 
 function CalBatch(local_archive="default"; log_file="", batches=4, to_cal=16)
     if local_archive == "default"
-        local_archive = NuSTAR.find_default_path()[1]
-        numaster_path = string(local_archive, "/00000000000 - utility/numaster_df.csv")
+        local_archive, local_archive_clean, local_utility = find_default_path()
+        numaster_path = string(local_utility, "/numaster_df.csv")
     end
 
     if !is_linux()
