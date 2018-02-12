@@ -25,7 +25,9 @@ function FWXM_Single_Source(path; prcnt=0.5, filt_flag=true, verbose=true)
     evt_coords = FITS_Coords(path)
 
     data_out = similar(evt_coords, 0)
-    bnds_out = DataFrame(item = ["min_ind", "max_ind", "min_val", "max_val"])
+    bnds_out = DataFrame(item = ["min_pix", "max_pix", "min_val", "max_val"])
+
+    widths = []
 
     for coord in names(evt_coords)
         hist_y = StatsBase.fit(StatsBase.Histogram, evt_coords[coord], nbins=1024, closed=:right).weights
@@ -57,9 +59,19 @@ function FWXM_Single_Source(path; prcnt=0.5, filt_flag=true, verbose=true)
 
     source_centre_fk5 = FITSWCS(path, source_centre_pix)
 
+    bound_width = FITSWCS_Delta(path, [bnds_out[:X][1], bnds_out[:Y][1]],
+                                      [bnds_out[:X][2], bnds_out[:Y][2]])
+
+
+    flag_manual_check = false
+
+    if bound_width > 50
+        flag_manual_check = true
+    end
+
     println("Source centre pixle coords: $source_centre_pix -- α: $(@sprintf("%.9f", source_centre_fk5[1])), δ: $(@sprintf("%.9f", source_centre_fk5[2]))")
 
-    return data_out, bnds_out, source_centre_pix, source_centre_fk5
+    return data_out, bnds_out, source_centre_pix, source_centre_fk5, flag_manual_check
 end
 
 #=
@@ -80,7 +92,7 @@ circle(6:32:59.243,+5:48:04.08,20")
 =#
 
 function MakeSourceReg(path)
-    (ra, dec) = FWXM_Single_Source(path; prcnt=0.5, filt_flag=true, verbose=true)[4]
+    _, _, _, (ra, dec), flag_manual_check = FWXM_Single_Source(path; prcnt=0.5, filt_flag=true, verbose=true)
 
     header = "\# Region file format: SourceDetect.jl auotgenerate for $path"
     coord_type = "fk5"
@@ -98,17 +110,28 @@ function MakeSourceReg(path)
         end
     end
 
-    command = `ds9 $path -regions $source_reg_file_unchecked`
+    if flag_manual_check
+        command = `ds9 $path -regions $source_reg_file_unchecked`
 
-    run(command)
+        run(command)
 
-    info("Correct region y/n?")
-    response = readline(STDIN)
+        info("Correct region y/n?")
+        response = readline(STDIN)
 
-    if response == "y"
+        if response == "y"
+            mv(source_reg_file_unchecked, string(obs_path, "source.reg"))
+        elseif response == "n"
+            info("Fix later")
+        elseif response == "b"
+            info("Bad source, excluded from scientific data product")
+            mv(source_reg_file_unchecked, string(obs_path, "source_bad.reg"))
+        end
+    else
+        info("No manual flag - continuing")
+
+        command = `ds9 $path -regions $source_reg_file_unchecked -saveimage $(string(obs_path, "source_region_", splitdir(path)[2][1:end-4], ".jpeg"))`
+
         mv(source_reg_file_unchecked, string(obs_path, "source.reg"))
-    elseif response == "n"
-        println("Fix later")
     end
 end
 
