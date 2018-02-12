@@ -62,11 +62,13 @@ function FWXM_Single_Source(path; prcnt=0.5, filt_flag=true, verbose=true)
     bound_width = FITSWCS_Delta(path, [bnds_out[:X][1], bnds_out[:Y][1]],
                                       [bnds_out[:X][2], bnds_out[:Y][2]])
 
+    info("Width: α - $(bound_width[1]), δ - $(bound_width[2])")
 
     flag_manual_check = false
 
-    if bound_width > 50
+    if bound_width[1] > 50 || bound_width[2] > 50
         flag_manual_check = true
+        warn("Manual check, large width")
     end
 
     println("Source centre pixle coords: $source_centre_pix -- α: $(@sprintf("%.9f", source_centre_fk5[1])), δ: $(@sprintf("%.9f", source_centre_fk5[2]))")
@@ -92,7 +94,7 @@ circle(6:32:59.243,+5:48:04.08,20")
 =#
 
 function MakeSourceReg(path)
-    _, _, _, (ra, dec), flag_manual_check = FWXM_Single_Source(path; prcnt=0.5, filt_flag=true, verbose=true)
+    _, _, _, (ra, dec), flag_manual_check = FWXM_Single_Source(path)
 
     header = "\# Region file format: SourceDetect.jl auotgenerate for $path"
     coord_type = "fk5"
@@ -157,9 +159,14 @@ function RegBatch(;local_archive="default", log_file="", batch_size=100)
         ObsID  = string(get(numaster_df[obs_count-i, :obsid]))
         ObsSci = get(numaster_df[obs_count-i, :ValidSci] == Nullable(1)) # Exclude slew/other non-scientific observations
         # `get` required to deal with Nullable{Bool} type
+        ObsSrc = get(numaster_df[obs_count-i, :RegSrc] == Nullable(1))
 
-        if ObsSci
+        if ObsSci && !ObsSrc # Is valid science, doesn't already have source file
             append!(queue, [string(local_archive_cl, "/$ObsID/pipeline_out/nu$ObsID", "A01_cl.evt")])
+
+            print(string(ObsID, ", "))
+
+            bs += 1
 
             if bs >= batch_size
                 println("\n")
