@@ -111,14 +111,17 @@ function read_numaster(numaster_path)
     #obs_type, title, data_gap, nupsdout, solar_activity, coordinated, issue_flag, comments
     #status, caldb_version, Downloaded, Cleaned, ValidSci, RegSrc, RegBkg
 
-    numaster_types = [String, Float64, Float64, Float64, Float64, Float64, String, String, String, Float64, Float64,
-    Float64, Float64, String, String, String, String,
-    String, String, String, Int, String, String,
-    Int, String, String, String, String, String, String, Int,
-    String, String, Int, Int, String, String, Int, String,
-    String, String, Int, Int, Int, Int, Int]
+    numaster_types = [Union{Missings.Missing, String}, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64},
+        Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, String},
+        Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, Int}, Union{Missings.Missing, String}, Union{Missings.Missing, String},
+        Union{Missings.Missing, Int}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, Int},
+        Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, Int}, Union{Missings.Missing, Int}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, Int}, Union{Missings.Missing, String},
+        Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, Int}, Union{Missings.Missing, Int}, Union{Missings.Missing, Int}, Union{Missings.Missing, Int}, Union{Missings.Missing, Int}];
 
-    CSV.read(numaster_path, nullable=true, types=numaster_types)
+    # This is absurdly stupid looking, but seems to be the only way to get the CSV
+    # to be read properly
+
+    CSV.read(numaster_path, types=numaster_types)
 end
 
 function sgolay(order, frameLen)
