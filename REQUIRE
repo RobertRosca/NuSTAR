@@ -1,14 +1,6 @@
 julia 0.6
-<<<<<<< HEAD
 CSV 0.2.1
 DataFrames 0.11.5
 FITSIO 0.11.0
 FTPClient 0.2.1
 LightXML 0.5.0
-=======
-FTPClient
-DataFrames
-CSV
-LightXML
-FITSIO
->>>>>>> 0bb6504e02421d96133777d2986ffa53656eb65d
