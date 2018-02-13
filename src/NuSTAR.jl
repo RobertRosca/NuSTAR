@@ -1,4 +1,4 @@
-__precompile__(false) # Precompiling completely breaks FTPClient for some reason
+__precompile__() # Precompiling completely breaks FTPClient for some reason
 
 module NuSTAR
 
