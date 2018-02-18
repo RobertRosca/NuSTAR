@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-__precompile__()
-=======
-__precompile__() # Precompiling completely breaks FTPClient for some reason
->>>>>>> 3e76ccedbbdd732963ad85f066a611eccf66f0b7
+#__precompile__()
 
 module NuSTAR
 
