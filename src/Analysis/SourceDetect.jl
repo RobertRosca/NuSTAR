@@ -112,6 +112,8 @@ function MakeSourceReg(path)
         end
     end
 
+    print("\n")
+
     if flag_manual_check
         command = `ds9 $path -regions $source_reg_file_unchecked`
 
