@@ -1,3 +1,9 @@
+"""
+    XML(ObsIDs; XML_out_dir="I:/FileZilla.xml", verbose=false, local_archive="")
+
+Takes in multiple `ObsIDs`, generates `.xml` for use by FileZilla for easy
+management of FTP downloads
+"""
 function XML(ObsIDs; XML_out_dir="I:/FileZilla.xml", verbose=false, local_archive="")
     if local_archive == ""
         local_archive, local_archive_clean, local_utility = find_default_path()
@@ -154,6 +160,12 @@ function XML(ObsIDs; XML_out_dir="I:/FileZilla.xml", verbose=false, local_archiv
     save_file(filezilla_xml, XML_out_dir)
 end
 
+"""
+    XMLBatch(;local_archive="default", log_file="", batch_size=100)
+
+Batch finds observations to be calibrated, adds to queue and calls XML(queue)
+to generate `.xml` for use by FileZilla
+"""
 function XMLBatch(;local_archive="default", log_file="", batch_size=100)
     if local_archive == "default"
         local_archive, local_archive_clean, local_utility = find_default_path()

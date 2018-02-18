@@ -1,3 +1,11 @@
+"""
+    Numaster(;local_archive="", local_archive_clean="", local_utility="")
+
+Updates the numaster_df DataFrame holding observation data
+
+Downloads new version, then works through local archives to set the flags for
+what data has been processed so far
+"""
 function Numaster(;local_archive="", local_archive_clean="", local_utility="")
     if local_archive == ""
         local_archive, local_archive_clean, local_utility = find_default_path()
@@ -112,6 +120,11 @@ function Numaster(;local_archive="", local_archive_clean="", local_utility="")
     info("Done")
 end
 
+"""
+    Summary(;numaster_path="")
+
+Outputs summary of what data can be analysed, and what has been done so far
+"""
 function Summary(;numaster_path="")
     if numaster_path == ""
         local_archive, local_archive_clean, local_utility = find_default_path()

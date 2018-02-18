@@ -133,7 +133,6 @@ function sgolay(order, frameLen)
     return B, G
 end
 
-
 function sgolayfilt(x, order, frameLen)
     B = sgolay(order, frameLen)[1]
     x = x[:]

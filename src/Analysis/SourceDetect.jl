@@ -1,7 +1,7 @@
 """
-    FITS_Coords(fits_path)
+    FITS_Coords(path)
 
-Reads fits file at `fits_path` using the `FITSIO` module, pulls out the second table
+Reads fits file at `path` using the `FITSIO` module, pulls out the second table
 and reads the `X` and `Y` variables into a `DataFrame`
 
 Removes rows with values of `-1`, assumed to be nulled
@@ -17,9 +17,11 @@ function FITS_Coords(path)
 end
 
 """
-    FWXM_Single_Source(evt_coords; prcnt=0.5, filt_flag=true, verbose=true)
+    FWXM_Single_Source(path; prcnt=0.5, filt_flag=true, verbose=true)
 
-Takes in `X, Y` coordinates,
+Takes in path, passes to FITS_Coords(path), finds Full Width at prcnt-Max for,
+returns bounds for FWXM, centre pixle, centre FK5 coordinates, and a flag
+indicating the reliability of the source position based on the width
 """
 function FWXM_Single_Source(path; prcnt=0.5, filt_flag=true, verbose=true)
     evt_coords = FITS_Coords(path)
@@ -93,6 +95,14 @@ fk5
 circle(6:32:59.243,+5:48:04.08,20")
 =#
 
+"""
+    MakeSourceReg(path)
+
+Takes in path, passes it to FWXM_Single_Source(path)
+
+Uses the returned α and δ coordinates as well as the flag_manual_check value
+to create a `.reg` file. Asks for user input it flag_manual_check is true
+"""
 function MakeSourceReg(path)
     _, _, _, (ra, dec), flag_manual_check = FWXM_Single_Source(path)
 
@@ -145,6 +155,12 @@ MakeSourceReg("/mnt/hgfs/.nustar_archive_cl/30202004008/pipeline_out/nu302020040
 using FITSIO, WCS, DataFrames
 =#
 
+
+"""
+    RegBatch(;local_archive="", log_file="", batch_size=100)
+
+Batch process for `MakeSourceReg`
+"""
 function RegBatch(;local_archive="", log_file="", batch_size=100)
     if local_archive == ""
         local_archive, local_archive_clean, local_utility = find_default_path()

@@ -1,3 +1,8 @@
+"""
+    Calibrate(ObsIDs)
+
+Calls `pipeline_vm.sh` with multiple ObsIDs in a new `gnome-terminal`
+"""
 function Calibrate(ObsIDs)
     queue = replace(string(ObsIDs)[5:end-1], ", ", " ")
 
@@ -6,13 +11,19 @@ function Calibrate(ObsIDs)
     info("Calibration started for $queue")
 end
 
+"""
+    CalBatch(local_archive="default"; log_file="", batches=4, to_cal=16)
+
+Generates queue of uncalibrated files, splits the queue unto equal (ish) batches
+and calls `Calibrate(ObsIDs)` for each batch
+"""
 function CalBatch(local_archive="default"; log_file="", batches=4, to_cal=16)
     if local_archive == "default"
         local_archive, local_archive_clean, local_utility = find_default_path()
         numaster_path = string(local_utility, "/numaster_df.csv")
     end
 
-    if !is_linux()
+    if !Sys.is_linux()
         warn("Tool only works on Linux with heainit and caldb setup")
     end
 
