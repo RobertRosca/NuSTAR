@@ -19,9 +19,9 @@ function Numaster(;local_archive="", local_archive_clean="", local_utility="")
 
     @info "Creating DataFrame"
     # Find start and end points of data, +/-1 to skip the tags themselves
-    data_start = Int(find(numaster_ascii .== "<DATA>")[1] + 1)
-    data_end   = Int(find(numaster_ascii .== "<END>")[1] - 1)
-    keys_line  = data_start - 2
+    data_start = findall(numaster_ascii .== "<DATA>") + CartesianIndex(1, 0)
+    data_end   = findall(numaster_ascii .== "<END>") - CartesianIndex(1, 0)
+    keys_line  = data_start - CartesianIndex(2, 0)
 
     # Key names are given on the keys_line, split and make into symbols for use later
     key_names = Symbol.(split(numaster_ascii[keys_line][11:end])) # 11:end to remove 'line[1] = '
