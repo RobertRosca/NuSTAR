@@ -96,7 +96,7 @@ circle(6:32:59.243,+5:48:04.08,20")
 function MakeSourceReg(path)
     _, _, _, (ra, dec), flag_manual_check = FWXM_Single_Source(path)
 
-    header = "\# Region file format: SourceDetect.jl auotgenerate for $path"
+    header = "# Region file format: SourceDetect.jl auotgenerate for $path"
     coord_type = "fk5"
     shape = "circle($ra,$dec,20\")"
 

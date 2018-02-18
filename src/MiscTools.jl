@@ -1,7 +1,7 @@
 function find_default_path()
-    if is_windows()
+    if Sys.iswindows()
         return "I:/.nustar_archive", "I:/.nustar_archive_cl", "I:/.nustar_archive/00000000000 - utility"
-    elseif is_linux()
+    elseif Sys.islinux()
         return "/mnt/hgfs/.nustar_archive", "/mnt/hgfs/.nustar_archive_cl", "/mnt/hgfs/.nustar_archive/00000000000 - utility"
     else
         error("Unknwon path")
@@ -145,4 +145,22 @@ function sgolayfilt(x, order, frameLen)
     yend = B[round(Int, (frameLen-1)/2):-1:1, :] * x[end:-1:end-(frameLen-1), :]
 
     return y = [ybegin; ycentre[frameLen:end, :]; yend]
+end
+
+function unzip!(path)
+    dir  = dirname(path)
+
+    if Sys.iswindows()
+        zip7 = string(Sys.BINDIR, "\\7z.exe")
+        run(`$zip7 e $path -o$dir`)
+    elseif Sys.islinux()
+        run(`7z e $path -o$dir`) # Assumes `p7zip-full` is installed
+    end
+
+    filename = split(basename(path), ".")[1]
+
+    if isfile(path)
+        rm(path)
+        mv(string(dir, "/", filename), path)
+    end
 end
