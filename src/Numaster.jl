@@ -9,6 +9,11 @@ function Numaster(;local_archive="", local_archive_clean="", local_utility="")
     info("Downloading latest NuSTAR master catalog")
     Base.download(numaster_url, numaster_path_live)
 
+    if Sys.is_linux()
+        # Windows (used to) unzip .gz during download, unzip now if Linux
+        unzip!(numaster_path_live)
+    end
+
     numaster_ascii = readdlm(numaster_path_live, '\n')
 
     # Find start and end points of data, +/-1 to skip the tags themselves

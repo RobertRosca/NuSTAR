@@ -146,3 +146,21 @@ function sgolayfilt(x, order, frameLen)
 
     return y = [ybegin; ycentre[frameLen:end, :]; yend]
 end
+
+function unzip!(path)
+    dir  = dirname(path)
+
+    if Sys.is_windows()
+        zip7 = string(Sys.BINDIR, "\\7z.exe")
+        run(`$zip7 e $path -o$dir`)
+    elseif Sys.is_linux()
+        run(`7z e $path -o$dir`) # Assumes `p7zip-full` is installed
+    end
+
+    filename = split(basename(path), ".")[1]
+
+    if isfile(path)
+        rm(path)
+        mv(string(dir, "/", filename), path)
+    end
+end
