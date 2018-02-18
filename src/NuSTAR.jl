@@ -1,21 +1,17 @@
-#__precompile__(false) # Precompiling completely breaks FTPClient for some reason
+__precompile__() # Precompiling completely breaks FTPClient for some reason
 
 module NuSTAR
 
-using Printf # For deprecated sprintf() function
-using DelimitedFiles # For deprecated Base.readdlm()
-using Dates # For deprecated Base.Dates
-#using GZip # Base.download() doesn't unzip anymore
 using FTPClient
 using DataFrames
 using CSV
 using LightXML
 using FITSIO
 
-if Sys.islinux()
+if is_linux()
     using WCS
 else
-    @info "Not Linux, running with reduced functionality"
+    info("Not Linux, running with reduced functionality")
 end
 
 include("ObsXML.jl")

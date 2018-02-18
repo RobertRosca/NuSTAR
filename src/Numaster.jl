@@ -6,18 +6,11 @@ function Numaster(;local_archive="", local_archive_clean="", local_utility="")
     numaster_url  = "https://heasarc.gsfc.nasa.gov/FTP/heasarc/dbase/tdat_files/heasarc_numaster.tdat.gz"
     numaster_path_live = string(local_utility, "/numaster_live.txt")
 
-    @info "Downloading latest NuSTAR master catalog"
+    info("Downloading latest NuSTAR master catalog")
     Base.download(numaster_url, numaster_path_live)
 
-    @info "Unzipping GZ"
-    unzip!(numaster_path_live)
-    #numaster_ascii = DelimitedFiles.readdlm(GZip.open(Base.download(numaster_url)), '\n')
-    numaster_ascii = DelimitedFiles.readdlm(numaster_path_live, '\n')
+    numaster_ascii = readdlm(numaster_path_live, '\n')
 
-    #@info "Writing raw live Numaster to $numaster_path_live"
-    #writedlm(numaster_path_live, numaster_ascii)
-
-    @info "Creating DataFrame"
     # Find start and end points of data, +/-1 to skip the tags themselves
     data_start = Int(find(numaster_ascii .== "<DATA>")[1] + 1)
     data_end   = Int(find(numaster_ascii .== "<END>")[1] - 1)
@@ -25,16 +18,11 @@ function Numaster(;local_archive="", local_archive_clean="", local_utility="")
 
     # Key names are given on the keys_line, split and make into symbols for use later
     key_names = Symbol.(split(numaster_ascii[keys_line][11:end])) # 11:end to remove 'line[1] = '
-    # name ra dec lii bii roll_angle time end_time obsid exposure_a
-    # exposure_b ontime_a ontime_b observation_mode instrument_mode
-    # spacecraft_mode slew_mode processing_date public_date software_version
-    # prnb abstract subject_category category_code priority pi_lname pi_fname
-    # copi_lname copi_fname country cycle obs_type title data_gap nupsdout
-    # solar_activity coordinated issue_flag comments status caldb_version
+    # name ra dec lii bii roll_angle time end_time obsid exposure_a exposure_b ontime_a ontime_b observation_mode instrument_mode spacecraft_mode slew_mode processing_date public_date software_version prnb abstract subject_category category_code priority pi_lname pi_fname copi_lname copi_fname country cycle obs_type title data_gap nupsdout solar_activity coordinated issue_flag comments status caldb_version
 
     numaster_ascii_data = numaster_ascii[data_start:data_end]
 
-    numaster_df = DataFrame(zeros(1, 41), key_names)
+    numaster_df = DataFrame(numaster_ascii[6:46], key_names)
 
     deleterows!(numaster_df, 1) # Remove row, only made to get column names
 
@@ -42,7 +30,7 @@ function Numaster(;local_archive="", local_archive_clean="", local_utility="")
         obs_values = split(row, "|")[1:end-1] # Split row by | delims
 
         if length(obs_values) != 41 # Some rows don't have the proper no. of columns, skip them
-            @warn "Skipped row $row_i due to malformed columns, ObsID: $(obs_values[9])"
+            warn("Skipped row $row_i due to malformed columns, ObsID: $(obs_values[9])")
             continue
         end
 
@@ -50,7 +38,7 @@ function Numaster(;local_archive="", local_archive_clean="", local_utility="")
             df_tmp = DataFrame()
 
             for (itr, key) in enumerate(key_names) # Create DataFrame of key and val for row
-                df_tmp[key] = obs_values[itr]
+                df_tmp[key] = replace(obs_values[itr], ",", "; ") # Remove commas, screw with CSV
             end
 
             numaster_df = [numaster_df; df_tmp] # Concat
@@ -92,35 +80,31 @@ function Numaster(;local_archive="", local_archive_clean="", local_utility="")
     numaster_df[:RegBkg]   = reg_bkg
 
     # Convert modified Julian dates to readable dates
-    numaster_df[:time] = map(x -> Dates.julian2datetime(parse(Float64, x) + 2400000.5), numaster_df[:time])
-    numaster_df[:end_time] = map(x -> Dates.julian2datetime(parse(Float64, x) + 2400000.5), numaster_df[:end_time])
-    numaster_df[:processing_date] = map(x -> Dates.julian2datetime(parse(Float64, x) + 2400000.5), numaster_df[:processing_date])
-    numaster_df[:public_date] = map(x -> Dates.julian2datetime(parse(Float64, x) + 2400000.5), numaster_df[:public_date])
+    numaster_df[:time] = map(x -> Base.Dates.julian2datetime(parse(Float64, x) + 2400000.5), numaster_df[:time])
+    numaster_df[:end_time] = map(x -> Base.Dates.julian2datetime(parse(Float64, x) + 2400000.5), numaster_df[:end_time])
+    numaster_df[:processing_date] = map(x -> Base.Dates.julian2datetime(parse(Float64, x) + 2400000.5), numaster_df[:processing_date])
+    numaster_df[:public_date] = map(x -> Base.Dates.julian2datetime(parse(Float64, x) + 2400000.5), numaster_df[:public_date])
 
-    @info "Removing 'abstract' column"
-
-    delete!(numaster_df, :abstract)
-
-    @info "Creating CSV"
+    info("Creating CSV")
     numaster_path = string(local_utility, "/numaster_df.csv")
 
     try
         if isfile(numaster_path)
-            @warn "Catalog file already exists, replacing"
+            warn("Catalog file already exists, replacing")
             mv(numaster_path, string(local_utility, "/numaster_df_old.csv"), remove_destination=true)
         end
 
         CSV.write(numaster_path, numaster_df)
     catch ex
-        @warn "Could not write to file, is file open?"
+        warn("Could not write to file, is file open?")
         log_file_temp = string(numaster_path[1:end-4], "_", tempname()[end-7:end-4], ".csv")
-        @info "Saving as temp file - $(log_file_temp)"
+        info("Saving as temp file - $(log_file_temp)")
 
         CSV.write(log_file_temp, numaster_df)
         rethrow(ex)
     end
 
-    @info "Done"
+    info("Done")
 end
 
 function Summary(;numaster_path="")
