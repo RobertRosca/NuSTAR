@@ -51,12 +51,16 @@ function Numaster(;local_archive="", local_archive_clean="", local_utility="")
             df_tmp = DataFrame()
 
             for (itr, key) in enumerate(key_names) # Create DataFrame of key and val for row
-                df_tmp[key] = replace(obs_values[itr], ",", "; ") # Remove commas, screw with CSV
+                cleaned = replace(obs_values[itr], ",", ".. ") # Remove some punctuation, screw with CSV
+                cleaned = replace(cleaned, ";", ".. ")
+                df_tmp[key] = cleaned
             end
 
             numaster_df = [numaster_df; df_tmp] # Concat
         end
     end
+
+    # delete!(numaster_df, :abstract)
 
     sort!(numaster_df, cols=(:public_date))
 
