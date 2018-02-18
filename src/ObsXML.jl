@@ -116,6 +116,7 @@ function XML(ObsIDs; XML_out_dir="I:/FileZilla.xml", verbose=false, local_archiv
         if obs_caldb < caldb_version
             download_list = [list_auxil; list_hk; list_event_uf]
         elseif obs_caldb >= caldb_version
+            info("event_cl uses currentl caldb, downloading")
             list_event_cl = get_list_for_folder(ObsID, "event_cl")
             download_list = [list_auxil; list_hk; list_event_uf; list_event_cl]
         end
