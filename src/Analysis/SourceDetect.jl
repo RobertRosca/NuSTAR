@@ -61,14 +61,15 @@ function FWXM_Single_Source(path; prcnt=0.5, filt_flag=true, verbose=true)
 
     source_centre_fk5 = FITSWCS(path, source_centre_pix)
 
-    bound_width = FITSWCS_Delta(path, [bnds_out[:X][1], bnds_out[:Y][1]],
-                                      [bnds_out[:X][2], bnds_out[:Y][2]])
+    bound_width = FITSWCS_Delta(path=path, flag_pix=true,
+                                [bnds_out[:X][1], bnds_out[:Y][1]],
+                                [bnds_out[:X][2], bnds_out[:Y][2]])
 
-    info("Width: α - $(bound_width[1]), δ - $(bound_width[2])")
+    info("Width: $bound_width")
 
     flag_manual_check = false
 
-    if bound_width[1] > 50 || bound_width[2] > 50
+    if bound_width > 50
         flag_manual_check = true
         warn("Manual check, large width")
     end

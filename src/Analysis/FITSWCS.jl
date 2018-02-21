@@ -115,36 +115,33 @@ end
 """
     FITSWCS_Delta(path, pixcoords_1, pixcoords_2)
 
-Gives the arcsecond distance (ra, dec) between two sets of pixel coordinates
+Gives the arcsecond distance between two sets of pixel coordinates
 
 Used during source detection to check the distance between the bounds of the source
 if the distance is >> 20 arcseconds, something's probably wrong
 """
-function FITSWCS_Delta(path, pixcoords_1, pixcoords_2)
-    fits_transform = gets_fits_transform(path)
+function FITSWCS_Delta(coords_1, coords_2; flag_pix=true, path="")
+    if flag_pix
+        fits_transform = gets_fits_transform(path)
 
-    wcs = WCSTransform(2;
-                        cdelt = fits_transform.cdelt,
-                        ctype = fits_transform.ctype,
-                        crpix = fits_transform.crpix,
-                        crval = fits_transform.crval)
+        wcs = WCSTransform(2;
+                            cdelt = fits_transform.cdelt,
+                            ctype = fits_transform.ctype,
+                            crpix = fits_transform.crpix,
+                            crval = fits_transform.crval)
 
-    (ra_1, dec_1) = pix_to_world(wcs, float(pixcoords_1))
-    (ra_2, dec_2) = pix_to_world(wcs, float(pixcoords_2))
+        (ra_1, dec_1) = pix_to_world(wcs, float(coords_1))
+        (ra_2, dec_2) = pix_to_world(wcs, float(coords_2))
+    else
+        ra_1, dec_1 = coords_1
+        ra_2, dec_2 = coords_2
+    end
 
-    # RA difference [arcsecond] = RA difference [seconds of time]  x 15 cos(Dec)
+    cos_law = sind(dec_1)*sind(dec_2) + cosd(dec_1)*cosd(dec_2)*cosd(ra_1-ra_2)
 
-    ra_1_arcsec = ra_1 * 15 * cos(dec_1)
-    ra_2_arcsec = ra_2 * 15 * cos(dec_2)
+    sxgm = decdeg_to_sxgm(rad2deg(acos(cos_law)))
 
-    delt_deg_ra  = abs(ra_1_arcsec - ra_2_arcsec)
-    delt_deg_dec = abs(dec_1 - dec_2)
+    arcsec_dist = sxgm[1]*60*60 + sxgm[2]*60 + sxgm[3]
 
-    delt_sxgm_ra  = decdeg_to_sxgm(delt_deg_ra)
-    delt_sxgm_dec = decdeg_to_sxgm(delt_deg_dec)
-
-    delt_arcsec_ra  = delt_sxgm_ra[1]*60*60 + delt_sxgm_ra[2]*60 + delt_sxgm_ra[3]
-    delt_arcsec_dec = delt_sxgm_dec[1]*60*60 + delt_sxgm_dec[2]*60 + delt_sxgm_dec[3]
-
-    return delt_arcsec_ra, delt_arcsec_dec
+    return arcsec_dist
 end
