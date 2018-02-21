@@ -137,7 +137,7 @@ function FITSWCS_Delta(path, pixcoords_1, pixcoords_2)
     ra_1_arcsec = ra_1 * 15 * cos(dec_1)
     ra_2_arcsec = ra_2 * 15 * cos(dec_2)
 
-    delt_deg_ra  = abs(ra_1_arcsec - ra_1_arcsec)
+    delt_deg_ra  = abs(ra_1_arcsec - ra_2_arcsec)
     delt_deg_dec = abs(dec_1 - dec_2)
 
     delt_sxgm_ra  = decdeg_to_sxgm(delt_deg_ra)
