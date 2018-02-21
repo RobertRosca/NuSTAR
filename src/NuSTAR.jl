@@ -7,6 +7,7 @@ using DataFrames
 using CSV
 using LightXML
 using FITSIO
+using StatsBase
 
 if is_linux()
     using WCS

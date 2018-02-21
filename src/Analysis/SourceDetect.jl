@@ -163,20 +163,20 @@ Batch process for `MakeSourceReg`
 """
 function RegBatch(;local_archive="", log_file="", batch_size=100)
     if local_archive == ""
-        local_archive, local_archive_clean, local_utility = find_default_path()
+        local_archive, local_archive_cl, local_utility = find_default_path()
         numaster_path = string(local_utility, "/numaster_df.csv")
     end
 
-    numaster_df = CSV.read(numaster_path, rows_for_type_detect=3000, nullable=true)
+    numaster_df = read_numaster(numaster_path)
 
     queue = []
 
     println("Added to queue:")
     obs_count = size(numaster_df, 1)[1]; bs = 0
-    for i = 0:obs_count-1 # -1 for the utility folder
+    for i = 0:obs_count-1 # -1 offset to avoid 0 index
         ObsID  = string(numaster_df[obs_count-i, :obsid])
-        ObsSci = numaster_df[obs_count-i, :ValidSci] == Nullable(1) # Exclude slew/other non-scientific observations
-        ObsSrc = numaster_df[obs_count-i, :RegSrc] == Nullable(1)
+        ObsSci = numaster_df[obs_count-i, :ValidSci] == 1 # Exclude slew/other non-scientific observations
+        ObsSrc = numaster_df[obs_count-i, :RegSrc] == 1
 
         if ObsSci && !ObsSrc # Is valid science, doesn't already have source file
             append!(queue, [string(local_archive_cl, "/$ObsID/pipeline_out/nu$ObsID", "A01_cl.evt")])

@@ -4,10 +4,14 @@
 Takes in multiple `ObsIDs`, generates `.xml` for use by FileZilla for easy
 management of FTP downloads
 """
-function XML(ObsIDs; XML_out_dir="I:/FileZilla.xml", verbose=false, local_archive="")
+function XML(ObsIDs; XML_out_dir="", verbose=false, local_archive="")
     if local_archive == ""
         local_archive, local_archive_clean, local_utility = find_default_path()
         numaster_path = string(local_utility, "/numaster_df.csv")
+    end
+
+    if XML_out_dir == ""
+        XML_out_dir = string(local_utility, "/FileZilla.xml")
     end
 
     numaster_df   = NuSTAR.read_numaster(numaster_path)
@@ -110,7 +114,7 @@ function XML(ObsIDs; XML_out_dir="I:/FileZilla.xml", verbose=false, local_archiv
         list_hk       = get_list_for_folder(ObsID, "hk")
         list_event_uf = get_list_for_folder(ObsID, "event_uf")
 
-        obs_caldb = numaster_df[:caldb_version][numaster_df[:obsid] .== ObsID][1]
+        obs_caldb = parse(Int, numaster_df[:caldb_version][numaster_df[:obsid] .== ObsID][1])
 
         # If calibration is outdated, ignore cleaned files
         if obs_caldb < caldb_version

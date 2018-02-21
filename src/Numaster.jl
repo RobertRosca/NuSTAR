@@ -87,7 +87,7 @@ function Numaster(;local_archive="", local_archive_clean="", local_utility="")
     for (itr, obs) in enumerate(numaster_df[:obsid])
         if cleaned[itr] == 1
             valid_sci[itr]  = isfile(string(local_archive_clean, "/", obs, "/pipeline_out/", "nu", obs, "A01_cl.evt")) ? 1 : 0
-            reg_src[itr] = isfile(string(local_archive_clean, "/", obs, "/source.reg")) ? 1 : 0
+            reg_src[itr] = isfile(string(local_archive_clean, "/", obs, "/source.reg")) || isfile(string(local_archive_clean, "/", obs, "/source_bad.reg")) ? 1 : 0
             reg_bkg[itr] = isfile(string(local_archive_clean, "/", obs, "/background.reg")) ? 1 : 0
         end
     end
@@ -140,9 +140,13 @@ function Summary(;numaster_path="")
     total = count(numaster_df[:observation_mode] .== "SCIENCE")
     downloaded = sum(numaster_df[:Downloaded])
     cleaned = sum(numaster_df[:Cleaned])
+    valid_sci = sum(numaster_df[:ValidSci])
+    reg_src   = sum(numaster_df[:RegSrc])
 
     println("$(size(numaster_df, 1)) archived observations")
     println("$total archived observations - SCIENTIFIC")
     println("$downloaded / $total downloaded")
-    println("$cleaned / $total cleaned")
+    println("$cleaned / $downloaded cleaned")
+    println("$valid_sci / $cleaned valid sci - A01_cl present")
+    println("$reg_src / $valid_sci source.reg present out of valid sci")
 end
