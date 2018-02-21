@@ -87,7 +87,15 @@ function Numaster(;local_archive="", local_archive_clean="", local_utility="")
     for (itr, obs) in enumerate(numaster_df[:obsid])
         if cleaned[itr] == 1
             valid_sci[itr]  = isfile(string(local_archive_clean, "/", obs, "/pipeline_out/", "nu", obs, "A01_cl.evt")) ? 1 : 0
-            reg_src[itr] = isfile(string(local_archive_clean, "/", obs, "/source.reg")) || isfile(string(local_archive_clean, "/", obs, "/source_bad.reg")) ? 1 : 0
+
+            if isfile(string(local_archive_clean, "/", obs, "/source.reg"))
+                reg_src[itr] = 1 # Valid source file
+            elseif isfile(string(local_archive_clean, "/", obs, "/source_bad.reg"))
+                reg_src[itr] = -1 # Bad source, ignore during analysis
+            else
+                reg_src[itr] = 0 # No source file yet
+            end
+
             reg_bkg[itr] = isfile(string(local_archive_clean, "/", obs, "/background.reg")) ? 1 : 0
         end
     end
