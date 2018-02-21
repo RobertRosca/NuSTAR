@@ -105,7 +105,7 @@ Uses the returned α and δ coordinates as well as the flag_manual_check value
 to create a `.reg` file. Asks for user input it flag_manual_check is true
 """
 function MakeSourceReg(path)
-    _, _, _, (ra, dec), flag_manual_check = FWXM_Single_Source(path)
+    _, _, (ra, dec), flag_manual_check = FWXM_Single_Source(path)
 
     header = "\# Region file format: SourceDetect.jl auotgenerate for $path"
     coord_type = "fk5"
@@ -130,7 +130,7 @@ function MakeSourceReg(path)
 
         run(command)
 
-        info("Correct region y/n/b?")
+        info("Correct region y/n/b/i?")
         response = readline(STDIN)
 
         if response == "y"
@@ -143,6 +143,16 @@ function MakeSourceReg(path)
         elseif response == "b"
             info("Bad source, excluded from scientific data product")
             mv(source_reg_file_unchecked, string(obs_path, "source_bad.reg"))
+        elseif response[1][1] == 'i'
+            info("Bad source, excluded from scientific data product")
+
+            note_path = string(obs_path, "note.txt")
+            info("Included note at $note_path")
+            mv(source_reg_file_unchecked, string(obs_path, "source_intersting.reg"))
+
+            open(note_path, "w") do f
+                write(f, response[3:end])
+            end
         end
     else
         info("No manual flag - continuing")
@@ -152,6 +162,8 @@ function MakeSourceReg(path)
 
         mv(source_reg_file_unchecked, string(obs_path, "source.reg"))
     end
+
+    return
 end
 
 #=
