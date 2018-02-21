@@ -108,7 +108,7 @@ function MakeSourceReg(path)
 
     header = "\# Region file format: SourceDetect.jl auotgenerate for $path"
     coord_type = "fk5"
-    shape = "circle($ra,$dec,20\")"
+    shape = "circle($ra,$dec,30\")"
 
     lines_source = [header, coord_type, shape]
 
