@@ -107,7 +107,7 @@ to create a `.reg` file. Asks for user input it flag_manual_check is true
 function MakeSourceReg(path)
     _, _, (ra, dec), flag_manual_check = FWXM_Single_Source(path)
 
-    header = "\# Region file format: SourceDetect.jl auotgenerate for $path"
+    header = "\# Region file format: SourceDetect.jl - Source auotgenerate for $path"
     coord_type = "fk5"
     shape = "circle($ra,$dec,30\")"
 
@@ -174,11 +174,11 @@ using FITSIO, WCS, DataFrames
 
 
 """
-    RegBatch(;local_archive="", log_file="", batch_size=100)
+    RegSrcBatch(;local_archive="", log_file="", batch_size=100)
 
 Batch process for `MakeSourceReg`
 """
-function RegBatch(;local_archive="", log_file="", batch_size=100)
+function RegSrcBatch(;local_archive="", log_file="", batch_size=100)
     if local_archive == ""
         local_archive, local_archive_cl, local_utility = find_default_path()
         numaster_path = string(local_utility, "/numaster_df.csv")
@@ -212,5 +212,128 @@ function RegBatch(;local_archive="", log_file="", batch_size=100)
     for obs_evt in queue
         info("Getting region for $obs_evt")
         MakeSourceReg(obs_evt)
+    end
+end
+
+
+
+function FindBackgroundReg(path_src)
+    path_obs = string(dirname(path_src), "/pipeline_out/nu", split(dirname(path_src), "/")[end], "A01_cl.evt")
+
+    offset_sec = 80
+    offset_deg = offset_sec/60/60
+
+    f = open(path_src)
+
+    file_src = readlines(f)
+
+    close(f)
+
+    splt = split(file_src[end], ",")
+
+    if contains(splt[2], ":")
+        # Assume sexagesimal coordinates
+        ra, dec = (replace(splt[1], "circle(", ""), splt[2])
+
+        ra_splt = split(ra, ":")
+        dec_splt = split(dec, ":")
+
+        ra_bkg = string(ra_splt[1], ":", ra_splt[2], ":", ra_splt[3])
+        dec_bkg = string(dec_splt[1], ":", dec_splt[2], ":", parse(Float64, dec_splt[3]) + offset_sec)
+    else
+        # Assumes degree coordinates
+        ra = parse(Float64, replace(splt[1], "circle(", ""))
+        dec = parse(Float64, splt[2])
+
+        ra_bkg = ra
+        dec_bkg = dec + offset_deg
+    end
+
+    return ra_bkg, dec_bkg
+end
+
+
+"""
+    MakeBackgroundReg(path_src)
+
+Takes in path_src, passes it to FWXM_Single_Source(path_src)
+
+Uses the returned α and δ coordinates as well as the flag_manual_check value
+to create a `.reg` file. Asks for user input it flag_manual_check is true
+"""
+function MakeBackgroundReg(path_src)
+    ra, dec = FindBackgroundReg(path_src)
+
+    header = "\# Region file format: SourceDetect.jl - Background auotgenerate for $path_src"
+    coord_type = "fk5"
+    shape = "circle($ra,$dec,30\")"
+
+    lines_source = [header, coord_type, shape]
+
+    obs_path = replace(splitdir(path_src)[1], "pipeline_out", "") # Get the path to the root obs folder
+
+    background_reg_file = string(obs_path, "/background.reg")
+
+    open(background_reg_file, "w") do f
+        for line in lines_source
+            write(f, "$line \n")
+        end
+    end
+
+    return background_reg_file
+end
+
+
+"""
+    RegBkgBatch(;local_archive="", log_file="", batch_size=100)
+
+Batch process for `MakeBackgroundReg`
+"""
+function RegBkgBatch(;local_archive="", log_file="", batch_size=100)
+    if local_archive == ""
+        local_archive, local_archive_cl, local_utility = find_default_path()
+        numaster_path = string(local_utility, "/numaster_df.csv")
+    end
+
+    numaster_df = read_numaster(numaster_path)
+
+    queue = []
+
+    println("Added to queue:")
+    obs_count = size(numaster_df, 1)[1]; bs = 0
+    for i = 0:obs_count-1 # -1 offset to avoid 0 index
+        ObsID  = string(numaster_df[obs_count-i, :obsid])
+        ObsSrc = numaster_df[obs_count-i, :RegSrc] == 1
+
+        if ObsSrc # Only use obs that have source file
+            append!(queue, [string(local_archive_cl, "/$ObsID/source.reg")])
+
+            print(string(ObsID, ", "))
+
+            bs += 1
+
+            if bs >= batch_size
+                println("\n")
+                break
+            end
+        end
+    end
+
+    for path_src in queue
+        info("Creating background for $path_src")
+        path_bkg = MakeBackgroundReg(path_src)
+
+        path_obs = string(dirname(path_src), "/pipeline_out/nu", split(dirname(path_src), "/")[end], "A01_cl.evt")
+
+        image_file = string(dirname(path_src), "/regions_", splitdir(path_obs)[2][1:end-4], ".jpeg")
+
+        info("ds9 $path_obs -region $path_src -region $path_bkg -saveimage $image_file -exit")
+
+        if isfile(image_file)
+            rm(image_file)
+        end
+
+        save_ds9_img = `ds9 $path_obs -region $path_src -region $path_bkg -saveimage $image_file -exit`
+        run(save_ds9_img)
     end
 end
