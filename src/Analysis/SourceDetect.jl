@@ -26,7 +26,7 @@ indicating the reliability of the source position based on the width
 function FWXM_Single_Source(path; prcnt=0.5, filt_flag=true, verbose=true)
     evt_coords = FITS_Coords(path)
 
-    data_out = similar(evt_coords, 0)
+    # data_out = similar(evt_coords, 0)
     bnds_out = DataFrame(item = ["min_pix", "max_pix", "min_val", "max_val"])
 
     widths = []
@@ -50,7 +50,7 @@ function FWXM_Single_Source(path; prcnt=0.5, filt_flag=true, verbose=true)
                                            "to $(hist_x[max_ind]) ($(@sprintf("%.3f", hist_y[max_ind])))")
         end
 
-        data_out = evt_coords[Int(hist_x[min_ind]) .< evt_coords[coord] .< Int(hist_x[max_ind]), :]
+        # data_out = evt_coords[Int(hist_x[min_ind]) .< evt_coords[coord] .< Int(hist_x[max_ind]), :]
         bnds_out[coord] = [hist_x[min_ind], hist_x[max_ind], hist_y[min_ind], hist_y[max_ind]]
     end
 
@@ -75,7 +75,7 @@ function FWXM_Single_Source(path; prcnt=0.5, filt_flag=true, verbose=true)
 
     println("Source centre pixle coords: $source_centre_pix -- α: $(@sprintf("%.9f", source_centre_fk5[1])), δ: $(@sprintf("%.9f", source_centre_fk5[2]))")
 
-    return data_out, bnds_out, source_centre_pix, source_centre_fk5, flag_manual_check
+    return bnds_out, source_centre_pix, source_centre_fk5, flag_manual_check
 end
 
 #=
