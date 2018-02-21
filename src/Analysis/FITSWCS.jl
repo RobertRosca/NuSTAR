@@ -81,7 +81,7 @@ Takes in array of x and y pixel coordinates in `pixcoords`
 
 Returns array of WCS, FK5, degrees α and δ
 """
-function FITSWCS(path, pixcoords)
+function FITSWCS(path, pixcoords; flag_to_world=true)
     fits_transform = gets_fits_transform(path)
 
     wcs = WCSTransform(2;
@@ -90,7 +90,11 @@ function FITSWCS(path, pixcoords)
                         crpix = fits_transform.crpix,
                         crval = fits_transform.crval)
 
-    pix_to_world(wcs, float(pixcoords))
+    if flag_to_world
+        return pix_to_world(wcs, float(pixcoords))
+    else
+        return world_to_pix(wcs, float(pixcoords))
+    end
 end
 
 """
