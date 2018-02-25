@@ -21,5 +21,6 @@ include("ObsCal.jl")
 include("Numaster.jl")
 include("Analysis/FITSWCS.jl")
 include("Analysis/SourceDetect.jl")
+include("Analysis/Xselect.jl")
 
 end

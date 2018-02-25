@@ -1,9 +1,8 @@
-function XselLC(ObsID, bins)
+function XselLC(ObsID, bins; local_archive="default", local_archive_clean="")
     if local_archive == "default"
-        local_archive, local_archive_clean, local_utility = find_default_path()
+        local_archive = ENV["NU_ARCHIVE_LIVE"]
+        local_archive_clean = ENV["NU_ARCHIVE_CL_LIVE"]
     end
-
-    bins = 1
 
     xsel_name = split(tempname(), "/")[3]
 
@@ -40,5 +39,7 @@ function XselLC(ObsID, bins)
         end
     end
 
-    run(`gnome-terminal -e "/home/robert/pipeline_vm.sh $queue"`)
+    run_xselect = string(Pkg.dir(), "/NuSTAR/src/Scripts/run_xselect.sh")
+
+    run(`gnome-terminal -e "$run_xselect @$xsel_file_path"`)
 end
