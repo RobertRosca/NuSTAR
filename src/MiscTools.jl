@@ -153,7 +153,12 @@ function unzip!(path)
         zip7 = string(Sys.BINDIR, "\\7z.exe")
         run(`$zip7 e $path -o$dir`)
     elseif Sys.is_linux()
-        run(`7z e $path -o$dir`) # Assumes `p7zip-full` is installed
+        try
+            run(`7z e $path -o$dir`) # Assumes `p7zip-full` is installed
+        catch error
+            warning("Is p7zip-full installed?")
+            error(error)
+        end
     end
 
     filename = split(basename(path), ".")[1]

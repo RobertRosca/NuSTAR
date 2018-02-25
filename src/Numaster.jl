@@ -17,7 +17,7 @@ function Numaster(;local_archive="", local_archive_clean="", local_utility="")
     info("Downloading latest NuSTAR master catalog")
     Base.download(numaster_url, numaster_path_live)
 
-    if Sys.is_linux()
+    if VERSION >= v"0.7.0" || Sys.is_linux()
         # Windows (used to) unzip .gz during download, unzip now if Linux
         unzip!(numaster_path_live)
     end
@@ -35,7 +35,7 @@ function Numaster(;local_archive="", local_archive_clean="", local_utility="")
 
     numaster_ascii_data = numaster_ascii[data_start:data_end]
 
-    numaster_df = DataFrame(numaster_ascii[6:46], key_names)
+    numaster_df = DataFrame(zeros(1, 41), key_names)
 
     deleterows!(numaster_df, 1) # Remove row, only made to get column names
 
