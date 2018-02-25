@@ -1,0 +1,64 @@
+!xselect 14:21:54 25-Feb-2018
+ Command not found; type ? for a command listing
+!juliascagxy:NUSTAR > read event
+!> Enter the Event file dir >[/home/robert/Scratch/30202002004/pipeline_out/] /
+home/robert/Scratch/30202002004/pipeline_out/
+!> Enter Event file list >[nu30202002004A01_cl.evt] nu30202002004A01_cl.evt
+ 
+ Notes: XSELECT set up for      NUSTAR
+ Time keyword is TIME       in units of s
+ Default timing binsize =   5.0000
+ 
+Setting...
+ Image  keywords   = X          Y           with binning =    1
+ WMAP   keywords   = X          Y           with binning =    1
+ Energy keyword   = PI                     with binning =    1
+ 
+Getting Min and Max for Energy Column...
+Got min and max for PI:     0   4095
+ 
+could not get minimum time resolution of the data read
+MJDREF =  5.5197000766019E+04 with TIMESYS = TT
+ Number of files read in:            1
+at.tmp" "outfile=/home/robert/Scratch/.julia/v0.6/NuSTAR/src/Scripts/juliascagx
+y_read_cat.xsl" "keywords=@/home/robert/Scratch/.julia/v0.6/NuSTAR/src/Scripts/
+juliascagxy_obslist.def" maxlen=11 minlen=0 iform=I8 "eform=E8.2" quiet=yes omi
+t=no
+******************** Observation Catalogue ********************
+ 
+Data Directory is: /home/robert/Scratch/30202002004/pipeline_out/
+HK Directory is: /home/robert/Scratch/30202002004/pipeline_out/
+" STDOUT "@juliascagxy_display.def" "-" prhead = no pagewidth = 128 wrap = yes 
+showunit = no tdisp = yes
+ 
+ 
+        OBJECT      OBS_ID      DATE-OBS
+      1 WR140       30202002004 2016-11-11T12:36:08
+!juliascagxy:NUSTAR-FPMA > filter region /home/robert/Scratch/30202002004/sourc
+e.reg
+!juliascagxy:NUSTAR-FPMA > extract CURVE bins=1
+file = "juliascagxy_region.xsl" qdpfile = NONE fitsbinlc = "juliascagxy_fits_cu
+rve.xsl" lcthresh = "9.9000000E-01" lctzero = yes xronwn = "/home/robert/Scratc
+h/.julia/v0.6/NuSTAR/src/Scripts/juliascagxy_xronos_out.xsl" unbinlc = NONE pha
+file = NONE imgfile = NONE timefile = NONE adjustgti=no gstring = NONE timeorde
+r = no xcolf = X ycolf = Y xcolh = X ycolh = Y xfkey = TLMAX yfkey = TLMAX xhke
+y = TLMAX yhkey = TLMAX phamax = TLMAX specbin = 1 binh = 1 binf = 1 binlc = "1
+.0000000E+00" tcol = TIME ecol = PI ccol = NONE gcol = GRADE gti = GTI events =
+ EVENTS gtitxt = "juliascagxy_ascii_out.xsl" timeref = "40000.00" wtmapb = yes 
+wtmapfix = yes swmapx = no swmapy = no wmapver = 2 gtinam = GTI exitnow = no
+extractor v5.32    15 Feb 2017
+ Getting FITS WCS Keywords
+ Doing file: /home/robert/Scratch/30202002004/pipeline_out/nu30202002004A01_cl.
+evt[regfilter("juliascagxy_region.xsl",X,Y)]
+          Total      Good    Bad: Time     Phase     Grade       Cut
+              0         0            0         0         0         0
+===============================================================================
+    Grand Total      Good    Bad: Time     Phase     Grade       Cut
+              0         0            0         0         0         0
+   in  56413.     seconds
+ Fits light curve has        0 counts for  0.000     counts/sec
+/lc_1.fits clobber=yes
+Wrote FITS light curve to file /home/robert/Scratch/30202002004/products/lc_1.f
+its
+!juliascagxy:NUSTAR-FPMA > exit
+!> Save this session? >[no] no
