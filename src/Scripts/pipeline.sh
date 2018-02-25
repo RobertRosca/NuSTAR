@@ -52,6 +52,8 @@ do
 
 	echo "${highlight}Finished nupipeline ${reset}"
 
+	echo "${highlight}Moving cleaned $ObsID to $clean ${reset}"
+
 	rsync -a --info=progress2 --remove-source-files $clean_live$ObsID/ $clean$ObsID/
 
 	echo "${highlight}Removing $archive_live$ObsID ${reset}"
