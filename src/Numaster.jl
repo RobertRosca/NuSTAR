@@ -147,9 +147,9 @@ function Summary(;numaster_path="")
 
     total = count(numaster_df[:observation_mode] .== "SCIENCE")
     downloaded = sum(numaster_df[:Downloaded])
-    cleaned = sum(numaster_df[:Cleaned])
-    valid_sci = sum(numaster_df[:ValidSci])
-    reg_src   = sum(numaster_df[:RegSrc])
+    cleaned    = sum(numaster_df[:Cleaned])
+    valid_sci  = sum(numaster_df[:ValidSci])
+    reg_src    = count(numaster_df[:RegSrc] .== 1)
 
     println("$(size(numaster_df, 1)) archived observations")
     println("$total archived observations - SCIENTIFIC")
