@@ -124,6 +124,13 @@ function read_numaster(numaster_path)
     CSV.read(numaster_path, types=numaster_types)
 end
 
+function load_numaster()
+    local_archive, local_archive_clean, local_utility = find_default_path()
+    numaster_path = string(local_utility, "/numaster_df.csv")
+    
+    return read_numaster(numaster_path)
+end
+
 function sgolay(order, frameLen)
     S = (-(frameLen-1)/2:((frameLen-1)/2)) .^ (0:order)'
     (Q, R) = qr(S)
