@@ -3,10 +3,16 @@
 
 Calls `pipeline_vm.sh` with multiple ObsIDs in a new `gnome-terminal`
 """
-function Calibrate(ObsIDs)
-    queue = replace(string(ObsIDs)[5:end-1], ", ", " ")
+function Calibrate(ObsIDs::Union{Array{String,1}, String})
+    if typeof(ObsIDs) == Array{String,1}
+        queue = replace(string(ObsIDs)[8:end-1], ", ", " ")
+    elseif typeof(ObsIDs) == String
+        queue = ObsIDs
+    end
 
-    run(`gnome-terminal -e "/home/robert/pipeline_vm.sh $queue"`)
+    run_nupipeline = string(Pkg.dir(), "/NuSTAR/src/Scripts/run_nupipeline.sh")
+
+    run(`gnome-terminal -e "$run_nupipeline $queue"`)
 
     info("Calibration started for $queue")
 end
@@ -69,9 +75,9 @@ function CalBatch(local_archive="default"; log_file="", batches=4, to_cal=16)
         u = sum(batch_sizes[1:i])
 
         if is_linux()
-            Calibrate(queue[l:u])
+            Calibrate(string.(queue[l:u]))
         else
-            println(queue[l:u])
+            println(string.(queue[l:u]))
         end
     end
 end
