@@ -92,6 +92,8 @@ function Numaster(;local_archive="", local_archive_clean="", local_utility="", f
 
             if isfile(string(local_archive_clean, "/", obs, "/source.reg"))
                 reg_src[itr] = 1 # Valid source file
+            elseif isfile(string(local_archive_clean, "/", obs, "/source_intersting.reg"))
+                reg_src[itr] = 2 # 'Interesting' source file
             elseif isfile(string(local_archive_clean, "/", obs, "/source_bad.reg"))
                 reg_src[itr] = -1 # Bad source, ignore during analysis
             elseif isfile(string(local_archive_clean, "/", obs, "/source_unchecked.reg"))
