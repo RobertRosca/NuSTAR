@@ -168,3 +168,26 @@ function Summary(;numaster_path="")
     println("$bad_reg_src / $valid_sci bad source region out of valid sci")
     println("$check_reg_src / $valid_sci check source region out of valid sci")
 end
+
+function Summary_list(col, comp, val; archive="cl", numaster_path="", res=:obsid)
+    if numaster_path == ""
+        local_archive, local_archive_clean, local_utility = find_default_path()
+        numaster_path = string(local_utility, "/numaster_df.csv")
+    end
+
+    if archive == "cl"
+        ar = local_archive_clean
+    else
+        ar = local_archive
+    end
+
+    numaster_df = read_numaster(numaster_path)
+
+    comp = Symbol(comp)
+
+    col_list = @from i in numaster_df begin
+            @where eval(Expr(:call, comp, getfield(i, Symbol(col)), val))
+            @select eval(getfield(i, Symbol(res)))
+            @collect
+    end
+end
