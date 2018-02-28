@@ -6,7 +6,7 @@ Updates the numaster_df DataFrame holding observation data
 Downloads new version, then works through local archives to set the flags for
 what data has been processed so far
 """
-function Numaster(;local_archive="", local_archive_clean="", local_utility="")
+function Numaster(;local_archive="", local_archive_clean="", local_utility="", flag_download=true)
     if local_archive == ""
         local_archive, local_archive_clean, local_utility = find_default_path()
     end
@@ -14,12 +14,14 @@ function Numaster(;local_archive="", local_archive_clean="", local_utility="")
     numaster_url  = "https://heasarc.gsfc.nasa.gov/FTP/heasarc/dbase/tdat_files/heasarc_numaster.tdat.gz"
     numaster_path_live = string(local_utility, "/numaster_live.txt")
 
-    info("Downloading latest NuSTAR master catalog")
-    Base.download(numaster_url, numaster_path_live)
+    if flag_download
+        info("Downloading latest NuSTAR master catalog")
+        Base.download(numaster_url, numaster_path_live)
 
-    if VERSION >= v"0.7.0" || Sys.is_linux()
-        # Windows (used to) unzip .gz during download, unzip now if Linux
-        unzip!(numaster_path_live)
+        if VERSION >= v"0.7.0" || Sys.is_linux()
+            # Windows (used to) unzip .gz during download, unzip now if Linux
+            unzip!(numaster_path_live)
+        end
     end
 
     numaster_ascii = readdlm(numaster_path_live, '\n')
