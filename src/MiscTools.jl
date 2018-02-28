@@ -111,12 +111,16 @@ function read_numaster(numaster_path)
     #obs_type, title, data_gap, nupsdout, solar_activity, coordinated, issue_flag, comments
     #status, caldb_version, Downloaded, Cleaned, ValidSci, RegSrc, RegBkg
 
-    numaster_types = [Union{Missings.Missing, String}, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64},
-        Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, String},
-        Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, Int}, Union{Missings.Missing, String}, Union{Missings.Missing, String},
-        Union{Missings.Missing, Int}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, Int},
-        Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, Int}, Union{Missings.Missing, Int}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, Int}, Union{Missings.Missing, String},
-        Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, Int}, Union{Missings.Missing, Int}, Union{Missings.Missing, Int}, Union{Missings.Missing, Int}, Union{Missings.Missing, Int}];
+    numaster_types = [String, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64},
+    Union{Missings.Missing, Float64}, String, String, String, Float64,
+    Float64, Float64, Float64, String, String,
+    String, String, String, String, String,
+    Int, Union{Missings.Missing, String}, String, Int, String,
+    String, String, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, String},
+    Int, String, Union{Missings.Missing, String}, Int, Int,
+    Union{Missings.Missing, String}, Union{Missings.Missing, String}, Int, Union{Missings.Missing, String}, String,
+    String, Int, Int, Int, Int,
+    Int];
 
     # This is absurdly stupid looking, but seems to be the only way to get the CSV
     # to be read properly
@@ -127,7 +131,7 @@ end
 function load_numaster()
     local_archive, local_archive_clean, local_utility = find_default_path()
     numaster_path = string(local_utility, "/numaster_df.csv")
-    
+
     return read_numaster(numaster_path)
 end
 
