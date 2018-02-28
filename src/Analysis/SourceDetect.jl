@@ -127,11 +127,11 @@ function MakeSourceReg(path; skip_bad=false)
             info("Bad source, excluded from scientific data product")
             mv(source_reg_file_unchecked, string(obs_path, "source_bad.reg"))
         elseif response[1][1] == 'i'
-            info("Bad source, excluded from scientific data product")
+            info("Interesting source, excluded, notes added")
 
             note_path = string(obs_path, "note.txt")
             info("Included note at $note_path")
-            mv(source_reg_file_unchecked, string(obs_path, "source_intersting.reg"))
+            mv(source_reg_file_unchecked, string(obs_path, "source_intersting.reg"), remove_destination=true)
 
             open(note_path, "w") do f
                 write(f, response[3:end])
@@ -228,7 +228,7 @@ function MakeBackgroundReg(path_src)
     return
 end
 
-function RegBatch(;local_archive="", log_file="", batch_size=100, skip_bad=true, src_type="both")
+function RegBatch(;local_archive="", log_file="", batch_size=100, skip_bad=true, src_type="both", bad_only=false)
     if local_archive == ""
         local_archive, local_archive_cl, local_utility = find_default_path()
         numaster_path = string(local_utility, "/numaster_df.csv")
@@ -236,10 +236,17 @@ function RegBatch(;local_archive="", log_file="", batch_size=100, skip_bad=true,
 
     numaster_df = read_numaster(numaster_path)
 
+    if bad_only
+        skip_bad = false
+        src_include_val = -2 # Change checked value to -2 for @where below
+    else
+        src_include_val = 0
+    end
+
     if src_type=="both" || src_type=="src"
         # Source region creation
         queue_src = @from i in numaster_df begin
-                @where  i.RegSrc!=1 && i.ValidSci==1 # Doesn't already have a source AND is valid science
+                @where  i.RegSrc==src_include_val && i.ValidSci==1 # Doesn't already have a source AND is valid science
                 @select string(local_archive_cl, "/$(i.obsid)/pipeline_out/nu$(i.obsid)", "A01_cl.evt")
                 @collect
         end
@@ -252,13 +259,11 @@ function RegBatch(;local_archive="", log_file="", batch_size=100, skip_bad=true,
 
         for obs_evt in queue_src
             info("Getting region for $obs_evt")
-            #MakeSourceReg(obs_evt; skip_bad=skip_bad)
+            MakeSourceReg(obs_evt; skip_bad=skip_bad)
         end
-    end
 
-    if src_type=="both"
         info("Updating Numaster table")
-        #Numaster()
+        Numaster(flag_download=false)
     end
 
     if src_type=="both" || src_type=="bkg"
@@ -277,71 +282,10 @@ function RegBatch(;local_archive="", log_file="", batch_size=100, skip_bad=true,
 
         for path_src in queue_bkg
             info("Creating background for $path_src")
-            #MakeBackgroundReg(path_src)
+            MakeBackgroundReg(path_src)
         end
+
+        info("Updating Numaster table")
+        Numaster(flag_download=false)
     end
-end
-
-"""
-    RegSrcBatch(;local_archive="", log_file="", batch_size=100)
-
-Batch process for `MakeSourceReg`
-"""
-function RegSrcBatch(;local_archive="", log_file="", batch_size=100, skip_bad=true)
-    if local_archive == ""
-        local_archive, local_archive_cl, local_utility = find_default_path()
-        numaster_path = string(local_utility, "/numaster_df.csv")
-    end
-
-    numaster_df = read_numaster(numaster_path)
-
-    queue = @from i in numaster_df begin
-            @where  i.RegSrc!=1 && i.ValidSci==1 # Doesn't already have a source AND is valid science
-            @select string(local_archive_cl, "/$(i.obsid)/pipeline_out/nu$(i.obsid)", "A01_cl.evt")
-            @collect
-    end
-
-    queue = queue[end:-1:1] # Reverse order
-
-    if length(queue) > batch_size
-        queue = queue[1:batch_size]
-    end
-
-    for obs_evt in queue
-        info("Getting region for $obs_evt")
-        #MakeSourceReg(obs_evt; skip_bad=skip_bad)
-    end
-end
-
-"""
-    RegBkgBatch(;local_archive="", log_file="", batch_size=100)
-
-Batch process for `MakeBackgroundReg`
-"""
-function RegBkgBatch(;local_archive="", log_file="", batch_size=10)
-    if local_archive == ""
-        local_archive, local_archive_cl, local_utility = find_default_path()
-        numaster_path = string(local_utility, "/numaster_df.csv")
-    end
-
-    numaster_df = read_numaster(numaster_path)
-
-    queue = @from i in numaster_df begin
-            @where  i.RegSrc==1 # Valid source exists
-            @select string(local_archive_cl, "/$(i.obsid)/source.reg")
-            @collect
-    end
-
-    queue = queue[end:-1:1] # Reverse order
-
-    if length(queue) > batch_size
-        queue = queue[1:batch_size]
-    end
-
-    for path_src in queue
-        info("Creating background for $path_src")
-        #MakeBackgroundReg(path_src)
-    end
-
-    return
 end
