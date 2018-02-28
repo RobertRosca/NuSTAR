@@ -79,23 +79,6 @@ function FWXM_Single_Source(path; prcnt=0.5, filt_flag=true, verbose=true)
     return bnds_out, source_centre_pix, source_centre_fk5, flag_manual_check
 end
 
-#=
-path = "/mnt/hgfs/.nustar_archive_cl/80102101004/pipeline_out/nu80102101004A01_cl.evt"
-path = "/mnt/hgfs/.nustar_archive_cl/30460021002/pipeline_out/nu30460021002A01_cl.evt"
-
-evt_coords = FITS_Coords(path)
-
-(a, b) = FWXM_Single_Source(path; prcnt=0.75, filt_flag=true, verbose=true)
-=#
-
-
-#=
-# Region file format: DS9 version 4.1
-global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1
-fk5
-circle(6:32:59.243,+5:48:04.08,20")
-=#
-
 """
     MakeSourceReg(path)
 
@@ -104,7 +87,7 @@ Takes in path, passes it to FWXM_Single_Source(path)
 Uses the returned α and δ coordinates as well as the flag_manual_check value
 to create a `.reg` file. Asks for user input it flag_manual_check is true
 """
-function MakeSourceReg(path)
+function MakeSourceReg(path; skip_bad=false)
     _, _, (ra, dec), flag_manual_check = FWXM_Single_Source(path)
 
     header = "\# Region file format: SourceDetect.jl - Source auotgenerate for $path"
@@ -125,7 +108,7 @@ function MakeSourceReg(path)
 
     print("\n")
 
-    if flag_manual_check
+    if flag_manual_check && !skip_bad
         command = `ds9 $path -regions $source_reg_file_unchecked`
 
         run(command)
@@ -154,6 +137,8 @@ function MakeSourceReg(path)
                 write(f, response[3:end])
             end
         end
+    elseif flag_manual_check && skip_bad
+        warn("Skipping large-error sources sources\nPerform manual check with RegSrcBadBatch()")
     else
         info("No manual flag - continuing")
 
@@ -165,57 +150,6 @@ function MakeSourceReg(path)
 
     return
 end
-
-#=
-MakeSourceReg("/mnt/hgfs/.nustar_archive_cl/30202004008/pipeline_out/nu30202004008A01_cl.evt")
-
-using FITSIO, WCS, DataFrames
-=#
-
-
-"""
-    RegSrcBatch(;local_archive="", log_file="", batch_size=100)
-
-Batch process for `MakeSourceReg`
-"""
-function RegSrcBatch(;local_archive="", log_file="", batch_size=100)
-    if local_archive == ""
-        local_archive, local_archive_cl, local_utility = find_default_path()
-        numaster_path = string(local_utility, "/numaster_df.csv")
-    end
-
-    numaster_df = read_numaster(numaster_path)
-
-    queue = []
-
-    println("Added to queue:")
-    obs_count = size(numaster_df, 1)[1]; bs = 0
-    for i = 0:obs_count-1 # -1 offset to avoid 0 index
-        ObsID  = string(numaster_df[obs_count-i, :obsid])
-        ObsSci = numaster_df[obs_count-i, :ValidSci] == 1 # Exclude slew/other non-scientific observations
-        ObsSrc = numaster_df[obs_count-i, :RegSrc] == 1
-
-        if ObsSci && !ObsSrc # Is valid science, doesn't already have source file
-            append!(queue, [string(local_archive_cl, "/$ObsID/pipeline_out/nu$ObsID", "A01_cl.evt")])
-
-            print(string(ObsID, ", "))
-
-            bs += 1
-
-            if bs >= batch_size
-                println("\n")
-                break
-            end
-        end
-    end
-
-    for obs_evt in queue
-        info("Getting region for $obs_evt")
-        MakeSourceReg(obs_evt)
-    end
-end
-
-
 
 function FindBackgroundReg(path_src)
     path_obs = string(dirname(path_src), "/pipeline_out/nu", split(dirname(path_src), "/")[end], "A01_cl.evt")
@@ -280,16 +214,21 @@ function MakeBackgroundReg(path_src)
         end
     end
 
-    return background_reg_file
+    path_obs = string(dirname(path_src), "/pipeline_out/nu", split(dirname(path_src), "/")[end], "A01_cl.evt")
+
+    image_file = string(dirname(path_src), "/regions_", splitdir(path_obs)[2][1:end-4], ".jpeg")
+
+    if isfile(image_file)
+        rm(image_file)
+    end
+
+    save_ds9_img = `ds9 $path_obs -region $path_src -region $background_reg_file -saveimage $image_file -exit`
+    run(save_ds9_img)
+
+    return
 end
 
-
-"""
-    RegBkgBatch(;local_archive="", log_file="", batch_size=100)
-
-Batch process for `MakeBackgroundReg`
-"""
-function RegBkgBatch(;local_archive="", log_file="", batch_size=100)
+function RegBatch(;local_archive="", log_file="", batch_size=100, skip_bad=true, src_type="both")
     if local_archive == ""
         local_archive, local_archive_cl, local_utility = find_default_path()
         numaster_path = string(local_utility, "/numaster_df.csv")
@@ -297,43 +236,112 @@ function RegBkgBatch(;local_archive="", log_file="", batch_size=100)
 
     numaster_df = read_numaster(numaster_path)
 
-    queue = []
-
-    println("Added to queue:")
-    obs_count = size(numaster_df, 1)[1]; bs = 0
-    for i = 0:obs_count-1 # -1 offset to avoid 0 index
-        ObsID  = string(numaster_df[obs_count-i, :obsid])
-        ObsSrc = numaster_df[obs_count-i, :RegSrc] == 1
-
-        if ObsSrc # Only use obs that have source file
-            append!(queue, [string(local_archive_cl, "/$ObsID/source.reg")])
-
-            print(string(ObsID, ", "))
-
-            bs += 1
-
-            if bs >= batch_size
-                println("\n")
-                break
-            end
+    if src_type=="both" || src_type=="src"
+        # Source region creation
+        queue_src = @from i in numaster_df begin
+                @where  i.RegSrc!=1 && i.ValidSci==1 # Doesn't already have a source AND is valid science
+                @select string(local_archive_cl, "/$(i.obsid)/pipeline_out/nu$(i.obsid)", "A01_cl.evt")
+                @collect
         end
+
+        queue_src = queue_src[end:-1:1] # Reverse order
+
+        if length(queue_src) > batch_size
+            queue_src = queue_src[1:batch_size]
+        end
+
+        for obs_evt in queue_src
+            info("Getting region for $obs_evt")
+            #MakeSourceReg(obs_evt; skip_bad=skip_bad)
+        end
+    end
+
+    if src_type=="both"
+        info("Updating Numaster table")
+        #Numaster()
+    end
+
+    if src_type=="both" || src_type=="bkg"
+        # Background region creation
+        queue_bkg = @from i in numaster_df begin
+                @where  i.RegSrc==1 # Valid source exists
+                @select string(local_archive_cl, "/$(i.obsid)/source.reg")
+                @collect
+        end
+
+        queue_bkg = queue_bkg[end:-1:1] # Reverse order
+
+        if length(queue_bkg) > batch_size
+            queue_bkg = queue_bkg[1:batch_size]
+        end
+
+        for path_src in queue_bkg
+            info("Creating background for $path_src")
+            #MakeBackgroundReg(path_src)
+        end
+    end
+end
+
+"""
+    RegSrcBatch(;local_archive="", log_file="", batch_size=100)
+
+Batch process for `MakeSourceReg`
+"""
+function RegSrcBatch(;local_archive="", log_file="", batch_size=100, skip_bad=true)
+    if local_archive == ""
+        local_archive, local_archive_cl, local_utility = find_default_path()
+        numaster_path = string(local_utility, "/numaster_df.csv")
+    end
+
+    numaster_df = read_numaster(numaster_path)
+
+    queue = @from i in numaster_df begin
+            @where  i.RegSrc!=1 && i.ValidSci==1 # Doesn't already have a source AND is valid science
+            @select string(local_archive_cl, "/$(i.obsid)/pipeline_out/nu$(i.obsid)", "A01_cl.evt")
+            @collect
+    end
+
+    queue = queue[end:-1:1] # Reverse order
+
+    if length(queue) > batch_size
+        queue = queue[1:batch_size]
+    end
+
+    for obs_evt in queue
+        info("Getting region for $obs_evt")
+        #MakeSourceReg(obs_evt; skip_bad=skip_bad)
+    end
+end
+
+"""
+    RegBkgBatch(;local_archive="", log_file="", batch_size=100)
+
+Batch process for `MakeBackgroundReg`
+"""
+function RegBkgBatch(;local_archive="", log_file="", batch_size=10)
+    if local_archive == ""
+        local_archive, local_archive_cl, local_utility = find_default_path()
+        numaster_path = string(local_utility, "/numaster_df.csv")
+    end
+
+    numaster_df = read_numaster(numaster_path)
+
+    queue = @from i in numaster_df begin
+            @where  i.RegSrc==1 # Valid source exists
+            @select string(local_archive_cl, "/$(i.obsid)/source.reg")
+            @collect
+    end
+
+    queue = queue[end:-1:1] # Reverse order
+
+    if length(queue) > batch_size
+        queue = queue[1:batch_size]
     end
 
     for path_src in queue
         info("Creating background for $path_src")
-        path_bkg = MakeBackgroundReg(path_src)
-
-        path_obs = string(dirname(path_src), "/pipeline_out/nu", split(dirname(path_src), "/")[end], "A01_cl.evt")
-
-        image_file = string(dirname(path_src), "/regions_", splitdir(path_obs)[2][1:end-4], ".jpeg")
-
-        info("ds9 $path_obs -region $path_src -region $path_bkg -saveimage $image_file -exit")
-
-        if isfile(image_file)
-            rm(image_file)
-        end
-
-        save_ds9_img = `ds9 $path_obs -region $path_src -region $path_bkg -saveimage $image_file -exit`
-        run(save_ds9_img)
+        #MakeBackgroundReg(path_src)
     end
+
+    return
 end
