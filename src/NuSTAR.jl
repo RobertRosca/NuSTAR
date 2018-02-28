@@ -4,6 +4,7 @@ module NuSTAR
 
 using FTPClient
 using DataFrames
+using Query
 using CSV
 using LightXML
 using FITSIO
