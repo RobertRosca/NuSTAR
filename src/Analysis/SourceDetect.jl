@@ -154,7 +154,7 @@ function MakeSourceReg(path; skip_bad=false)
         save_ds9_img = `ds9 $path -regions $source_reg_file_unchecked -saveimage $(string(obs_path, "source_region_", splitdir(path)[2][1:end-4], ".jpeg")) -exit`
         run(save_ds9_img)
 
-        mv(source_reg_file_unchecked, string(obs_path, "source.reg"))
+        mv(source_reg_file_unchecked, string(obs_path, "source.reg"), remove_destination=true)
     end
 
     return
@@ -243,8 +243,6 @@ function RegBatch(;local_archive="", log_file="", batch_size=100, skip_bad=true,
         numaster_path = string(local_utility, "/numaster_df.csv")
     end
 
-    numaster_df = read_numaster(numaster_path)
-
     if bad_only
         skip_bad = false
         src_include_val = -2 # Change checked value to -2 for @where below
@@ -253,6 +251,8 @@ function RegBatch(;local_archive="", log_file="", batch_size=100, skip_bad=true,
     end
 
     if src_type=="both" || src_type=="src"
+        numaster_df = read_numaster(numaster_path)
+
         # Source region creation
         queue_src = @from i in numaster_df begin
                 @where  i.RegSrc==src_include_val && i.ValidSci==1 # Doesn't already have a source AND is valid science
@@ -276,6 +276,8 @@ function RegBatch(;local_archive="", log_file="", batch_size=100, skip_bad=true,
     end
 
     if src_type=="both" || src_type=="bkg"
+        numaster_df = read_numaster(numaster_path)
+        
         # Background region creation
         queue_bkg = @from i in numaster_df begin
                 @where  i.RegSrc==1 # Valid source exists
