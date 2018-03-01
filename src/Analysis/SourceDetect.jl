@@ -23,17 +23,20 @@ Takes in path, passes to FITS_Coords(path), finds Full Width at prcnt-Max for,
 returns bounds for FWXM, centre pixle, centre FK5 coordinates, and a flag
 indicating the reliability of the source position based on the width
 """
-function FWXM_Single_Source(path; prcnt=0.5, filt_flag=true, verbose=true)
+function FWXM_Single_Source(path; prcnt=0.75, filt_flag=true, verbose=true)
     evt_coords = FITS_Coords(path)
 
-    # data_out = similar(evt_coords, 0)
+    #data_out = similar(evt_coords, 0)
     bnds_out = DataFrame(item = ["min_pix", "max_pix", "min_val", "max_val"])
 
-    widths = []
+    binedge = linspace(1, 1000, 1000)
+
+    widths  = []
+    heights = []
 
     for coord in names(evt_coords)
-        hist_y = StatsBase.fit(StatsBase.Histogram, evt_coords[coord], nbins=1024, closed=:right).weights
-        hist_x = StatsBase.fit(StatsBase.Histogram, evt_coords[coord], nbins=1024, closed=:right).edges[1]
+        hist_y = StatsBase.fit(StatsBase.Histogram, evt_coords[coord], binedge, closed=:right).weights
+        hist_x = StatsBase.fit(StatsBase.Histogram, evt_coords[coord], binedge, closed=:right).edges[1]
 
         if filt_flag
             hist_y_old = copy(hist_y)
@@ -50,8 +53,10 @@ function FWXM_Single_Source(path; prcnt=0.5, filt_flag=true, verbose=true)
                                            "to $(hist_x[max_ind]) ($(@sprintf("%.3f", hist_y[max_ind])))")
         end
 
-        # data_out = evt_coords[Int(hist_x[min_ind]) .< evt_coords[coord] .< Int(hist_x[max_ind]), :]
+        #data_out = evt_coords[Int(hist_x[min_ind]) .< evt_coords[coord] .< Int(hist_x[max_ind]), :]
         bnds_out[coord] = [hist_x[min_ind], hist_x[max_ind], hist_y[min_ind], hist_y[max_ind]]
+
+        append!(heights, [hist_y])
     end
 
     X_mean = mean([bnds_out[1, :X], bnds_out[2, :X]])
@@ -65,13 +70,17 @@ function FWXM_Single_Source(path; prcnt=0.5, filt_flag=true, verbose=true)
                                 [bnds_out[:X][1], bnds_out[:Y][1]],
                                 [bnds_out[:X][2], bnds_out[:Y][2]])
 
-    info("Width: $bound_width")
+    covariance = cov(heights[1], heights[2])[1]
+
+    println("Width: $bound_width")
+
+    println("Covariance: $covariance")
 
     flag_manual_check = false
 
-    if bound_width > 50
+    if bound_width > 60 || covariance < 5000
         flag_manual_check = true
-        warn("Manual check, large width")
+        warn("Manual check")
     end
 
     println("Source centre pixle coords: $source_centre_pix -- α: $(@sprintf("%.9f", source_centre_fk5[1])), δ: $(@sprintf("%.9f", source_centre_fk5[2]))")
