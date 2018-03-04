@@ -239,7 +239,10 @@ end
 
 function RegBatch(;local_archive="", log_file="", batch_size=100, skip_bad=true, src_type="both", bad_only=false)
     if local_archive == ""
-        local_archive, local_archive_cl, local_utility = find_default_path()
+        dirs = find_default_path()
+        local_archive = dirs["dir_archive"]
+        local_archive_cl = dirs["dir_archive_cl"]
+        local_utility = dirs["dir_utility"]
         numaster_path = string(local_utility, "/numaster_df.csv")
     end
 
@@ -277,7 +280,7 @@ function RegBatch(;local_archive="", log_file="", batch_size=100, skip_bad=true,
 
     if src_type=="both" || src_type=="bkg"
         numaster_df = read_numaster(numaster_path)
-        
+
         # Background region creation
         queue_bkg = @from i in numaster_df begin
                 @where  i.RegSrc==1 # Valid source exists

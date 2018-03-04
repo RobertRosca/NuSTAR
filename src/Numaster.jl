@@ -8,7 +8,10 @@ what data has been processed so far
 """
 function Numaster(;local_archive="", local_archive_clean="", local_utility="", download=true)
     if local_archive == ""
-        local_archive, local_archive_clean, local_utility = find_default_path()
+        dirs = find_default_path()
+        local_archive = dirs["dir_archive"]
+        local_archive_cl = dirs["dir_archive_cl"]
+        local_utility = dirs["dir_utility"]
     end
 
     numaster_url  = "https://heasarc.gsfc.nasa.gov/FTP/heasarc/dbase/tdat_files/heasarc_numaster.tdat.gz"
@@ -144,8 +147,11 @@ end
 Outputs summary of what data can be analysed, and what has been done so far
 """
 function Summary(;numaster_path="")
-    if numaster_path == ""
-        local_archive, local_archive_clean, local_utility = find_default_path()
+    if local_archive == ""
+        dirs = find_default_path()
+        local_archive = dirs["dir_archive"]
+        local_archive_cl = dirs["dir_archive_cl"]
+        local_utility = dirs["dir_utility"]
         numaster_path = string(local_utility, "/numaster_df.csv")
     end
 
@@ -170,8 +176,11 @@ function Summary(;numaster_path="")
 end
 
 function Summary_list(col, comp, val; archive="cl", numaster_path="", res=:obsid)
-    if numaster_path == ""
-        local_archive, local_archive_clean, local_utility = find_default_path()
+    if local_archive == ""
+        dirs = find_default_path()
+        local_archive = dirs["dir_archive"]
+        local_archive_cl = dirs["dir_archive_cl"]
+        local_utility = dirs["dir_utility"]
         numaster_path = string(local_utility, "/numaster_df.csv")
     end
 

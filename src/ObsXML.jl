@@ -6,7 +6,10 @@ management of FTP downloads
 """
 function XML(ObsIDs; XML_out_dir="", verbose=false, local_archive="")
     if local_archive == ""
-        local_archive, local_archive_clean, local_utility = find_default_path()
+        dirs = find_default_path()
+        local_archive = dirs["dir_archive"]
+        local_archive_cl = dirs["dir_archive_cl"]
+        local_utility = dirs["dir_utility"]
         numaster_path = string(local_utility, "/numaster_df.csv")
     end
 
@@ -103,7 +106,7 @@ function XML(ObsIDs; XML_out_dir="", verbose=false, local_archive="")
         return list
     end
 
-    local_archive = find_default_path()[1]
+    local_archive = find_default_path()["dir_archive"]
     if !isdir(local_archive)
         error("Local archive not found at \"$(local_archive)\"")
     end
@@ -172,8 +175,11 @@ Batch finds observations to be calibrated, adds to queue and calls XML(queue)
 to generate `.xml` for use by FileZilla
 """
 function XMLBatch(;local_archive="default", log_file="", batch_size=100)
-    if local_archive == "default"
-        local_archive, local_archive_clean, local_utility = find_default_path()
+    if local_archive == ""
+        dirs = find_default_path()
+        local_archive = dirs["dir_archive"]
+        local_archive_cl = dirs["dir_archive_cl"]
+        local_utility = dirs["dir_utility"]
         numaster_path = string(local_utility, "/numaster_df.csv")
     end
 

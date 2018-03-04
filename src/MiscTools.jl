@@ -1,8 +1,10 @@
 function find_default_path()
     if is_windows()
-        return "I:/.nustar_archive", "I:/.nustar_archive_cl", "I:/.nustar_archive/00000000000 - utility"
+        return Dict("dir_archive" => "I:/.nustar_archive", "dir_archive_cl" => "I:/.nustar_archive_cl",
+            "dir_archive_pr" => "I:/.nustar_archive_pr", "dir_utility" => "I:/.nustar_archive/00000000000 - utility")
     elseif is_linux()
-        return "/mnt/hgfs/.nustar_archive", "/mnt/hgfs/.nustar_archive_cl", "/mnt/hgfs/.nustar_archive/00000000000 - utility"
+        return Dict("dir_archive" => "/mnt/hgfs/.nustar_archive", "dir_archive_cl" => "/mnt/hgfs/.nustar_archive_cl",
+            "dir_archive_pr" => "/mnt/hgfs/.nustar_archive_pr", "dir_utility" => "/mnt/hgfs/.nustar_archive/00000000000 - utility")
     else
         error("Unknwon path")
     end
@@ -129,7 +131,7 @@ function read_numaster(numaster_path)
 end
 
 function load_numaster()
-    local_archive, local_archive_clean, local_utility = find_default_path()
+    local_utility = find_default_path()["dir_utility"]
     numaster_path = string(local_utility, "/numaster_df.csv")
 
     return read_numaster(numaster_path)

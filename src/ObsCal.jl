@@ -24,8 +24,11 @@ Generates queue of uncalibrated files, splits the queue unto equal (ish) batches
 and calls `Calibrate(ObsIDs)` for each batch
 """
 function CalBatch(local_archive="default"; log_file="", batches=4, to_cal=16)
-    if local_archive == "default"
-        local_archive, local_archive_clean, local_utility = find_default_path()
+    if local_archive == ""
+        dirs = find_default_path()
+        local_archive = dirs["dir_archive"]
+        local_archive_cl = dirs["dir_archive_cl"]
+        local_utility = dirs["dir_utility"]
         numaster_path = string(local_utility, "/numaster_df.csv")
     end
 
