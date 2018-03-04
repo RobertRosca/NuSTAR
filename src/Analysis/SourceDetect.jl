@@ -272,7 +272,7 @@ function RegBatch(;local_archive="", log_file="", batch_size=100, skip_bad=true,
         end
 
         info("Updating Numaster table")
-        Numaster(flag_download=false)
+        Numaster(download=false)
     end
 
     if src_type=="both" || src_type=="bkg"
@@ -297,6 +297,6 @@ function RegBatch(;local_archive="", log_file="", batch_size=100, skip_bad=true,
         end
 
         info("Updating Numaster table")
-        Numaster(flag_download=false)
+        Numaster(download=false)
     end
 end
