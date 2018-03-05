@@ -11,6 +11,10 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_clean=ENV["NU_
         local_utility = string(local_archive, "/00000000000 - utility")
     end
 
+    if !isdir(local_utility)
+        mkpath(local_utility)
+    end
+
     numaster_url  = "https://heasarc.gsfc.nasa.gov/FTP/heasarc/dbase/tdat_files/heasarc_numaster.tdat.gz"
     numaster_path_live = string(local_utility, "/numaster_live.txt")
 
@@ -143,12 +147,9 @@ end
 
 Outputs summary of what data can be analysed, and what has been done so far
 """
-function Summary(;numaster_path="")
-    if local_archive == ""
-        dirs = find_default_path()
-        local_archive = dirs["dir_archive"]
-        local_archive_cl = dirs["dir_archive_cl"]
-        local_utility = dirs["dir_utility"]
+function Summary(;local_archive=ENV["NU_ARCHIVE"], numaster_path="")
+    if numaster_path == ""
+        local_utility = string(local_archive, "/00000000000 - utility")
         numaster_path = string(local_utility, "/numaster_df.csv")
     end
 
