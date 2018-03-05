@@ -6,7 +6,8 @@ Updates the numaster_df DataFrame holding observation data
 Downloads new version, then works through local archives to set the flags for
 what data has been processed so far
 """
-function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"], local_utility=ENV["NU_ARCHIVE_UTIL"], download=true)
+function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"],
+                   local_utility=ENV["NU_ARCHIVE_UTIL"], download=true)
     if !isdir(local_utility)
         mkpath(local_utility)
     end
