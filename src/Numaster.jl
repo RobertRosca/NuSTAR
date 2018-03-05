@@ -6,12 +6,9 @@ Updates the numaster_df DataFrame holding observation data
 Downloads new version, then works through local archives to set the flags for
 what data has been processed so far
 """
-function Numaster(;local_archive="", local_archive_clean="", local_utility="", download=true)
-    if local_archive == ""
-        dirs = find_default_path()
-        local_archive = dirs["dir_archive"]
-        local_archive_cl = dirs["dir_archive_cl"]
-        local_utility = dirs["dir_utility"]
+function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_clean=ENV["NU_ARCHIVE_CL"], local_utility="", download=true)
+    if local_utility == ""
+        local_utility = string(local_archive, "/00000000000 - utility")
     end
 
     numaster_url  = "https://heasarc.gsfc.nasa.gov/FTP/heasarc/dbase/tdat_files/heasarc_numaster.tdat.gz"
