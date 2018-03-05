@@ -39,8 +39,8 @@ highlight=`tput setaf 6`
 reset=`tput sgr0`
 
 echo "${highlight}Running init ${reset}"
-source $HEADAS/headas-init.sh
-source $CALDB/software/tools/caldbinit.sh
+source $HEADAS/headas-init.csh
+source $CALDB/software/tools/caldbinit.csh
 
 echo "${highlight}Running for $obsids ${reset}"
 

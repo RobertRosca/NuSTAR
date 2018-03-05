@@ -3,11 +3,24 @@
 
 Calls `pipeline_vm.sh` with multiple ObsIDs in a new `gnome-terminal`
 """
-function Calibrate(ObsIDs::Union{Array{String,1}, String})
+function Calibrate(ObsIDs::Union{Array{String,1}, String}; dry=false)
     if typeof(ObsIDs) == Array{String,1}
         queue = replace(string(ObsIDs)[8:end-1], ", ", " ")
     elseif typeof(ObsIDs) == String
         queue = ObsIDs
+    end
+
+    if dry
+        run_nupipeline = string(Pkg.dir(), "/NuSTAR/src/Scripts/run_nupipeline.sh")
+        run_native_nupipeline = string(Pkg.dir(), "/NuSTAR/src/Scripts/run_native_nupipeline.sh")
+
+        info("NU_SCRATCH_FLAG: $(ENV["NU_SCRATCH_FLAG"])")
+
+        println("gnome-terminal -e \"$run_nupipeline $queue\"")
+        println("\n")
+        println("gnome-terminal -e \"$run_native_nupipeline --archive=\"$(ENV[\"NU_ARCHIVE\"])\" --clean=\"$(ENV[\"NU_ARCHIVE_CL\"])\" --obsids=\"$queue\"\"")
+
+        return
     end
 
     if ENV["NU_SCRATCH_FLAG"] == "true"
