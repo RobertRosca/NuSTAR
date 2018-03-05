@@ -6,11 +6,7 @@ Updates the numaster_df DataFrame holding observation data
 Downloads new version, then works through local archives to set the flags for
 what data has been processed so far
 """
-function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"], local_utility="", download=true)
-    if local_utility == ""
-        local_utility = string(local_archive, "/00000000000 - utility")
-    end
-
+function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"], local_utility=ENV["NU_ARCHIVE_UTIL"], download=true)
     if !isdir(local_utility)
         mkpath(local_utility)
     end
@@ -147,9 +143,8 @@ end
 
 Outputs summary of what data can be analysed, and what has been done so far
 """
-function Summary(;local_archive=ENV["NU_ARCHIVE"], numaster_path="")
+function Summary(;local_utility=ENV["NU_ARCHIVE_UTIL"], numaster_path="")
     if numaster_path == ""
-        local_utility = string(local_archive, "/00000000000 - utility")
         numaster_path = string(local_utility, "/numaster_df.csv")
     end
 
