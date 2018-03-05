@@ -18,7 +18,7 @@ function Calibrate(ObsIDs::Union{Array{String,1}, String}; dry=false)
 
         println("gnome-terminal -e \"$run_nupipeline $queue\"")
         println("\n")
-        println("gnome-terminal -e \"$run_native_nupipeline --archive=\"$(ENV[\"NU_ARCHIVE\"])\" --clean=\"$(ENV[\"NU_ARCHIVE_CL\"])\" --obsids=\"$queue\"\"")
+        println("gnome-terminal -e \"$run_native_nupipeline --archive=\"$(ENV["NU_ARCHIVE"])\" --clean=\"$(ENV["NU_ARCHIVE_CL"])\" --obsids=\"$queue\"\"")
 
         return
     end
