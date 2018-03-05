@@ -6,7 +6,7 @@ Known good observation to use for tests: 80002017002
 
 ## Workflow
 
-### Numaster(;local_archive="", local_archive_clean="", local_utility="")
+### Numaster(;local_archive="", local_archive_cl="", local_utility="")
 
 NuSTAR.Numaster() to download the newest data base from the numaster url:
 `https://heasarc.gsfc.nasa.gov/FTP/heasarc/dbase/tdat_files/heasarc_numaster.tdat.gz`

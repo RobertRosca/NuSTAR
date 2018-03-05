@@ -1,12 +1,12 @@
 """
-    Numaster(;local_archive="", local_archive_clean="", local_utility="")
+    Numaster(;local_archive="", local_archive_cl="", local_utility="")
 
 Updates the numaster_df DataFrame holding observation data
 
 Downloads new version, then works through local archives to set the flags for
 what data has been processed so far
 """
-function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_clean=ENV["NU_ARCHIVE_CL"], local_utility="", download=true)
+function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"], local_utility="", download=true)
     if local_utility == ""
         local_utility = string(local_archive, "/00000000000 - utility")
     end
@@ -71,7 +71,7 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_clean=ENV["NU_
     sort!(numaster_df, cols=(:public_date))
 
     file_list_local       = readdir(local_archive)[2:end]
-    file_list_local_clean = readdir(local_archive_clean)[2:end]
+    file_list_local_clean = readdir(local_archive_cl)[2:end]
 
     numaster_df_n = size(numaster_df, 1)
 
@@ -92,21 +92,21 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_clean=ENV["NU_
 
     for (itr, obs) in enumerate(numaster_df[:obsid])
         if cleaned[itr] == 1
-            valid_sci[itr]  = isfile(string(local_archive_clean, "/", obs, "/pipeline_out/", "nu", obs, "A01_cl.evt")) ? 1 : 0
+            valid_sci[itr]  = isfile(string(local_archive_cl, "/", obs, "/pipeline_out/", "nu", obs, "A01_cl.evt")) ? 1 : 0
 
-            if isfile(string(local_archive_clean, "/", obs, "/source.reg"))
+            if isfile(string(local_archive_cl, "/", obs, "/source.reg"))
                 reg_src[itr] = 1 # Valid source file
-            elseif isfile(string(local_archive_clean, "/", obs, "/source_intersting.reg"))
+            elseif isfile(string(local_archive_cl, "/", obs, "/source_intersting.reg"))
                 reg_src[itr] = 2 # 'Interesting' source file
-            elseif isfile(string(local_archive_clean, "/", obs, "/source_bad.reg"))
+            elseif isfile(string(local_archive_cl, "/", obs, "/source_bad.reg"))
                 reg_src[itr] = -1 # Bad source, ignore during analysis
-            elseif isfile(string(local_archive_clean, "/", obs, "/source_unchecked.reg"))
+            elseif isfile(string(local_archive_cl, "/", obs, "/source_unchecked.reg"))
                 reg_src[itr] = -2 # Unchecked source, queue for later check
             else
                 reg_src[itr] = 0 # No source file yet
             end
 
-            reg_bkg[itr] = isfile(string(local_archive_clean, "/", obs, "/background.reg")) ? 1 : 0
+            reg_bkg[itr] = isfile(string(local_archive_cl, "/", obs, "/background.reg")) ? 1 : 0
         end
     end
 
