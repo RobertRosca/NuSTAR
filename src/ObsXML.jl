@@ -4,18 +4,13 @@
 Takes in multiple `ObsIDs`, generates `.xml` for use by FileZilla for easy
 management of FTP downloads
 """
-function XML(ObsIDs; XML_out_dir="", verbose=false, local_archive="")
-    if local_archive == ""
-        dirs = find_default_path()
-        local_archive = dirs["dir_archive"]
-        local_archive_cl = dirs["dir_archive_cl"]
-        local_utility = dirs["dir_utility"]
-        numaster_path = string(local_utility, "/numaster_df.csv")
+function XML(ObsIDs; local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"],
+                     local_utility=ENV["NU_ARCHIVE_UTIL"], XML_out_dir="", verbose=false)
+    if XML_out_dir == ""
+        XML_out_dir = string(local_utility, "/NuSTAR_FileZilla_Queue.xml")
     end
 
-    if XML_out_dir == ""
-        XML_out_dir = string(local_utility, "/FileZilla.xml")
-    end
+    numaster_path = string(local_utility, "/numaster_df.csv")
 
     numaster_df   = NuSTAR.read_numaster(numaster_path)
     caldb_file    = searchindex.(readdir(local_utility), "goodfiles")
@@ -174,16 +169,12 @@ end
 Batch finds observations to be calibrated, adds to queue and calls XML(queue)
 to generate `.xml` for use by FileZilla
 """
-function XMLBatch(;local_archive="default", log_file="", batch_size=100)
-    if local_archive == ""
-        dirs = find_default_path()
-        local_archive = dirs["dir_archive"]
-        local_archive_cl = dirs["dir_archive_cl"]
-        local_utility = dirs["dir_utility"]
-        numaster_path = string(local_utility, "/numaster_df.csv")
+function XMLBatch(;numaster_path="", batch_size=100)
+    if numaster_path == ""
+        numaster_path = string(ENV["NU_ARCHIVE_UTIL"], "/numaster_df.csv")
     end
 
-    numaster_df = CSV.read(numaster_path, rows_for_type_detect=3000, nullable=true)
+    numaster_df = read_numaster(numaster_path)
 
     queue = []
 
@@ -191,7 +182,7 @@ function XMLBatch(;local_archive="default", log_file="", batch_size=100)
     obs_count = size(numaster_df, 1)[1]; bs = 0
     for i = 0:obs_count-1 # -1 for the utility folder
         ObsID     = string(numaster_df[obs_count-i, :obsid])
-        Publicity = numaster_df[obs_count-i, :public_date] < Base.Dates.today()
+        Publicity = DateTime(numaster_df[obs_count-i, :public_date]) < Base.Dates.today()
         ObsCal    = numaster_df[obs_count-i, :obs_type] == "CAL" # Exclude calibration sets
         ObsSci    = numaster_df[obs_count-i, :observation_mode] == "SCIENCE" # Exclude slew/other non-scientific observations
 
