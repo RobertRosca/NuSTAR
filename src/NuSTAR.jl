@@ -24,4 +24,34 @@ include("Analysis/FITSWCS.jl")
 include("Analysis/SourceDetect.jl")
 include("Analysis/Xselect.jl")
 
+nustar_settings_dir = string(homedir(), "/.config/julia-pkg/v0.6/NuSTAR/NuSTAR-settings.jl")
+
+if !isfile(nustar_settings_dir)
+    warn("No settings file found at: $nustar_settings_dir\nEnter full paths for:\n")
+
+    println("NU_ARCHIVE: ");    ENV["NU_ARCHIVE"] = string(readline(STDIN))
+    println("NU_ARCHIVE_CL: "); ENV["NU_ARCHIVE_CL"] = string(readline(STDIN))
+    println("NU_ARCHIVE_PR: "); ENV["NU_ARCHIVE_PR"] = string(readline(STDIN))
+
+    println("NU_ARCHIVE_LIVE: ");    ENV["NU_ARCHIVE_LIVE"] = string(readline(STDIN))
+    println("NU_ARCHIVE_CL_LIVE: "); ENV["NU_ARCHIVE_CL_LIVE"] = string(readline(STDIN))
+    println("NU_ARCHIVE_PR_LIVE: "); ENV["NU_ARCHIVE_PR_LIVE"] = string(readline(STDIN))
+
+    println("NU_SCRATCH_FLAG (true/false): "); ENV["NU_SCRATCH_FLAG"] = parse(Bool, readline(STDIN))
+
+    open(nustar_settings_dir, "w") do f
+        write(f, "ENV[\"NU_ARCHIVE\"] = \"$(ENV["NU_ARCHIVE"])\"\n")
+        write(f, "ENV[\"NU_ARCHIVE_CL\"] = \"$(ENV["NU_ARCHIVE_CL"])\"\n")
+        write(f, "ENV[\"NU_ARCHIVE_PR\"] = \"$(ENV["NU_ARCHIVE_PR"])\"\n")
+
+        write(f, "ENV[\"NU_ARCHIVE_LIVE\"] = \"$(ENV["NU_ARCHIVE_LIVE"])\"\n")
+        write(f, "ENV[\"NU_ARCHIVE_CL_LIVE\"] = \"$(ENV["NU_ARCHIVE_CL_LIVE"])\"\n")
+        write(f, "ENV[\"NU_ARCHIVE_PR_LIVE\"] = \"$(ENV["NU_ARCHIVE_PR_LIVE"])\"\n")
+
+        write(f, "ENV[\"NU_SCRATCH_FLAG\"] = $(ENV["NU_SCRATCH_FLAG"])\n")
+    end
+end
+
+include(nustar_settings_dir)
+
 end

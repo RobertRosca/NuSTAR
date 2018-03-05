@@ -39,7 +39,5 @@ function XselLC(ObsID, bins)
 
     run_xselect = string(Pkg.dir(), "/NuSTAR/src/Scripts/run_xselect.sh")
 
-    println("$run_xselect @$xsel_file_path")
-
     run(`gnome-terminal -e "$run_xselect @$xsel_file_path"`)
 end
