@@ -52,8 +52,12 @@ function XML(ObsIDs; local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_A
     filezilla_xml = XMLDocument()
 
     fz_root = create_root(filezilla_xml, "FileZilla3")
-    set_attribute(fz_root, "version", "3.29.0")
-    set_attribute(fz_root, "platform", "windows")
+    #set_attribute(fz_root, "version", "3.29.0")
+    if is_windows()
+        set_attribute(fz_root, "platform", "windows")
+    elseif is_linux()
+        set_attribute(fz_root, "platform", "*nix")
+    end
 
     fz_queue = new_child(fz_root, "Queue")
 
@@ -133,7 +137,11 @@ function XML(ObsIDs; local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_A
             file_name = basename(file)
 
             fz_server_file_local = new_child(fz_server_file, "LocalFile")
-            add_text(fz_server_file_local, replace(string(local_archive, file[24:end]), "/", "\\"))
+            if is_windows()
+                add_text(fz_server_file_local, replace(string(local_archive, file[24:end]), "/", "\\"))
+            elseif is_linux()
+                add_text(fz_server_file_local, string(local_archive, file[24:end]))
+            end
 
             fz_server_file_remote = new_child(fz_server_file, "RemoteFile")
             add_text(fz_server_file_remote, file_name)
