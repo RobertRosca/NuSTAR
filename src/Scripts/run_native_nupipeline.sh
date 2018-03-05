@@ -39,10 +39,17 @@ highlight=`tput setaf 6`
 reset=`tput sgr0`
 
 echo "${highlight}Running init ${reset}"
-source $HEADAS/headas-init.csh
-source $CALDB/software/tools/caldbinit.csh
 
-echo "${highlight}Running for $obsids ${reset}"
+HEADAS="/home/SOFTWARE/heasoft-6.16/x86_64-unknown-linux-gnu-libc2.19-0"
+CALDB="/home/sw-astro/caldb/software/tools"
+
+export HEADAS
+export CALDB
+
+source $HEADAS/headas-init.sh
+source $CALDB/caldbinit.sh
+
+echo "${highlight}Running for ${obsids[@]} ${reset}"
 
 for ObsID in "${obsids[@]}"
 do
@@ -61,7 +68,9 @@ do
 
     echo "${highlight}Running nupipeline with indir=$archive$ObsID steminputs=nu$ObsID outdir=$clean$ObsID/pipeline_out/${reset}"
 
-    log_file="$clean$ObsID"/pipeline_vm.log""
+    log_file="$clean$ObsID"/pipeline.log""
+
+    mkdir $clean$ObsID
 
     nupipeline indir=$archive$ObsID steminputs=nu$ObsID outdir=$clean$ObsID"/pipeline_out/" | tee -a "$log_file"
 
