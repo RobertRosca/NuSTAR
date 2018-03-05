@@ -101,7 +101,6 @@ function XML(ObsIDs; local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_A
         return list
     end
 
-    local_archive = find_default_path()["dir_archive"]
     if !isdir(local_archive)
         error("Local archive not found at \"$(local_archive)\"")
     end
@@ -169,7 +168,7 @@ end
 Batch finds observations to be calibrated, adds to queue and calls XML(queue)
 to generate `.xml` for use by FileZilla
 """
-function XMLBatch(;numaster_path="", batch_size=100)
+function XMLBatch(batch_size=100; numaster_path="")
     if numaster_path == ""
         numaster_path = string(ENV["NU_ARCHIVE_UTIL"], "/numaster_df.csv")
     end
