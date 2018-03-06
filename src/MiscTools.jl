@@ -1,15 +1,3 @@
-function find_default_path()
-    if is_windows()
-        return Dict("dir_archive" => "I:/.nustar_archive", "dir_archive_cl" => "I:/.nustar_archive_cl",
-            "dir_archive_pr" => "I:/.nustar_archive_pr", "dir_utility" => "I:/.nustar_archive/00000000000 - utility")
-    elseif is_linux()
-        return Dict("dir_archive" => "/mnt/hgfs/.nustar_archive", "dir_archive_cl" => "/mnt/hgfs/.nustar_archive_cl",
-            "dir_archive_pr" => "/mnt/hgfs/.nustar_archive_pr", "dir_utility" => "/mnt/hgfs/.nustar_archive/00000000000 - utility")
-    else
-        error("Unknwon path")
-    end
-end
-
 function pull_file_list(hostname="heasarc.gsfc.nasa.gov"; path="/nustar/.nustar_archive")
     ftp_init()
 
@@ -77,7 +65,7 @@ function check_obs_publicity(ObsID, connection_context)
     return Public
 end
 
-function check_obs_publicity_local(local_archive; purge=false)
+function check_obs_publicity_local(local_archive=ENV["NU_ARCHIVE"]; purge=false)
     file_list_local = readdir(local_archive)[2:end]
 
     Publicity = zeros(Int, length(file_list_local))
@@ -130,8 +118,7 @@ function read_numaster(numaster_path)
     CSV.read(numaster_path, types=numaster_types)
 end
 
-function load_numaster()
-    local_utility = find_default_path()["dir_utility"]
+function load_numaster(local_utility=ENV["NU_ARCHIVE_UTIL"])
     numaster_path = string(local_utility, "/numaster_df.csv")
 
     return read_numaster(numaster_path)

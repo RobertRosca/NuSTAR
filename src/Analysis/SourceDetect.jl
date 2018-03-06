@@ -237,12 +237,10 @@ function MakeBackgroundReg(path_src)
     return
 end
 
-function RegBatch(;local_archive="", log_file="", batch_size=100, skip_bad=true, src_type="both", bad_only=false)
-    if local_archive == ""
-        dirs = find_default_path()
-        local_archive = dirs["dir_archive"]
-        local_archive_cl = dirs["dir_archive_cl"]
-        local_utility = dirs["dir_utility"]
+function RegBatch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"],
+                   local_utility=ENV["NU_ARCHIVE_UTIL"], numaster_path="",
+                   batch_size=100, skip_bad=true, src_type="both", bad_only=false)
+    if numaster_path == ""
         numaster_path = string(local_utility, "/numaster_df.csv")
     end
 
