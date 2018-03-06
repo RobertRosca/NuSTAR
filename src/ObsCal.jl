@@ -13,7 +13,7 @@ function Calibrate(ObsIDs::Union{Array{String,1}, String}; dry=false)
 
     if dry
         info("NU_SCRATCH_FLAG: $(ENV["NU_SCRATCH_FLAG"])")
-        
+
         if ENV["NU_SCRATCH_FLAG"] == "true"
             run_nupipeline = string(Pkg.dir(), "/NuSTAR/src/Scripts/run_nupipeline.sh")
             println("gnome-terminal -e \"$run_nupipeline $queue\"")
@@ -28,12 +28,12 @@ function Calibrate(ObsIDs::Union{Array{String,1}, String}; dry=false)
     if ENV["NU_SCRATCH_FLAG"] == "true"
         run_nupipeline = string(Pkg.dir(), "/NuSTAR/src/Scripts/run_nupipeline.sh")
         run(`gnome-terminal -e "$run_nupipeline $queue"`)
+        info("Calibration started for $queue")
     elseif ENV["NU_SCRATCH_FLAG"] == "false"
         run_native_nupipeline = string(Pkg.dir(), "/NuSTAR/src/Scripts/run_native_nupipeline.sh")
         run(`gnome-terminal -e "$run_native_nupipeline --archive="$(ENV["NU_ARCHIVE"])/" --clean="$(ENV["NU_ARCHIVE_CL"])/" --obsids="$queue_native""`)
+        info("Calibration started for $queue_native")
     end
-
-    info("Calibration started for $queue")
 end
 
 """

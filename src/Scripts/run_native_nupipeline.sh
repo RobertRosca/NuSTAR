@@ -29,9 +29,9 @@ while true ; do
 done
 
 # set paths
-echo "archive = $archive"
-echo "clean = $clean"
-echo "obsids = $obsids"
+# echo "archive = $archive"
+# echo "clean = $clean"
+# echo "obsids = $obsids"
 
 obsids=( $obsids )
 
