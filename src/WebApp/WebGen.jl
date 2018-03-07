@@ -76,7 +76,7 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
     write(f, "\t\twidth: 100%;\n")
     write(f, "\t\theight: 100%;\n")
     write(f, "\t\tz-index: 9999;\n")
-    write(f, "\t\tbackground: center no-repeat #505050;\n") # url(assets/loading.gif)
+    write(f, "\t\tbackground: center no-repeat #fff;\n") # url(assets/loading.gif)
     write(f, "\t}\n")
     write(f, "\t.table-success {\n")
     write(f, "\t\tbackground-color: #c3e6cb;\n")
@@ -156,7 +156,7 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
             elseif column_name == :RegSrc
                 write(f, "\t\t\t\t<td class=\"$color_regsrc\">$(html_escape(cell))</td>\n")
             elseif column_name == :obsid
-                write(f, "\t\t\t\t<td><a href=\"$file_dir/obs/$obsid/$obsid.html\" target=\"_blank\">$(html_escape(cell))</a></td>\n")
+                write(f, "\t\t\t\t<td><a href=\"$file_dir_web/obs/$obsid/$obsid.html\" target=\"_blank\">$(html_escape(cell))</a></td>\n")
             else
                 write(f, "\t\t\t\t<td>$(html_escape(cell))</td>\n")
             end
