@@ -1,6 +1,6 @@
 # ds9 nu302002004A01_cl.evt -scale log -geometry 512x770 -export png image.png -exit
 
-function ds9_make_img(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"], local_utility=ENV["NU_ARCHIVE_UTIL"], local_archive_pr=ENV["NU_ARCHIVE_PR"], regions=[])
+function ds9_make_img(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"], local_utility=ENV["NU_ARCHIVE_UTIL"], local_archive_pr=ENV["NU_ARCHIVE_PR"], regions=[], debug=false)
 
     numaster_path = string(local_utility, "/numaster_df.csv")
 
@@ -48,7 +48,11 @@ function ds9_make_img(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU
             continue
         end
 
-        run(`ds9 $ds9_call`)
+        if debug
+            println("ds9 $ds9_call")
+        else
+            run(`ds9 $ds9_call`)
+        end
 
         info("Created: $img_path")
     end
@@ -76,8 +80,12 @@ function ds9_make_img(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU
                 continue
             end
         end
-
-        run(`ds9 $ds9_call`)
+        
+        if debug
+            println("ds9 $ds9_call")
+        else
+            run(`ds9 $ds9_call`)
+        end
 
         info("Created: $img_path")
     end
