@@ -86,4 +86,4 @@ function html_escape(cell)
     cell = replace(cell, "<"=>"&lt;")
     cell = replace(cell, ">"=>"&gt;")
     return cell
-endC
+end
