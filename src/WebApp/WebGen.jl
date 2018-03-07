@@ -11,7 +11,7 @@ function html_escape(cell)
     return cell
 end
 
-function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numaster(), select_cols=[:observation_mode, :spacecraft_mode, :slew_mode, :prnb, :category_code, :priority, :cycle, :obs_type, :issue_flag, :status, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], shown_cols=[:name, :obsid, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], blacklist_cols=[:abstract, :pi_lname, :pi_fname, :copi_lname, :copi_fname, :country], whitelist_cols=[], list_choice="whitelist", homedev=false)
+function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numaster(), select_cols=[:observation_mode, :spacecraft_mode, :slew_mode, :prnb, :category_code, :priority, :cycle, :obs_type, :issue_flag, :status, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], shown_cols=[:name, :obsid, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], blacklist_cols=[:abstract, :pi_lname, :pi_fname, :copi_lname, :copi_fname, :country], whitelist_cols=[], list_choice="whitelist", homedev=false, local_archive_pr=ENV["NU_ARCHIVE_PR"])
     if length(whitelist_cols) == 0
         whitelist_cols = vcat(shown_cols, [:public_date, :obs_type, :observation_mode])
     end
@@ -44,12 +44,11 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
 
     file_path = abspath(filename)
     file_dir = dirname(file_path)
-    file_dir_web = "./"
+    file_dir_web = "."
 
     if homedev
         file_dir_web = file_dir
     end
-
 
     # Head
     write(f, "<!DOCTYPE html>\n")
@@ -156,7 +155,7 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
             elseif column_name == :RegSrc
                 write(f, "\t\t\t\t<td class=\"$color_regsrc\">$(html_escape(cell))</td>\n")
             elseif column_name == :obsid
-                write(f, "\t\t\t\t<td><a href=\"$file_dir_web/obs/$obsid/$obsid.html\" target=\"_blank\">$(html_escape(cell))</a></td>\n")
+                write(f, "\t\t\t\t<td><a href=\"$file_dir_web/obs/$obsid/details.html\" target=\"_blank\">$(html_escape(cell))</a></td>\n")
             else
                 write(f, "\t\t\t\t<td>$(html_escape(cell))</td>\n")
             end
@@ -183,13 +182,13 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
     info("Generating subpages")
 
     WebGen_subpages(;folder_path=file_dir, df=load_numaster(),
-        hidden_cols=[:abstract, :name, :obsid, :comments, :title, :subject_category])
+        hidden_cols=[:abstract, :name, :obsid, :comments, :title, :subject_category], local_archive_pr=local_archive_pr)
 
     info("Done")
 end
 
 function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numaster(),
-    hidden_cols=[:abstract, :name, :obsid, :comments, :title, :subject_category])
+    hidden_cols=[:abstract, :name, :obsid, :comments, :title, :subject_category], local_archive_pr=ENV["NU_ARCHIVE_PR"])
     if !isdir("$folder_path/obs/")
         mkdir("$folder_path/obs/")
     end
@@ -199,7 +198,7 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
             mkdir("$folder_path/obs/$(df[i, :obsid])")
         end
         obsid = "$(df[i, :obsid])"
-        filename = "$folder_path/obs/$obsid/$obsid.html"
+        filename = "$folder_path/obs/$obsid/details.html"
 
         f = open(filename, "w")
 
@@ -214,7 +213,7 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         write(f, "\t<link rel=\"stylesheet\" href=\"../../assets/bootstrap/css/bootstrap.min.css\">\n")
         write(f, "\t<link rel=\"stylesheet\" href=\"../../assets/bootstrap-table/src/bootstrap-table.css\">\n")
         #write(f, "\t<link rel=\"stylesheet\" href=\"../../assets/bootstrap-table/src/extensions/sticky-header/bootstrap-table-sticky-header.css\">\n")
-        write(f, "\t<link rel=\"stylesheet\" href=\"../../assets/examples.css\">\n")
+        write(f, "\t<link rel=\"stylesheet\" href=\"../../assets/flex.css\">\n")
         write(f, "\t<script src=\"../../assets/jquery.min.js\"></script>\n")
         write(f, "\t<script src=\"../../assets/bootstrap/js/bootstrap.min.js\"></script>\n")
         write(f, "\t<script src=\"../../assets/bootstrap-table/src/bootstrap-table.js\"></script>\n")
@@ -226,23 +225,27 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         write(f, "\t<h1>Observation $obsid - $(df[i, :name])</h1>\n")
         write(f, "\t<hr>\n")
         write(f, "\t<h2>Abstract</h2>\n")
-        write(f, "\t<h4>$(df[i, :subject_category]) - $(df[i, :title])</h4>")
-        write(f, "\t<p>$(df[i, :abstract])</p>")
+        write(f, "\t<h4>$(df[i, :subject_category]) - $(df[i, :title])</h4>\n")
+        write(f, "\t<div class=\"flex-container\">\n")
+        write(f, "\t\t<div><img src=\"$local_archive_pr$obsid/images/evt_uf.png\" alt=\"evt_uf\" width=\"256\" height=\"256\"></div>\n")
+        write(f, "\t\t<div><img src=\"$local_archive_pr$obsid/images/evt_cl.png\" alt=\"evt_cl\" width=\"256\" height=\"256\"></div>\n")
+        write(f, "\t\t<div><p>$(df[i, :abstract])</p></div>\n")
+        write(f, "\t</div>\n")
         write(f, "\t<hr>\n")
-        write(f, "\t<h4>Status</h4>")
+        write(f, "\t<h4>Status</h4>\n")
         make_table(f, df[i, :]; something_list_cols=[:public_date, :status, :caldb_version, :Downloaded, :Cleaned, :ValidSci, :RegSrc,  :RegBkg], list_choice="whitelist", data_filter_show_clear="false", data_show_columns="false", data_filter_control="false", data_pagination="false")
         write(f, "\t<hr>\n")
-        write(f, "\t<h4>Source Details</h4>")
+        write(f, "\t<h4>Source Details</h4>\n")
         make_table(f, df[i, :]; something_list_cols=[:name, :obs_type, :ra, :dec, :lii, :bii], list_choice="whitelist", data_filter_show_clear="false", data_show_columns="false", data_filter_control="false", data_pagination="false")
         write(f, "\t<hr>\n")
-        write(f, "\t<h4>Observation Details</h4>")
+        write(f, "\t<h4>Observation Details</h4>\n")
         make_table(f, df[i, :]; something_list_cols=[:time, :end_time, :exposure_a, :exposure_b, :ontime_a, :ontime_b], list_choice="whitelist", data_filter_show_clear="false", data_show_columns="false", data_filter_control="false", data_pagination="false")
         write(f, "\t<hr>\n")
-        write(f, "\t<h4>Instrument Details</h4>")
+        write(f, "\t<h4>Instrument Details</h4>\n")
         make_table(f, df[i, :]; something_list_cols=[:spacecraft_mode, :instrument_mode, :observation_mode, :slew_mode, :solar_activity, :issue_flag], list_choice="whitelist", data_filter_show_clear="false", data_show_columns="false", data_filter_control="false", data_pagination="false")
         write(f, "\t<hr>\n")
-        write(f, "\t<h4>Comments</h4>")
-        write(f, "\t<p>$(df[i, :comments])</p>")
+        write(f, "\t<h4>Comments</h4>\n")
+        write(f, "\t<p>$(df[i, :comments])</p>\n")
 
         write(f, "</body>")
 
