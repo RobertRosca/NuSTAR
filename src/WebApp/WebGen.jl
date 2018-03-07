@@ -69,7 +69,19 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
     write(f, "\t\twidth: 100%;\n")
     write(f, "\t\theight: 100%;\n")
     write(f, "\t\tz-index: 9999;\n")
-    write(f, "\t\tbackground: center no-repeat #505050;\n") # url(assets/loading.gif) 
+    write(f, "\t\tbackground: center no-repeat #505050;\n") # url(assets/loading.gif)
+    write(f, "\t}\n")
+    write(f, "\t.table-success {\n")
+    write(f, "\t\tbackground-color: #c3e6cb;\n")
+    write(f, "\t}\n")
+    write(f, "\t.table-failure {\n")
+    write(f, "\t\tbackground-color: #f5c6cb;\n")
+    write(f, "\t}\n")
+    write(f, "\t.table-info {\n")
+    write(f, "\t\tbackground-color: #bee5eb;\n")
+    write(f, "\t}\n")
+    write(f, "\t.table-warn {\n")
+    write(f, "\t\tbackground-color: #ffeeba;\n")
     write(f, "\t}\n")
     write(f, "\t</style>\n\n")
 
@@ -94,44 +106,8 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
 
     # Summary
     write(f, "\t<h2>Summary</h2>\n")
-    write(f, "\t<table id=\"summary-table\"\n\t\t\t data-toggle=\"table\">\n")
 
-    write(f, "\t\t<thead>\n")
-    write(f, "\t\t\t<tr>\n")
-
-    cnames_summary = names(df_summary)
-
-    for column_name in cnames_summary
-        write(f, "\t\t\t\t<th >$column_name</th>\n")
-    end
-
-    write(f, "\t\t\t</tr>\n")
-    write(f, "\t\t</thead>\n")
-
-    write(f, "\t\t<tbody>\n")
-
-    n_summary = size(df_summary, 1)
-
-    mxrow_summary = n_summary
-
-    for row in 1:mxrow_summary
-        write(f, "\t\t\t<tr>\n")
-        for column_name in cnames_summary
-            cell = df_summary[row, column_name]
-            write(f, "\t\t\t\t<td>$(html_escape(cell))</td>\n")
-        end
-        write(f, "\t\t\t</tr>\n")
-    end
-    if n_summary > mxrow_summary
-        write(f, "\t\t\t<tr>\n")
-        write(f, "\t\t\t\t<th>&vellip;</th>\n")
-        for column_name in cnames_summary
-            write(f, "\t\t\t\t<td>&vellip;</td>\n")
-        end
-        write(f, "\t\t\t</tr>\n")
-    end
-    write(f, "\t\t</tbody>\n")
-    write(f, "\t</table>\n")
+    make_table(f, df_summary; table_id="summary-table", data_show_columns="false", data_filter_control="true", data_filter_show_clear="false", data_pagination="false", data_sort_stable="false")
 
     write(f, "\t<hr>\n")
 
@@ -157,11 +133,23 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
     mxrow = n
 
     for row in 1:mxrow
+        df[row, :Downloaded] == 1 ? color_downloaded="table-success" : color_downloaded=""
+        df[row, :Cleaned] == 1 ? color_cleaned="table-success" : color_cleaned=""
+        color_regsrc = ["table-warn", "table-failure", "", "table-success", "table-info"][3+df[row, :RegSrc]]
+
         write(f, "\t\t\t<tr>\n")
-        #write(f, "<th>$row</th>\n")data-filter-control=\"input\"
+
         for column_name in cnames
             cell = df[row, column_name]
-            write(f, "\t\t\t\t<td>$(html_escape(cell))</td>\n")
+            if column_name == :Downloaded
+                write(f, "\t\t\t\t<td class=\"$color_downloaded\">$(html_escape(cell))</td>\n")
+            elseif column_name == :Cleaned
+                write(f, "\t\t\t\t<td class=\"$color_cleaned\">$(html_escape(cell))</td>\n")
+            elseif column_name == :RegSrc
+                write(f, "\t\t\t\t<td class=\"$color_regsrc\">$(html_escape(cell))</td>\n")
+            else
+                write(f, "\t\t\t\t<td>$(html_escape(cell))</td>\n")
+            end
         end
         write(f, "\t\t\t</tr>\n")
     end
@@ -245,15 +233,14 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
     end
 end
 
-function make_table(f, df; hidden_cols=[], select_cols=[], shown_cols=[], something_list_cols=[], list_choice="blacklist",
-    data_show_columns="true", data_toggle="table", data_filter_control="true", data_filter_show_clear="true", data_pagination="true", data_page_size="100", data_page_list="[100, 500, 5000]", data_sort_name="Downloaded", data_sort_order="desc", data_sort_stable="true")
+function make_table(f, df; table_id="", hidden_cols=[], select_cols=[], shown_cols=[], something_list_cols=[], list_choice="blacklist", data_show_columns="true", data_toggle="table", data_filter_control="true", data_filter_show_clear="true", data_pagination="true", data_page_size="100", data_page_list="[100, 500, 5000]", data_sort_name="Downloaded", data_sort_order="desc", data_sort_stable="true")
     if list_choice == "blacklist"
         df = df[:, filter(x->!(x in something_list_cols), names(df))]
     elseif list_choice == "whitelist"
         df = df[:, filter(x->(x in something_list_cols), names(df))]
     end
 
-    write(f, "\t<table id=\"table\"\n\t\t\tdata-show-columns=\"$data_show_columns\"\n\t\t\tdata-toggle=\"$data_toggle\"\n\t\t\tdata-filter-control=\"$data_filter_control\"\n\t\t\tdata-filter-show-clear=\"$data_filter_show_clear\"\n\t\t\tdata-pagination=\"$data_pagination\"\n\t\t\tdata-page-size=\"$data_page_size\"\n\t\t\tdata-page-list=\"$data_page_list\"\n\t\t\tdata-sort-name=\"$data_sort_name\"\n\t\t\tdata-sort-order=\"$data_sort_order\"\n\t\t\tdata-sort-stable=\"$data_sort_stable\">\n")
+    write(f, "\t<table id=\"$table_id\"\n\t\t\tdata-show-columns=\"$data_show_columns\"\n\t\t\tdata-toggle=\"$data_toggle\"\n\t\t\tdata-filter-control=\"$data_filter_control\"\n\t\t\tdata-filter-show-clear=\"$data_filter_show_clear\"\n\t\t\tdata-pagination=\"$data_pagination\"\n\t\t\tdata-page-size=\"$data_page_size\"\n\t\t\tdata-page-list=\"$data_page_list\"\n\t\t\tdata-sort-name=\"$data_sort_name\"\n\t\t\tdata-sort-order=\"$data_sort_order\"\n\t\t\tdata-sort-stable=\"$data_sort_stable\">\n")
 
     cnames = names(df)
 
