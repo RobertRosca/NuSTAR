@@ -235,8 +235,6 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         !islink("$file_dir/evt_uf.png") ? symlink("$local_archive_pr$obsid/images/evt_uf.png", "$file_dir/evt_uf.png") : ""
         write(f, "\t\t<div><img src=\"./evt_cl.png\" alt=\"evt_cl\" width=\"256\" height=\"256\"></div>\n")
         !islink("$file_dir/evt_cl.png") ? symlink("$local_archive_pr$obsid/images/evt_cl.png", "$file_dir/evt_cl.png") : ""
-        #write(f, "\t\t<div><img src=\"$local_archive_pr$obsid/images/evt_uf.png\" alt=\"evt_uf\" width=\"256\" height=\"256\"></div>\n")
-        #write(f, "\t\t<div><img src=\"$local_archive_pr$obsid/images/evt_cl.png\" alt=\"evt_cl\" width=\"256\" height=\"256\"></div>\n")
         write(f, "\t\t<div><p>$(df[i, :abstract])</p></div>\n")
         write(f, "\t</div>\n")
         write(f, "\t<hr>\n")

@@ -11,7 +11,7 @@ function ds9_make_img(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU
 
         @select string("", local_archive, i.obsid, "/event_uf/nu", i.obsid, "A_uf.evt.gz",
         " -scale log -geometry 512x770",
-        " -export png ", local_archive_pr, i.obsid, "/images/event_uf.png",
+        " -export png ", local_archive_pr, i.obsid, "/images/evt_uf.png",
         " -exit")
         @collect
     end
@@ -20,7 +20,7 @@ function ds9_make_img(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU
         @where i.Cleaned==1&&i.RegSrc!=1
         @select string("", local_archive_cl, i.obsid, "/pipeline_out/nu", i.obsid, "A01_cl.evt",
         " -scale log -geometry 512x770",
-        " -export png ", local_archive_pr, i.obsid, "/images/event_cl.png",
+        " -export png ", local_archive_pr, i.obsid, "/images/evt_cl.png",
         " -exit")
         @collect
     end
@@ -31,7 +31,7 @@ function ds9_make_img(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU
         " -regions ", local_archive_cl, i.obsid, "/source.reg ",
         " -regions ", local_archive_cl, i.obsid, "/background.reg",
         " -scale log -geometry 512x770",
-        " -export png ", local_archive_pr, i.obsid, "/images/event_cl.png",
+        " -export png ", local_archive_pr, i.obsid, "/images/evt_cl.png",
         " -exit")
         @collect
     end
