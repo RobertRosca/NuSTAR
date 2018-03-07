@@ -31,7 +31,7 @@ function Calibrate(ObsIDs::Union{Array{String,1}, String}; dry=false)
         info("Calibration started for $queue")
     elseif ENV["NU_SCRATCH_FLAG"] == "false"
         run_native_nupipeline = string(Pkg.dir(), "/NuSTAR/src/Scripts/run_native_nupipeline.sh")
-        run(`gnome-terminal -e "$run_native_nupipeline --archive="$(ENV["NU_ARCHIVE"])/" --clean="$(ENV["NU_ARCHIVE_CL"])/" --obsids="$queue_native""`)
+        run(`gnome-terminal -e "$run_native_nupipeline --archive="$(ENV["NU_ARCHIVE"])/" --clean="$(ENV["NU_ARCHIVE_CL"])/" --obsids=\"$queue_native\""`)
         info("Calibration started for $queue_native")
     end
 end
