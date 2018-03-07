@@ -43,6 +43,7 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
     f = open(filename, "w")
 
     file_path = abspath(filename)
+    file_dir = dirname(file_path)
 
     # Head
     write(f, "<!DOCTYPE html>\n")
@@ -133,6 +134,7 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
     mxrow = n
 
     for row in 1:mxrow
+        obsid = df[row, :obsid]
         df[row, :Downloaded] == 1 ? color_downloaded="table-success" : color_downloaded=""
         df[row, :Cleaned] == 1 ? color_cleaned="table-success" : color_cleaned=""
         color_regsrc = ["table-warn", "table-failure", "", "table-success", "table-info"][3+df[row, :RegSrc]]
@@ -147,6 +149,8 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
                 write(f, "\t\t\t\t<td class=\"$color_cleaned\">$(html_escape(cell))</td>\n")
             elseif column_name == :RegSrc
                 write(f, "\t\t\t\t<td class=\"$color_regsrc\">$(html_escape(cell))</td>\n")
+            elseif column_name == :obsid
+                write(f, "\t\t\t\t<td><a href=\"$file_dir/obs/$obsid/$obsid.html\" target=\"_blank\">$(html_escape(cell))</a></td>\n")
             else
                 write(f, "\t\t\t\t<td>$(html_escape(cell))</td>\n")
             end
@@ -169,6 +173,13 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
     close(f)
 
     info("Saved to: $file_path")
+
+    info("Generating subpages")
+
+    WebGen_subpages(;folder_path=file_dir, df=load_numaster(),
+        hidden_cols=[:abstract, :name, :obsid, :comments, :title, :subject_category])
+
+    info("Done")
 end
 
 function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numaster(),
@@ -177,7 +188,7 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         mkdir("$folder_path/obs/")
     end
 
-    for i in 1:2#size(df, 1)
+    for i in 1:size(df, 1)
         if !isdir("$folder_path/obs/$(df[i, :obsid])")
             mkdir("$folder_path/obs/$(df[i, :obsid])")
         end
