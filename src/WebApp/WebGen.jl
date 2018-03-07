@@ -11,7 +11,7 @@ function html_escape(cell)
     return cell
 end
 
-function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numaster(), select_cols=[:observation_mode, :spacecraft_mode, :slew_mode, :prnb, :category_code, :priority, :cycle, :obs_type, :issue_flag, :status, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], shown_cols=[:name, :obsid, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], blacklist_cols=[:abstract, :pi_lname, :pi_fname, :copi_lname, :copi_fname, :country], whitelist_cols=[], list_choice="whitelist")
+function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numaster(), select_cols=[:observation_mode, :spacecraft_mode, :slew_mode, :prnb, :category_code, :priority, :cycle, :obs_type, :issue_flag, :status, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], shown_cols=[:name, :obsid, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], blacklist_cols=[:abstract, :pi_lname, :pi_fname, :copi_lname, :copi_fname, :country], whitelist_cols=[], list_choice="whitelist", homedev=false)
     if length(whitelist_cols) == 0
         whitelist_cols = vcat(shown_cols, [:public_date, :obs_type, :observation_mode])
     end
@@ -44,6 +44,12 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
 
     file_path = abspath(filename)
     file_dir = dirname(file_path)
+    file_dir_web = "~/robertr"
+
+    if homedev
+        file_dir_web = file_dir
+    end
+
 
     # Head
     write(f, "<!DOCTYPE html>\n")
@@ -150,8 +156,7 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
             elseif column_name == :RegSrc
                 write(f, "\t\t\t\t<td class=\"$color_regsrc\">$(html_escape(cell))</td>\n")
             elseif column_name == :obsid
-                #write(f, "\t\t\t\t<td><a href=\"$file_dir/obs/$obsid/$obsid.html\" target=\"_blank\">$(html_escape(cell))</a></td>\n")
-                write(f, "\t\t\t\t<td><a href=\"/obs/$obsid/$obsid.html\" target=\"_blank\">$(html_escape(cell))</a></td>\n")
+                write(f, "\t\t\t\t<td><a href=\"$file_dir/obs/$obsid/$obsid.html\" target=\"_blank\">$(html_escape(cell))</a></td>\n")
             else
                 write(f, "\t\t\t\t<td>$(html_escape(cell))</td>\n")
             end
