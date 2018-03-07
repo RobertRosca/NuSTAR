@@ -24,6 +24,7 @@ include("Analysis/FITSWCS.jl")
 include("Analysis/SourceDetect.jl")
 include("Analysis/Xselect.jl")
 include("WebApp/WebGen.jl")
+include("Analysis/DS9Img.jl")
 
 nustar_settings_file = string(homedir(), "/.config/julia-pkg/v0.6/NuSTAR/NuSTAR-settings.jl")
 
