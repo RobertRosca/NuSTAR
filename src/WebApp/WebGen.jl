@@ -29,22 +29,44 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df="", select_
 
     # Head
     write(f, "<!DOCTYPE html>\n")
-    write(f, "<html>\n")
+    write(f, "<html class=\"no-js\">\n")
     write(f, "<head>\n")
-    write(f, "\t <title>NuSTAR.jl Web View</title>\n")
-    write(f, "\t <meta charset=\"utf-8\">\n")
-    write(f, "\t <link rel=\"stylesheet\" href=\"./assets/bootstrap/css/bootstrap.min.css\">\n")
-    write(f, "\t <link rel=\"stylesheet\" href=\"./assets/bootstrap-table/src/bootstrap-table.css\">\n")
-    write(f, "\t <link rel=\"stylesheet\" href=\"./assets/bootstrap-table/src/extensions/sticky-header/bootstrap-table-sticky-header.css\">\n")
-    write(f, "\t <link rel=\"stylesheet\" href=\"./assets/examples.css\">\n")
-    write(f, "\t <script src=\"./assets/jquery.min.js\"></script>\n")
-    write(f, "\t <script src=\"./assets/bootstrap/js/bootstrap.min.js\"></script>\n")
-    write(f, "\t <script src=\"./assets/bootstrap-table/src/bootstrap-table.js\"></script>\n")
-    write(f, "\t <script src=\"./assets/bootstrap-table/src/extensions/filter-control/bootstrap-table-filter-control.js\"></script>\n")
+    write(f, "\t<title>NuSTAR.jl Web View</title>\n")
+    write(f, "\t<meta charset=\"utf-8\">\n\n")
+    write(f, "\t<link rel=\"stylesheet\" href=\"./assets/bootstrap/css/bootstrap.min.css\">\n")
+    write(f, "\t<link rel=\"stylesheet\" href=\"./assets/bootstrap-table/src/bootstrap-table.css\">\n")
+    write(f, "\t<link rel=\"stylesheet\" href=\"./assets/bootstrap-table/src/extensions/sticky-header/bootstrap-table-sticky-header.css\">\n")
+    write(f, "\t<link rel=\"stylesheet\" href=\"./assets/examples.css\">\n")
+    write(f, "\t<script src=\"./assets/jquery.min.js\"></script>\n")
+    write(f, "\t<script src=\"./assets/bootstrap/js/bootstrap.min.js\"></script>\n")
+    write(f, "\t<script src=\"./assets/bootstrap-table/src/bootstrap-table.js\"></script>\n")
+    write(f, "\t<script src=\"./assets/bootstrap-table/src/extensions/filter-control/bootstrap-table-filter-control.js\"></script>\n\n")
+
+    write(f, "\t<style>\n")
+    write(f, "\t.no-js #loader { display: none;  }\n")
+    write(f, "\t.js #loader { display: block; position: absolute; left: 100px; top: 0; }\n")
+    write(f, "\t.se-pre-con {\n")
+    write(f, "\t\tposition: fixed;\n")
+    write(f, "\t\tleft: 0px;\n")
+    write(f, "\t\ttop: 0px;\n")
+    write(f, "\t\twidth: 100%;\n")
+    write(f, "\t\theight: 100%;\n")
+    write(f, "\t\tz-index: 9999;\n")
+    write(f, "\t\tbackground: center no-repeat #505050;\n")
+    write(f, "\t}\n")
+    write(f, "\t</style>\n\n")
+
+    write(f, "\t<script>\n")
+    write(f, "\t\t\$(window).load(function() {\n")
+    write(f, "\t\t\t\$(\".se-pre-con\").fadeOut(\"slow\");;\n")
+    write(f, "\t\t});\n")
+    write(f, "\t</script>\n")
+
     write(f, "</head>\n")
 
     # Body
     write(f, "<body>\n")
+    write(f, "\t<div class=\"se-pre-con\"></div>\n")
     write(f, "\t<div class=\"container\">\n")
     write(f, "\t<h1>NuSTAR.jl WebView</h1>\n")
     write(f, "\t<p>Table of the current local Numaster catalog, run `NuSTAR.Numaster()` to update</p>\n")
@@ -97,7 +119,7 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df="", select_
     write(f, "\t<hr>\n")
 
     # Table
-    write(f, "\t<table id=\"table\"\n\t\t\t data-show-columns=\"true\"\n\t\t\t data-toggle=\"table\"\n\t\t\t data-filter-control=\"true\"\n\t\t\t data-filter-show-clear=\"true\"\n\t\t\t data-pagination=\"true\"\n\t\t\t data-page-size=\"100\"\n\t\t\t data-page-list=\"[100, 500, 5000]\"\n\t\t\t data-sort-name=\"Downloaded\"\n\t\t\t data-sort-order=\"desc\"\n\t\t\t data-sort-stable=\"true\">\n")
+    write(f, "\t<table id=\"table\"\n\t\t\tdata-show-columns=\"true\"\n\t\t\tdata-toggle=\"table\"\n\t\t\tdata-filter-control=\"true\"\n\t\t\tdata-filter-show-clear=\"true\"\n\t\t\tdata-pagination=\"true\"\n\t\t\tdata-page-size=\"100\"\n\t\t\tdata-page-list=\"[100, 500, 5000]\"\n\t\t\tdata-sort-name=\"Downloaded\"\n\t\t\tdata-sort-order=\"desc\"\n\t\t\tdata-sort-stable=\"true\">\n")
 
     cnames = names(df)
 
