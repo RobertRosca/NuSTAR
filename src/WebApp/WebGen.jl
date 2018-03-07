@@ -1,10 +1,12 @@
-function WebGen(;filename="/home/robertr/public_html/index.html", df="", select_cols=[:observation_mode, :spacecraft_mode, :slew_mode, :prnb, :category_code, :priority, :cycle, :obs_type, :issue_flag, :status, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], shown_cols=[:name, :obsid, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg])
+function WebGen(;filename="/home/robertr/public_html/index.html", df="", select_cols=[:observation_mode, :spacecraft_mode, :slew_mode, :prnb, :category_code, :priority, :cycle, :obs_type, :issue_flag, :status, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], shown_cols=[:name, :obsid, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], blacklist_cols=[:abstract, :pi_lname, :pi_fname, :copi_lname, :copi_fname, :country])
     if df == ""
         df = load_numaster()
     end
 
-    df = df[:, filter(x->!(x in [:abstract]), names(df))]
+    df = df[:, filter(x->!(x in blacklist_cols), names(df))]
     f = open(filename, "w")
+
+    file_path = abspath(filename)
 
     # Head
     write(f, "<!DOCTYPE html>\n")
@@ -73,6 +75,8 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df="", select_
     write(f, "</body>")
 
     close(f)
+
+    info("Saved to: $file_path")
 end
 
 function html_escape(cell)
