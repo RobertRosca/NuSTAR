@@ -36,12 +36,7 @@ function ds9_make_img(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU
         @collect
     end
 
-    println()
-    println(stat(abspath(split(queue_cl_src[1])[end-8])).mtime)
-
-    return
-
-    for ds9_call in vcat(queue_uf, queue_cl)
+    for ds9_call in vcat(queue_uf, queue_cl)[1:2]
         img_path = abspath(split(ds9_call)[end-1])
         img_dir = dirname(abspath(split(ds9_call)[end-1]))
 
@@ -58,11 +53,11 @@ function ds9_make_img(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU
         info("Created: $img_path")
     end
 
-    for ds9_call in queue_cl_src # Source-region images need to check the age of the regionfiles
+    for ds9_call in queue_cl_src[1:2] # Source-region images need to check the age of the regionfiles
         img_path = abspath(split(ds9_call)[end-1])
         img_dir  = dirname(abspath(split(ds9_call)[end-1]))
-        reg_src_path = dirname(abspath(split(ds9_call)[end-10]))
-        reg_bkg_path = dirname(abspath(split(ds9_call)[end-8]))
+        reg_src_path = abspath(split(ds9_call)[end-10])
+        reg_bkg_path = abspath(split(ds9_call)[end-8])
 
         if !isdir(img_dir)
             mkpath(img_dir)
@@ -76,7 +71,8 @@ function ds9_make_img(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU
 
             image_maketime = stat(img_path).mtime
 
-            if image_maketime - reg_src_maketime < 0 # image younger than source
+            if image_maketime - reg_src_maketime > 0 # image newer than source1
+                info("Image newer than source, skipped")
                 continue
             end
         end
