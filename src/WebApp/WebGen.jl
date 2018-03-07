@@ -44,7 +44,7 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
 
     file_path = abspath(filename)
     file_dir = dirname(file_path)
-    file_dir_web = "~/robertr"
+    file_dir_web = "./"
 
     if homedev
         file_dir_web = file_dir
