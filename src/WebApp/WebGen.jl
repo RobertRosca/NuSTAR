@@ -1,9 +1,26 @@
-function WebGen(;filename="/home/robertr/public_html/index.html", df="", select_cols=[:observation_mode, :spacecraft_mode, :slew_mode, :prnb, :category_code, :priority, :cycle, :obs_type, :issue_flag, :status, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], shown_cols=[:name, :obsid, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], blacklist_cols=[:abstract, :pi_lname, :pi_fname, :copi_lname, :copi_fname, :country])
-    if df == ""
-        df = load_numaster()
+function html_escape(cell)
+    if typeof(cell) == Missings.Missing
+        return "missing"
     end
 
-    df = df[:, filter(x->!(x in blacklist_cols), names(df))]
+    cell = string(cell)
+
+    cell = replace(cell, "&"=>"&amp;")
+    cell = replace(cell, "<"=>"&lt;")
+    cell = replace(cell, ">"=>"&gt;")
+    return cell
+end
+
+function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numaster(), select_cols=[:observation_mode, :spacecraft_mode, :slew_mode, :prnb, :category_code, :priority, :cycle, :obs_type, :issue_flag, :status, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], shown_cols=[:name, :obsid, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], blacklist_cols=[:abstract, :pi_lname, :pi_fname, :copi_lname, :copi_fname, :country], whitelist_cols=[], list_choice="whitelist")
+    if length(whitelist_cols) == 0
+        whitelist_cols = vcat(shown_cols, [:public_date, :obs_type, :observation_mode])
+    end
+
+    if list_choice == "blacklist"
+        df = df[:, filter(x->!(x in blacklist_cols), names(df))]
+    elseif list_choice == "whitelist"
+        df = df[:, filter(x->(x in whitelist_cols), names(df))]
+    end
 
     gnr_c = 0
     @from i in df begin
@@ -52,7 +69,7 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df="", select_
     write(f, "\t\twidth: 100%;\n")
     write(f, "\t\theight: 100%;\n")
     write(f, "\t\tz-index: 9999;\n")
-    write(f, "\t\tbackground: center no-repeat #505050;\n")
+    write(f, "\t\tbackground: center no-repeat #505050;\n") # url(assets/loading.gif) 
     write(f, "\t}\n")
     write(f, "\t</style>\n\n")
 
@@ -166,15 +183,112 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df="", select_
     info("Saved to: $file_path")
 end
 
-function html_escape(cell)
-    if typeof(cell) == Missings.Missing
-        return "missing"
+function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numaster(),
+    hidden_cols=[:abstract, :name, :obsid, :comments, :title, :subject_category])
+    if !isdir("$folder_path/obs/")
+        mkdir("$folder_path/obs/")
     end
 
-    cell = string(cell)
+    for i in 1:2#size(df, 1)
+        if !isdir("$folder_path/obs/$(df[i, :obsid])")
+            mkdir("$folder_path/obs/$(df[i, :obsid])")
+        end
+        obsid = "$(df[i, :obsid])"
+        filename = "$folder_path/obs/$obsid/$obsid.html"
 
-    cell = replace(cell, "&"=>"&amp;")
-    cell = replace(cell, "<"=>"&lt;")
-    cell = replace(cell, ">"=>"&gt;")
-    return cell
+        f = open(filename, "w")
+
+        file_path = abspath(filename)
+
+        # Head
+        write(f, "<!DOCTYPE html>\n")
+        write(f, "<html class=\"no-js\">\n")
+        write(f, "<head>\n")
+        write(f, "\t<title>$obsid</title>\n")
+        write(f, "\t<meta charset=\"utf-8\">\n\n")
+        write(f, "\t<link rel=\"stylesheet\" href=\"../../assets/bootstrap/css/bootstrap.min.css\">\n")
+        write(f, "\t<link rel=\"stylesheet\" href=\"../../assets/bootstrap-table/src/bootstrap-table.css\">\n")
+        #write(f, "\t<link rel=\"stylesheet\" href=\"../../assets/bootstrap-table/src/extensions/sticky-header/bootstrap-table-sticky-header.css\">\n")
+        write(f, "\t<link rel=\"stylesheet\" href=\"../../assets/examples.css\">\n")
+        write(f, "\t<script src=\"../../assets/jquery.min.js\"></script>\n")
+        write(f, "\t<script src=\"../../assets/bootstrap/js/bootstrap.min.js\"></script>\n")
+        write(f, "\t<script src=\"../../assets/bootstrap-table/src/bootstrap-table.js\"></script>\n")
+        write(f, "</head>\n")
+
+        # Body
+        write(f, "<body>\n")
+        write(f, "\t<div class=\"container\">\n")
+        write(f, "\t<h1>Observation $obsid - $(df[i, :name])</h1>\n")
+        write(f, "\t<hr>\n")
+        write(f, "\t<h2>Abstract</h2>\n")
+        write(f, "\t<h4>$(df[i, :subject_category]) - $(df[i, :title])</h4>")
+        write(f, "\t<p>$(df[i, :abstract])</p>")
+        write(f, "\t<hr>\n")
+        write(f, "\t<h4>Status</h4>")
+        make_table(f, df[i, :]; something_list_cols=[:public_date, :status, :caldb_version, :Downloaded, :Cleaned, :ValidSci, :RegSrc,  :RegBkg], list_choice="whitelist", data_filter_show_clear="false", data_show_columns="false", data_filter_control="false", data_pagination="false")
+        write(f, "\t<hr>\n")
+        write(f, "\t<h4>Source Details</h4>")
+        make_table(f, df[i, :]; something_list_cols=[:name, :obs_type, :ra, :dec, :lii, :bii], list_choice="whitelist", data_filter_show_clear="false", data_show_columns="false", data_filter_control="false", data_pagination="false")
+        write(f, "\t<hr>\n")
+        write(f, "\t<h4>Observation Details</h4>")
+        make_table(f, df[i, :]; something_list_cols=[:time, :end_time, :exposure_a, :exposure_b, :ontime_a, :ontime_b], list_choice="whitelist", data_filter_show_clear="false", data_show_columns="false", data_filter_control="false", data_pagination="false")
+        write(f, "\t<hr>\n")
+        write(f, "\t<h4>Instrument Details</h4>")
+        make_table(f, df[i, :]; something_list_cols=[:spacecraft_mode, :instrument_mode, :observation_mode, :slew_mode, :solar_activity, :issue_flag], list_choice="whitelist", data_filter_show_clear="false", data_show_columns="false", data_filter_control="false", data_pagination="false")
+        write(f, "\t<hr>\n")
+        write(f, "\t<h4>Comments</h4>")
+        write(f, "\t<p>$(df[i, :comments])</p>")
+
+        write(f, "</body>")
+
+        close(f)
+    end
+end
+
+function make_table(f, df; hidden_cols=[], select_cols=[], shown_cols=[], something_list_cols=[], list_choice="blacklist",
+    data_show_columns="true", data_toggle="table", data_filter_control="true", data_filter_show_clear="true", data_pagination="true", data_page_size="100", data_page_list="[100, 500, 5000]", data_sort_name="Downloaded", data_sort_order="desc", data_sort_stable="true")
+    if list_choice == "blacklist"
+        df = df[:, filter(x->!(x in something_list_cols), names(df))]
+    elseif list_choice == "whitelist"
+        df = df[:, filter(x->(x in something_list_cols), names(df))]
+    end
+
+    write(f, "\t<table id=\"table\"\n\t\t\tdata-show-columns=\"$data_show_columns\"\n\t\t\tdata-toggle=\"$data_toggle\"\n\t\t\tdata-filter-control=\"$data_filter_control\"\n\t\t\tdata-filter-show-clear=\"$data_filter_show_clear\"\n\t\t\tdata-pagination=\"$data_pagination\"\n\t\t\tdata-page-size=\"$data_page_size\"\n\t\t\tdata-page-list=\"$data_page_list\"\n\t\t\tdata-sort-name=\"$data_sort_name\"\n\t\t\tdata-sort-order=\"$data_sort_order\"\n\t\t\tdata-sort-stable=\"$data_sort_stable\">\n")
+
+    cnames = names(df)
+
+    write(f, "\t\t<thead>\n")
+    write(f, "\t\t\t<tr>\n")
+    for column_name in cnames
+        column_name in hidden_cols ? visible="false" : visible="true"
+        write(f, "\t\t\t\t<th data-sortable=\"false\" data-field=\"$column_name\" data-visible=\"$visible\">$column_name</th>\n")
+    end
+    write(f, "\t\t\t</tr>\n")
+    write(f, "\t\t</thead>\n")
+
+    write(f, "\t\t<tbody>\n")
+
+    n = size(df, 1)
+
+    mxrow = n
+
+    for row in 1:mxrow
+        write(f, "\t\t\t<tr>\n")
+        #write(f, "<th>$row</th>\n")data-filter-control=\"input\"
+        for column_name in cnames
+            cell = df[row, column_name]
+            write(f, "\t\t\t\t<td>$(html_escape(cell))</td>\n")
+        end
+        write(f, "\t\t\t</tr>\n")
+    end
+    if n > mxrow
+        write(f, "\t\t\t<tr>\n")
+        write(f, "\t\t\t\t<th>&vellip;</th>\n")
+        for column_name in cnames
+            write(f, "\t\t\t\t<td>&vellip;</td>\n")
+        end
+        write(f, "\t\t\t</tr>\n")
+    end
+    write(f, "\t\t</tbody>\n")
+    write(f, "\t</table>\n")
 end
