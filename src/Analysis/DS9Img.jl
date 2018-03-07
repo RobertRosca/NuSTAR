@@ -36,7 +36,12 @@ function ds9_make_img(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU
         @collect
     end
 
-    for ds9_call in vcat(queue_uf, queue_cl)[1:2]
+    ds9_queue_filename = string(local_utility, "/ds9_queue.sh")
+    # 0755 is equiv to chmod +x
+
+    f = open(ds9_queue_filename, "w")
+
+    for ds9_call in vcat(queue_uf, queue_cl)[1:10]
         img_path = abspath(split(ds9_call)[end-1])
         img_dir = dirname(abspath(split(ds9_call)[end-1]))
 
@@ -51,13 +56,13 @@ function ds9_make_img(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU
         if debug
             println("ds9 $ds9_call")
         else
-            run(`ds9 $ds9_call`)
+            write(f, "ds9 $ds9_call\n")
         end
 
-        info("Created: $img_path")
+        info("Added to queue: $img_path")
     end
 
-    for ds9_call in queue_cl_src[1:2] # Source-region images need to check the age of the regionfiles
+    for ds9_call in queue_cl_src[1:10] # Source-region images need to check the age of the regionfiles
         img_path = abspath(split(ds9_call)[end-1])
         img_dir  = dirname(abspath(split(ds9_call)[end-1]))
         reg_src_path = abspath(split(ds9_call)[end-10])
@@ -80,13 +85,15 @@ function ds9_make_img(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU
                 continue
             end
         end
-        
+
         if debug
             println("ds9 $ds9_call")
         else
-            run(`ds9 $ds9_call`)
+            write(f, "ds9 $ds9_call\n")
         end
 
-        info("Created: $img_path")
+        close(f)
+
+        info("Added to queue: $img_path")
     end
 end
