@@ -105,7 +105,7 @@ function make_img_ds9_uf(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV[
     info("Queue saved to: $ds9_queue_filename")
 end
 
-function make_img_plt_cl(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"], local_utility=ENV["NU_ARCHIVE_UTIL"], local_archive_pr=ENV["NU_ARCHIVE_PR"], regions=[], debug=false)
+function make_img_plt_cl(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"], local_utility=ENV["NU_ARCHIVE_UTIL"], local_archive_pr=ENV["NU_ARCHIVE_PR"], regions=[], debug=false, overwrite=false)
 
     numaster_path = string(local_utility, "/numaster_df.csv")
 
@@ -127,7 +127,7 @@ function make_img_plt_cl(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV[
                 mkpath(img_dir)
             end
 
-            if isfile(img_path)
+            if isfile(img_path) && !overwrite
                 continue
             end
 
