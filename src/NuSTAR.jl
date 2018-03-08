@@ -10,6 +10,9 @@ using LightXML
 using FITSIO
 using StatsBase
 
+using Plots
+pyplot()
+
 if is_linux()
     using WCS
 else
@@ -25,6 +28,7 @@ include("Analysis/SourceDetect.jl")
 include("Analysis/Xselect.jl")
 include("WebApp/WebGen.jl")
 include("Analysis/DS9Img.jl")
+include("Analysis/Plotters.jl")
 
 nustar_settings_file = string(homedir(), "/.config/julia-pkg/v0.6/NuSTAR/NuSTAR-settings.jl")
 
