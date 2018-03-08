@@ -19,7 +19,7 @@ function make_plot(obs_path, out_path; log_flag=true, bkg_color=:black)
     first_y = findfirst(sum(det_plt, 2))
     last_y  = 1000 - findfirst(sum(det_plt, 2)[end:-1:1])
 
-    if background_white == :white
+    if bkg_color == :white
         det_plt[det_plt .== 0] = NaN
         bkg_color = :white
     end
