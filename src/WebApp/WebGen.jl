@@ -230,11 +230,10 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         write(f, "\t<h2>Abstract</h2>\n")
         write(f, "\t<h4>$(df[i, :subject_category]) - $(df[i, :title])</h4>\n")
         write(f, "\t<div class=\"flex-container\">\n")
-        write(f, "\t\t<div><img src=\"./evt_uf.png\" alt=\"evt_uf\" width=\"256\" height=\"256\"></div>\n")
+        write(f, "\t\t<div><img src=\"./images/evt_uf.png\" alt=\"evt_uf\" width=\"256\" height=\"256\"></div>\n")
         !isdir("$local_archive_pr$obsid/images/") ? mkpath("$local_archive_pr$obsid/images/") : ""
-        !islink("$file_dir/evt_uf.png") ? symlink("$local_archive_pr$obsid/images/evt_uf.png", "$file_dir/evt_uf.png") : ""
-        write(f, "\t\t<div><img src=\"./evt_cl.png\" alt=\"evt_cl\" width=\"256\" height=\"256\"></div>\n")
-        !islink("$file_dir/evt_cl.png") ? symlink("$local_archive_pr$obsid/images/evt_cl.png", "$file_dir/evt_cl.png") : ""
+        !islink("$file_dir/images/") ? symlink("$local_archive_pr$obsid/images/", "$file_dir/images") : ""
+        write(f, "\t\t<div><img src=\"./images/evt_cl.png\" alt=\"evt_cl\" width=\"256\" height=\"256\"></div>\n")
         write(f, "\t\t<div><p>$(df[i, :abstract])</p></div>\n")
         write(f, "\t</div>\n")
         write(f, "\t<hr>\n")
