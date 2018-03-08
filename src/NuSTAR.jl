@@ -11,8 +11,8 @@ using FITSIO
 using StatsBase
 
 using Plots
-#pyplot()
-gr()
+pyplot()
+#gr()
 
 if is_linux()
     using WCS

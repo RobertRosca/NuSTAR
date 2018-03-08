@@ -27,4 +27,6 @@ function make_plot(obs_path, out_path; log_flag=true, bkg_color=:black)
     heatmap(1:1000, 1:1000, det_plt, size=(512, 512), legend=false, axis=false, grid=false, c=ColorGradient([:black, :white]), aspect_ratio=:equal, background_color=bkg_color)
     xlims!(first_x, last_x)
     ylims!(first_y, last_y)
+
+    savefig(out_path)
 end
