@@ -135,11 +135,7 @@ function make_img_plt_cl(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV[
                 println("$obs_path - $img_path")
             else
                 info("Plotting $img_path")
-                try
-                    make_plot(obs_path, img_path)
-                catch error
-                    warn(error)
-                end
+                make_plot(obs_path, img_path)
             end
         end
     end
