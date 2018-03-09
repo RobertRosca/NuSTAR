@@ -4,5 +4,6 @@ DataFrames
 FITSIO
 FTPClient
 LightXML
+Query
 Plots
 GR
