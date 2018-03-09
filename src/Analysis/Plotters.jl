@@ -30,3 +30,35 @@ function make_plot(obs_path, out_path; log_flag=true, bkg_color=:black)
 
     savefig(out_path)
 end
+
+function make_plot_src(obs_path, out_path, reg_src_path; log_flag=true, bkg_color=:black)
+    path_reg_file = abspath(string(dirname(obs_path), "/../source.reg"))
+
+    f = open(path_reg_file)
+    lines = readlines(f)
+    close(f)
+
+    lines[end] = replace(lines[end], "circle(", "")
+    lines[end] = replace(lines[end], ")", "")
+    src_line   = split(lines[end], ",")
+
+    if contains(src_line[1], ":") # asume sxgm
+        ra_sxgm  = parse.(Float64, split(src_line[1], ":"))
+        dec_sxgm = parse.(Float64, split(src_line[2], ":"))
+        ra, dec = sxgm_to_deg(ra_sxgm, dec_sxgm)
+    else
+        ra  = parse(Float64, src_line[1])
+        dec = parse(Float64, src_line[2])
+    end
+
+    src_pix_wcs = [ra, dec]
+    src_pix_pix = NuSTAR.FITSWCS(obs_path, src_pix_wcs; flag_to_world=false)
+    src_radius  = parse(Float64, replace(src_line[3], "\"", ""))*(1/60/60)
+    src_radius  = NuSTAR.FITSWCS(obs_path, [src_radius, src_radius]; flag_to_world=false)
+
+    make_plot(obs_path, out_path; log_flag=true, bkg_color=:black)
+    plot!([src_pix_pix[1] .+ cos.(0:0.1:2pi).*12], [src_pix_pix[2] .+ sin.(0:0.1:2pi).*12], color=:green) # 30" is about 12 pixels
+    #plot!([src_pix_pix[1]], [src_pix_pix[2]], marker=(10, 0.5, :x, :red))
+
+    savefig(out_path)
+end

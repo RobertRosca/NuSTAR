@@ -116,6 +116,22 @@ function decdeg_to_sxgm(deg)
     return deg, mnt, sec
 end
 
+function sxgm_to_deg(ra, dec)
+    ra_hr, ra_min, ra_sec    = ra
+
+    ra_deg =ra_hr*(15) + ra_min*(1/4) + ra_sec*(1/240)
+
+    dec_hr, dec_min, dec_sec = dec
+
+    if dec_hr < 0
+        dec_deg = -(abs(dec_hr) + dec_min*(1/60) + dec_sec*(1/60/60))
+    else
+        dec_deg = dec_hr + dec_min*(1/60) + dec_sec*(1/60/60)
+    end
+
+    return ra_deg, dec_deg
+end
+
 """
     FITSWCS_Delta(path, pixcoords_1, pixcoords_2)
 
