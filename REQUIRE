@@ -6,4 +6,5 @@ FTPClient
 LightXML
 Query
 Plots
+PyPlot
 GR
