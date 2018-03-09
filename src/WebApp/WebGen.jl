@@ -11,9 +11,9 @@ function html_escape(cell)
     return cell
 end
 
-# NuSTAR.WebGen(filename="/home/robert/Scratch/WebApps/NuSTAR-WebView/NuSTAR-WebView.html", homedev=true)
+# NuSTAR.WebGen(filename="/home/robert/Scratch/WebApps/NuSTAR-WebView/NuSTAR-WebView.html", homedev=true, subpage_gen=false)
 
-function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numaster(), select_cols=[:observation_mode, :spacecraft_mode, :slew_mode, :prnb, :category_code, :priority, :cycle, :obs_type, :issue_flag, :status, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], shown_cols=[:name, :obsid, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], blacklist_cols=[:abstract, :pi_lname, :pi_fname, :copi_lname, :copi_fname, :country], whitelist_cols=[], list_choice="whitelist", homedev=false, local_archive_pr=ENV["NU_ARCHIVE_PR"])
+function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numaster(), select_cols=[:observation_mode, :spacecraft_mode, :slew_mode, :prnb, :category_code, :priority, :cycle, :obs_type, :issue_flag, :status, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], shown_cols=[:name, :obsid, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg, :obs_type, :category_code], blacklist_cols=[:abstract, :pi_lname, :pi_fname, :copi_lname, :copi_fname, :country], whitelist_cols=[], list_choice="whitelist", homedev=false, local_archive_pr=ENV["NU_ARCHIVE_PR"], subpage_gen=true)
     if length(whitelist_cols) == 0
         whitelist_cols = vcat(shown_cols, [:public_date, :obs_type, :observation_mode])
     end
@@ -23,6 +23,9 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
     elseif list_choice == "whitelist"
         df = df[:, filter(x->(x in whitelist_cols), names(df))]
     end
+
+    category_dict = Dict(0=>"Non-Pointing", 1=>"Calibration", 2=>"Solar System", 3=>"Galactic Compact", 4=>"Supernovae/Galactic Diffuse",
+    5=>"Normal Galaxies", 6=>"Active Galaxies/Quasars", 7=>"Galaxy Clusters/Extragalactic Diffuse", 8=>"Proposed ToOs", 9=>"Non-proposal ToOs")
 
     gnr_c = 0
     @from i in df begin
@@ -158,6 +161,8 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
                 write(f, "\t\t\t\t<td class=\"$color_regsrc\">$(html_escape(cell))</td>\n")
             elseif column_name == :obsid
                 write(f, "\t\t\t\t<td><a href=\"$file_dir_web/obs/$obsid/details.html\" target=\"_blank\">$(html_escape(cell))</a></td>\n")
+            elseif column_name == :category_code
+                write(f, "\t\t\t\t<td>$(html_escape(category_dict[cell]))</td>\n")
             else
                 write(f, "\t\t\t\t<td>$(html_escape(cell))</td>\n")
             end
@@ -181,10 +186,12 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
 
     info("Saved to: $file_path")
 
-    info("Generating subpages")
+    if subpage_gen
+        info("Generating subpages")
 
-    WebGen_subpages(;folder_path=file_dir, df=load_numaster(),
-        hidden_cols=[:abstract, :name, :obsid, :comments, :title, :subject_category], local_archive_pr=local_archive_pr)
+        WebGen_subpages(;folder_path=file_dir, df=load_numaster(),
+            hidden_cols=[:abstract, :name, :obsid, :comments, :title, :subject_category], local_archive_pr=local_archive_pr)
+    end
 
     info("Done")
 end

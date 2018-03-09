@@ -3,7 +3,7 @@
 # http://www.bahmanm.com/blogs/command-line-options-how-to-parse-in-bash-using-getopt
 
 # read the options
-TEMP=`getopt -o a:c:o: --long archive:,clean:,obsids: -n 'fuck.sh' -- "$@"`
+TEMP=`getopt -o a:c:o: --long archive:,clean:,obsids: -n 'run_native_nupipeline.sh' -- "$@"`
 eval set -- "$TEMP"
 
 # extract options and their arguments into variables.
