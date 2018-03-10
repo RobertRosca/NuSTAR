@@ -310,7 +310,7 @@ function RegBatch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
 
         # Background region creation
         queue_bkg = @from i in numaster_df begin
-                @where  i.RegSrc==1 # Valid source exists
+                @where  i.RegSrc==1 && i.RegBkg==0 # Valid source exists
                 @select string(local_archive_cl, "/$(i.obsid)/source.reg")
                 @collect
         end
