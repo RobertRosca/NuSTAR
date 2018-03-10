@@ -23,10 +23,9 @@ Takes in path, passes to FITS_Coords(path), finds Full Width at prcnt-Max for,
 returns bounds for FWXM, centre pixle, centre FK5 coordinates, and a flag
 indicating the reliability of the source position based on the width
 """
-function FWXM_Single_Source(path; prcnt=0.75, filt_flag=true, verbose=true)
+function FWXM_Single_Source(path; prcnt=0.75, filt_flag=false, verbose=true)
     evt_coords = FITS_Coords(path)
 
-    #data_out = similar(evt_coords, 0)
     bnds_out = DataFrame(item = ["min_pix", "max_pix", "min_val", "max_val"])
 
     binedge = linspace(1, 1000, 1000)
@@ -53,7 +52,6 @@ function FWXM_Single_Source(path; prcnt=0.75, filt_flag=true, verbose=true)
                                            "to $(hist_x[max_ind]) ($(@sprintf("%.3f", hist_y[max_ind])))")
         end
 
-        #data_out = evt_coords[Int(hist_x[min_ind]) .< evt_coords[coord] .< Int(hist_x[max_ind]), :]
         bnds_out[coord] = [hist_x[min_ind], hist_x[max_ind], hist_y[min_ind], hist_y[max_ind]]
 
         append!(heights, [hist_y])
@@ -70,22 +68,28 @@ function FWXM_Single_Source(path; prcnt=0.75, filt_flag=true, verbose=true)
                                 [bnds_out[:X][1], bnds_out[:Y][1]],
                                 [bnds_out[:X][2], bnds_out[:Y][2]])
 
-    covariance = cov(heights[1], heights[2])[1]
-
     println("Width: $bound_width")
+
+    covariance = cov(heights[1], heights[2])[1]
 
     println("Covariance: $covariance")
 
-    flag_manual_check = false
+    in_x = bnds_out[1, :X] .< evt_coords[:X] .< bnds_out[2, :X]
+    in_y = bnds_out[1, :Y] .< evt_coords[:Y] .< bnds_out[2, :Y]
 
-    if bound_width > 60 || covariance < 5000
-        flag_manual_check = true
-        warn("Manual check")
-    end
+    in_both = in_x .& in_y
+
+    counts = count(x->x==true, in_both)
+
+    println("Source counts: $counts")
+
+    source_statistics = Dict("bound_width"=>bound_width, "covariance"=>covariance, "counts"=>counts)
+
+    # Auto bad-path for width > 300, cov < 1000 ?
 
     println("Source centre pixle coords: $source_centre_pix -- α: $(@sprintf("%.9f", source_centre_fk5[1])), δ: $(@sprintf("%.9f", source_centre_fk5[2]))")
 
-    return bnds_out, source_centre_pix, source_centre_fk5, flag_manual_check
+    return bnds_out, source_centre_pix, source_centre_fk5, source_statistics
 end
 
 """
@@ -97,7 +101,7 @@ Uses the returned α and δ coordinates as well as the flag_manual_check value
 to create a `.reg` file. Asks for user input it flag_manual_check is true
 """
 function MakeSourceReg(path; skip_bad=false)
-    _, _, (ra, dec), flag_manual_check = FWXM_Single_Source(path)
+    _, _, (ra, dec), source_statistics = FWXM_Single_Source(path)
 
     header = "\# Region file format: SourceDetect.jl - Source auotgenerate for $path"
     coord_type = "fk5"
@@ -117,7 +121,40 @@ function MakeSourceReg(path; skip_bad=false)
 
     print("\n")
 
-    if flag_manual_check && !skip_bad
+    # For stats, assume rough pattern of: Auto bad-path for width > 300, cov < 1000 ?
+    #  Uncertain   - bound_width > 60  || covariance < 5000
+    #  Certain bad - bound_width > 300 || covariance < 1000
+
+    stats_flag = 1 # 1 Auto-accepts
+
+    if source_statistics["counts"] < 100
+        stats_flag = -1
+    elseif source_statistics["covariance"] < 500
+        stats_flag = -1 # Auto bad
+    elseif source_statistics["bound_width"] > 300 && source_statistics["covariance"] < 1000
+        stats_flag = -1 # Auto bad
+    elseif source_statistics["bound_width"] > 60 || source_statistics["covariance"] < 5000
+        stats_flag = -2 # Need to check
+    end
+
+    if stats_flag == 1 # Auto-good
+        info("Stats appear good - continuing")
+
+        save_ds9_img = `ds9 $path -regions $source_reg_file_unchecked -saveimage $(string(obs_path, "source_region_", splitdir(path)[2][1:end-4], ".jpeg")) -exit`
+        run(save_ds9_img)
+
+        mv(source_reg_file_unchecked, string(obs_path, "source.reg"), remove_destination=true)
+    elseif stats_flag == -1 # Auto-bad
+        warn("Stats appear bad, excluded from scientific data product")
+        mv(source_reg_file_unchecked, string(obs_path, "source_bad.reg"))
+    elseif stats_flag == -2 # Manual
+        info("Stats are uncertain, manual check")
+
+        if skip_bad
+            info("Auto skipping manual checks, check later")
+            return
+        end
+
         command = `ds9 $path -regions $source_reg_file_unchecked`
 
         run(command)
@@ -146,15 +183,6 @@ function MakeSourceReg(path; skip_bad=false)
                 write(f, response[3:end])
             end
         end
-    elseif flag_manual_check && skip_bad
-        warn("Skipping large-error sources sources\nPerform manual check with RegSrcBadBatch()")
-    else
-        info("No manual flag - continuing")
-
-        save_ds9_img = `ds9 $path -regions $source_reg_file_unchecked -saveimage $(string(obs_path, "source_region_", splitdir(path)[2][1:end-4], ".jpeg")) -exit`
-        run(save_ds9_img)
-
-        mv(source_reg_file_unchecked, string(obs_path, "source.reg"), remove_destination=true)
     end
 
     return
@@ -245,13 +273,14 @@ function RegBatch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
     end
 
     if bad_only
-        skip_bad = false
+        #skip_bad = false
         src_include_val = -2 # Change checked value to -2 for @where below
     else
         src_include_val = 0
     end
 
     if src_type=="both" || src_type=="src"
+        Numaster(download=false)
         numaster_df = read_numaster(numaster_path)
 
         # Source region creation
@@ -273,10 +302,10 @@ function RegBatch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
         end
 
         info("Updating Numaster table")
-        Numaster(download=false)
     end
 
     if src_type=="both" || src_type=="bkg"
+        Numaster(download=false)
         numaster_df = read_numaster(numaster_path)
 
         # Background region creation
@@ -298,6 +327,5 @@ function RegBatch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
         end
 
         info("Updating Numaster table")
-        Numaster(download=false)
     end
 end
