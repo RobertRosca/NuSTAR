@@ -74,7 +74,7 @@ do
 
     nupipeline indir=$archive$ObsID steminputs=nu$ObsID outdir=$clean$ObsID"/pipeline_out/" | tee -a "$log_file"
 
-    if [[ $(dirname $TMP_DIR) -ef /tmp/ ]]
+    if [[ $(dirname $TMP_DIR) -ef /tmp/ ]]; then
         echo removing $TMP_DIR
         rm -r -f $TMP_DIR
     fi
