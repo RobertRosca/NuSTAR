@@ -1,16 +1,15 @@
-function XselLC(ObsID, bins)
-    scratch_archive_clean = "/home/robert/Scratch/.nustar_archive_cl/"
-    scratch_archive_products = "/home/robert/Scratch/.nustar_archive_pr/"
+function XselLC(ObsID, bins;
+        local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"], src_file="/source.reg", dry=false)
 
     xsel_name = split(tempname(), "/")[3]
 
-    ObsPath = string(scratch_archive_clean, ObsID)
+    ObsPath = string(local_archive_cl, ObsID)
     xsel_pip = string(ObsPath, "/pipeline_out/")
-    xsel_src = string(ObsPath, "/source.reg")
+    xsel_src = string(ObsPath, src_file)
     xsel_bin = bins
-    xsel_out = string(scratch_archive_products, ObsID, "/products/lc_$xsel_bin.fits")
+    xsel_out = string(local_archive_pr, ObsID, "/products/lc_$xsel_bin.fits")
 
-    xsel_file_path = string(scratch_archive_products, ObsID, "/xselect_scripts/lc_$xsel_bin", ".xco")
+    xsel_file_path = string(local_archive_pr, ObsID, "/xselect_scripts/lc_$xsel_bin", ".xco")
 
     xsel_file_session = "$xsel_name"
     xsel_file_read = "read event\n$xsel_pip\n$(string("nu", ObsID, "A01_cl.evt"))"
@@ -22,6 +21,10 @@ function XselLC(ObsID, bins)
 
     xsel_file = [xsel_file_session, xsel_file_read, xsel_file_filter,
         xsel_file_extract, xsel_file_save, xsel_file_exit, xsel_file_exit_no]
+
+    if !isfile(xsel_src)
+        error("Source file $xsel_src not found")
+    end
 
     if !isdir(dirname(xsel_file_path))
         mkpath(dirname(xsel_file_path))
@@ -39,5 +42,9 @@ function XselLC(ObsID, bins)
 
     run_xselect = string(Pkg.dir(), "/NuSTAR/src/Scripts/run_xselect.sh")
 
-    run(`gnome-terminal -e "$run_xselect @$xsel_file_path"`)
+    if dry
+        println("gnome-terminal -e \"$run_xselect @$xsel_file_path\"")
+    else
+        run(`gnome-terminal -e "$run_xselect @$xsel_file_path"`)
+    end
 end
