@@ -62,7 +62,10 @@ function CalBatch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
     end
 
     queue = queue[end:-1:1]
-    queue = queue[1:to_cal]
+
+    if to_cal < size(1, queue)
+        queue = queue[1:to_cal]
+    end
 
     info("Added to queue: $(join(queue, ", "))")
 

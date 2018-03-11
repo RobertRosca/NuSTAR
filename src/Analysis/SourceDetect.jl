@@ -20,7 +20,7 @@ end
     FWXM_Single_Source(path; prcnt=0.5, filt_flag=true, verbose=true)
 
 Takes in path, passes to FITS_Coords(path), finds Full Width at prcnt-Max for,
-returns bounds for FWXM, centre pixle, centre FK5 coordinates, and a flag
+returns bounds for FWXM, centre pixel, centre FK5 coordinates, and a flag
 indicating the reliability of the source position based on the width
 """
 function FWXM_Single_Source(path; prcnt=0.75, filt_flag=false, verbose=true)
@@ -87,7 +87,7 @@ function FWXM_Single_Source(path; prcnt=0.75, filt_flag=false, verbose=true)
 
     # Auto bad-path for width > 300, cov < 1000 ?
 
-    println("Source centre pixle coords: $source_centre_pix -- α: $(@sprintf("%.9f", source_centre_fk5[1])), δ: $(@sprintf("%.9f", source_centre_fk5[2]))")
+    println("Source centre pixel coords: $source_centre_pix -- α: $(@sprintf("%.9f", source_centre_fk5[1])), δ: $(@sprintf("%.9f", source_centre_fk5[2]))")
 
     return bnds_out, source_centre_pix, source_centre_fk5, source_statistics
 end
