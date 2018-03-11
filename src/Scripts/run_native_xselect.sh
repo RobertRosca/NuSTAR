@@ -72,7 +72,7 @@ do
         mkdir -p $products$ObsID/products/
     fi
 
-    xselect $xco | tee -a "$log_file"
+    xselect @$xco | tee -a "$log_file"
 
     echo "${highlight}Finished xselect ${reset}"
 
