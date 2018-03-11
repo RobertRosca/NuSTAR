@@ -93,7 +93,7 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
 
             if isfile(string(local_archive_cl, "/", obs, "/source.reg"))
                 reg_src[itr] = 1 # Valid source file
-            elseif isfile(string(local_archive_cl, "/", obs, "/source_intersting.reg"))
+            elseif isfile(string(local_archive_cl, "/", obs, "/source_interesting.reg"))
                 reg_src[itr] = 2 # 'Interesting' source file
             elseif isfile(string(local_archive_cl, "/", obs, "/source_bad.reg"))
                 reg_src[itr] = -1 # Bad source, ignore during analysis

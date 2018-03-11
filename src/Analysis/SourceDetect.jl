@@ -177,7 +177,7 @@ function MakeSourceReg(path; skip_bad=false)
 
             note_path = string(obs_path, "note.txt")
             info("Included note at $note_path")
-            mv(source_reg_file_unchecked, string(obs_path, "source_intersting.reg"), remove_destination=true)
+            mv(source_reg_file_unchecked, string(obs_path, "source_interesting.reg"), remove_destination=true)
 
             open(note_path, "w") do f
                 write(f, response[3:end])
