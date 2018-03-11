@@ -40,11 +40,11 @@ function XselLC(ObsID, bins;
         end
     end
 
-    run_xselect = string(Pkg.dir(), "/NuSTAR/src/Scripts/run_xselect.sh")
+    run_native_xselect = string(Pkg.dir(), "/NuSTAR/src/Scripts/run_native_xselect.sh")
 
     if dry
-        println("gnome-terminal -e \"$run_xselect @$xsel_file_path\"")
+        println("gnome-terminal -e \"$run_native_xselect --clean=\"$local_archive_cl/\" --products=\"$local_archive_pr/\" --xselect_scripts=\"$xsel_file_path\"\"")
     else
-        run(`gnome-terminal -e "$run_xselect @$xsel_file_path"`)
+        run(`gnome-terminal -e "$run_native_xselect --clean="$local_archive_cl/" --products="$local_archive_pr/" --xselect_scripts=\"$xsel_file_path\""`)
     end
 end
