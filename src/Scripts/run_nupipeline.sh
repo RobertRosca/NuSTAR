@@ -66,8 +66,10 @@ do
 
 	notify-send "Completed $ObsID nupipeline" -t 5
 
-	echo removing $TMP_DIR
-	rm -r -f $TMP_DIR
+	if [[ $(dirname $TMP_DIR) -ef /tmp/ ]]; then
+			echo removing $TMP_DIR
+			rm -r -f $TMP_DIR
+	fi
 done
 
 #read -p "Press enter to continue

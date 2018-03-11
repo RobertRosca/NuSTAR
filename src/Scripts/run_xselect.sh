@@ -53,6 +53,8 @@ do
 
 	rsync -a --info=progress2 --remove-source-files $products_live$ObsID/ $products$ObsID/
 
-	echo removing $TMP_DIR
-	rm -r -f $TMP_DIR
+	if [[ $(dirname $TMP_DIR) -ef /tmp/ ]]; then
+			echo removing $TMP_DIR
+			rm -r -f $TMP_DIR
+	fi
 done
