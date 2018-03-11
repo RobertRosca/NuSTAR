@@ -62,8 +62,8 @@ function CalBatch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
     end
 
     queue = queue[end:-1:1]
-
-    if to_cal < size(1, queue)
+    
+    if length(queue) > to_cal
         queue = queue[1:to_cal]
     end
 
