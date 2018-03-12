@@ -123,7 +123,7 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
     write(f, "\t<hr>\n")
 
     # Table
-    write(f, "\t<table id=\"table\"\n\t\t\tdata-show-columns=\"true\"\n\t\t\tdata-toggle=\"table\"\n\t\t\tdata-filter-control=\"true\"\n\t\t\tdata-filter-show-clear=\"true\"\n\t\t\tdata-pagination=\"true\"\n\t\t\tdata-page-size=\"100\"\n\t\t\tdata-page-list=\"[100, 500, 5000]\"\n\t\t\tdata-sort-name=\"Downloaded\"\n\t\t\tdata-sort-order=\"desc\"\n\t\t\tdata-sort-stable=\"true\">\n")
+    write(f, "\t<table id=\"table\"\n\t\t\tdata-show-columns=\"true\"\n\t\t\tdata-toggle=\"table\"\n\t\t\tdata-filter-control=\"true\"\n\t\t\tdata-filter-show-clear=\"true\"\n\t\t\tdata-pagination=\"true\"\n\t\t\tdata-page-size=\"100\"\n\t\t\tdata-page-list=\"[100, 500, 5000]\"\n\t\t\tdata-sort-name=\"RegBkg\"\n\t\t\tdata-sort-order=\"desc\"\n\t\t\tdata-sort-stable=\"true\">\n")
 
     cnames = names(df)
 
@@ -147,6 +147,8 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
         obsid = df[row, :obsid]
         df[row, :Downloaded] == 1 ? color_downloaded="table-success" : color_downloaded=""
         df[row, :Cleaned] == 1 ? color_cleaned="table-success" : color_cleaned=""
+        df[row, :ValidSci] == 1 ? color_validsci="table-success" : color_validsci=""
+        df[row, :RegBkg] == 1 ? color_bkg="table-success" : color_bkg=""
         color_regsrc = ["table-warn", "table-failure", "", "table-success", "table-info"][3+df[row, :RegSrc]]
 
         write(f, "\t\t\t<tr>\n")
@@ -159,6 +161,10 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
                 write(f, "\t\t\t\t<td class=\"$color_cleaned\">$(html_escape(cell))</td>\n")
             elseif column_name == :RegSrc
                 write(f, "\t\t\t\t<td class=\"$color_regsrc\">$(html_escape(cell))</td>\n")
+            elseif column_name == :ValidSci
+                write(f, "\t\t\t\t<td class=\"$color_validsci\">$(html_escape(cell))</td>\n")
+            elseif column_name == :RegBkg
+                write(f, "\t\t\t\t<td class=\"$color_bkg\">$(html_escape(cell))</td>\n")
             elseif column_name == :obsid
                 write(f, "\t\t\t\t<td><a href=\"$file_dir_web/obs/$obsid/details.html\" target=\"_blank\">$(html_escape(cell))</a></td>\n")
             elseif column_name == :category_code

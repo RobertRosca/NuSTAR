@@ -40,6 +40,10 @@ function make_img_ds9_uf(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV[
                 write(f, "ds9 $ds9_call\n")
             end
         end
+
+        info("Created $ds9_queue_filename\nFor $(length(queue_uf)) observations")
+    else
+        info("No items in queue")
     end
 
     close(f)
@@ -108,7 +112,7 @@ function make_img_plt_cl(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV[
                 image_maketime = stat(img_path).mtime
 
                 if image_maketime - reg_src_maketime > 0 # image newer than source1
-                    info("$obsid image newer than source, skipped")
+                    #info("$obsid image newer than source, skipped")
                     continue
                 end
             end
