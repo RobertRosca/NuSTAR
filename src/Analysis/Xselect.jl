@@ -1,5 +1,5 @@
-function XselLC(ObsID, bins;
-        local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"], src_file="/source.reg", dry=false)
+function create_xco_lc(ObsID, bins;
+        local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"], src_file="/source.reg")
 
     xsel_name = split(tempname(), "/")[3]
 
@@ -40,11 +40,69 @@ function XselLC(ObsID, bins;
         end
     end
 
-    run_native_xselect = string(Pkg.dir(), "/NuSTAR/src/Scripts/run_native_xselect.sh")
+    return xsel_file_path
+end
+
+function XselLC(todo, bins;
+        local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utility=ENV["NU_ARCHIVE_UTIL"], scratch=ENV["NU_SCRATCH_FLAG"],
+        src_file="/source.reg", dry=false)
+
+    numaster_path = string(local_utility, "/numaster_df.csv")
+
+    numaster_df = read_numaster(numaster_path)
+
+    xsel_file_path = []
+
+    if scratch == "false" #"true"
+        local_archive_cl=ENV["NU_ARCHIVE_CL_LIVE"]
+        local_archive_pr=ENV["NU_ARCHIVE_PR_LIVE"]
+
+        run_xselect_command =  string(Pkg.dir(), "/NuSTAR/src/Scripts/run_xselect.sh")
+    else
+        run_xselect_command = string(Pkg.dir(), "/NuSTAR/src/Scripts/run_native_xselect.sh")
+    end
+
+    queue = @from i in numaster_df begin
+        @where i.RegSrc == 1
+        @select i.obsid
+        @collect
+    end
+
+    queue_paths = []
+
+    for (i, obsid) in enumerate(queue)
+        fits_file_path = string(local_archive_pr, obsid, "/products/lc_$bins", ".fits")
+        xco_file_path  = string(local_archive_pr, obsid, "/xselect_scripts/lc_$bins", ".xco")
+
+        if !isfile(fits_file_path)
+            if !isfile(xco_file_path)
+                info("Generating xco for $obsid with bins of $bins [s]")
+                xco_file_path = create_xco_lc(obsid, bins;
+                    local_archive_cl=local_archive_cl, local_archive_pr=local_archive_pr,
+                    src_file=src_file)
+            end
+            
+            append!(queue_paths, [xco_file_path])
+        end
+    end
+
+    if size(queue_paths, 1) > todo
+        queue_paths = queue_paths[1:todo]
+    end
+
+    queue_string = join(queue_paths, " ")
+
+    println(size(queue_paths, 1))
+
+    if length(queue_string) == 0
+        warn("No files in queue")
+
+        return
+    end
 
     if dry
-        println("gnome-terminal -e \"$run_native_xselect --clean=\"$local_archive_cl/\" --products=\"$local_archive_pr/\" --xselect_scripts=\"$xsel_file_path\"\"")
+        println("gnome-terminal -e \"$run_xselect_command --clean=\"$local_archive_cl/\" --products=\"$local_archive_pr/\" --xselect_scripts=\"$queue_string\"\"")
     else
-        run(`gnome-terminal -e "$run_native_xselect --clean="$local_archive_cl/" --products="$local_archive_pr/" --xselect_scripts=\"$xsel_file_path\""`)
+        run(`gnome-terminal -e "$run_xselect_command --clean="$local_archive_cl/" --products="$local_archive_pr/" --xselect_scripts=\"$queue_string\""`)
     end
 end
