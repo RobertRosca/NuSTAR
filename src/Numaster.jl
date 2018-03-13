@@ -105,7 +105,7 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
             end
 
             # Read dir to get all files, join into a single-string list, remove .fits extensions
-            lc_path = string(local_archive_pr, "/products/lc/")
+            lc_path = string(local_archive_pr, "/$obs/products/lc/")
             if isdir(lc_path)
                 lc_files = replace(join(readdir(lc_path), ", "), ".fits", "")
             else
