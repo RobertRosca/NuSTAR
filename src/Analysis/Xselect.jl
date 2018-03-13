@@ -103,6 +103,8 @@ function XselLC(todo, bins;
     if dry
         println("gnome-terminal -e \"$run_xselect_command --clean=\"$local_archive_cl/\" --products=\"$local_archive_pr/\" --xselect_scripts=\"$queue_string\"\"")
     else
+        info("Running for:\n")
+        println(queue_paths)
         run(`gnome-terminal -e "$run_xselect_command --clean="$local_archive_cl/" --products="$local_archive_pr/" --xselect_scripts=\"$queue_string\""`)
     end
 end
