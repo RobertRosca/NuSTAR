@@ -104,15 +104,15 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
                 reg_src[itr] = 0 # No source file yet
             end
 
-            # Read dir to get all files, join into a single-string list, remove .fits extensions
-            lc_path = string(local_archive_pr, "/$obs/products/lc/")
-            if isdir(lc_path)
-                lc_files[itr] = replace(join(readdir(lc_path), ", "), ".fits", "")
-            else
-                lc_files[itr] = "none"
-            end
-
             reg_bkg[itr] = isfile(string(local_archive_cl, "/", obs, "/background.reg")) ? 1 : 0
+        end
+
+        # Read dir to get all files, join into a single-string list, remove .fits extensions
+        lc_path = string(local_archive_pr, "/$obs/products/lc/")
+        if isdir(lc_path)
+            lc_files[itr] = replace(join(readdir(lc_path), ", "), ".fits", "")
+        else
+            lc_files[itr] = "none"
         end
     end
 
