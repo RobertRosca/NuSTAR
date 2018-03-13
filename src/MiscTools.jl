@@ -110,7 +110,7 @@ function read_numaster(numaster_path)
     Int, String, Union{Missings.Missing, String}, Int, Int,
     Union{Missings.Missing, String}, Union{Missings.Missing, String}, Int, Union{Missings.Missing, String}, String,
     String, Int, Int, Int, Int,
-    Int];
+    Int, String];
 
     # This is absurdly stupid looking, but seems to be the only way to get the CSV
     # to be read properly

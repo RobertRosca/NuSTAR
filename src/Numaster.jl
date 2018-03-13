@@ -7,7 +7,7 @@ Downloads new version, then works through local archives to set the flags for
 what data has been processed so far
 """
 function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"],
-                   local_utility=ENV["NU_ARCHIVE_UTIL"], download=true)
+                   local_utility=ENV["NU_ARCHIVE_UTIL"], local_archive_pr=ENV["NU_ARCHIVE_PR"], download=true)
     if !isdir(local_utility)
         mkpath(local_utility)
     end
@@ -86,6 +86,7 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
     valid_sci  = zeros(Int, numaster_df_n)
     reg_src    = zeros(Int, numaster_df_n)
     reg_bkg    = zeros(Int, numaster_df_n)
+    lc_files   = zeros(Int, numaster_df_n)
 
     for (itr, obs) in enumerate(numaster_df[:obsid])
         if cleaned[itr] == 1
@@ -103,6 +104,14 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
                 reg_src[itr] = 0 # No source file yet
             end
 
+            # Read dir to get all files, join into a single-string list, remove .fits extensions
+            lc_path = string(local_archive_pr, "/products/lc/")
+            if isdir(lc_path)
+                lc_files = replace(join(readdir(lc_path), ", "), ".fits", "")
+            else
+                lc_files = "none"
+            end
+
             reg_bkg[itr] = isfile(string(local_archive_cl, "/", obs, "/background.reg")) ? 1 : 0
         end
     end
@@ -110,6 +119,7 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
     numaster_df[:ValidSci] = valid_sci
     numaster_df[:RegSrc]   = reg_src
     numaster_df[:RegBkg]   = reg_bkg
+    numaster_df[:LCData]   = lc_files
 
     # Convert modified Julian dates to readable dates
     numaster_df[:time] = map(x -> Base.Dates.julian2datetime(parse(Float64, x) + 2400000.5), numaster_df[:time])
