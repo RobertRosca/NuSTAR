@@ -81,7 +81,7 @@ function XselLC(todo, bins;
                     xsel_out=xsel_out, xsel_file_path=xsel_file_path, src_file="/source.reg")
             end
 
-            append!(queue_paths, [xco_file_path])
+            append!(queue_paths, [xsel_file_path])
         end
     end
 
