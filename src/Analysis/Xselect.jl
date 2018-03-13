@@ -53,7 +53,7 @@ function XselLC(todo, bins;
 
     xsel_file_path = []
 
-    if scratch == "false" #"true"
+    if scratch == "true"
         local_archive_cl=ENV["NU_ARCHIVE_CL_LIVE"]
         local_archive_pr=ENV["NU_ARCHIVE_PR_LIVE"]
 
@@ -81,7 +81,7 @@ function XselLC(todo, bins;
                     local_archive_cl=local_archive_cl, local_archive_pr=local_archive_pr,
                     src_file=src_file)
             end
-            
+
             append!(queue_paths, [xco_file_path])
         end
     end
