@@ -86,7 +86,7 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
     valid_sci  = zeros(Int, numaster_df_n)
     reg_src    = zeros(Int, numaster_df_n)
     reg_bkg    = zeros(Int, numaster_df_n)
-    lc_files   = zeros(Int, numaster_df_n)
+    lc_files   = zeros(String, numaster_df_n)
 
     for (itr, obs) in enumerate(numaster_df[:obsid])
         if cleaned[itr] == 1
