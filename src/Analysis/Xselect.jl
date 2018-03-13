@@ -1,15 +1,15 @@
-function create_xco_lc(ObsID, bins;
-        local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"], src_file="/source.reg")
+function create_xco_lc(ObsID, bins; ObsPath="", xsel_out="", xsel_file_path="", src_file="/source.reg")
+        #local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"], src_file=)
 
     xsel_name = split(tempname(), "/")[3]
 
-    ObsPath = string(local_archive_cl, ObsID)
+    #ObsPath = string(local_archive_cl, ObsID)
     xsel_pip = string(ObsPath, "/pipeline_out/")
     xsel_src = string(ObsPath, src_file)
     xsel_bin = bins
-    xsel_out = string(local_archive_pr, ObsID, "/products/lc_$xsel_bin.fits")
+    #xsel_out = string(local_archive_pr, ObsID, "/products/lc_$xsel_bin.fits")
 
-    xsel_file_path = string(local_archive_pr, ObsID, "/xselect_scripts/lc_$xsel_bin", ".xco")
+    #xsel_file_path = string(local_archive_pr, ObsID, "/xselect_scripts/lc_$xsel_bin", ".xco")
 
     xsel_file_session = "$xsel_name"
     xsel_file_read = "read event\n$xsel_pip\n$(string("nu", ObsID, "A01_cl.evt"))"
@@ -71,15 +71,14 @@ function XselLC(todo, bins;
     queue_paths = []
 
     for (i, obsid) in enumerate(queue)
-        fits_file_path = string(local_archive_pr, obsid, "/products/lc_$bins", ".fits")
-        xco_file_path  = string(local_archive_pr, obsid, "/xselect_scripts/lc_$bins", ".xco")
+        xsel_out = string(local_archive_pr, obsid, "/products/lc/lc_$bins.fits")
+        xsel_file_path  = string(local_archive_pr, obsid, "/xselect_scripts/lc_$bins", ".xco")
 
-        if !isfile(fits_file_path)
-            if !isfile(xco_file_path)
+        if !isfile(xsel_out) # If the .fits file doesn't exist
+            if !isfile(xsel_file_path) # If the .xco file, which creates the fits, doesn't exist
                 info("Generating xco for $obsid with bins of $bins [s]")
-                xco_file_path = create_xco_lc(obsid, bins;
-                    local_archive_cl=local_archive_cl, local_archive_pr=local_archive_pr,
-                    src_file=src_file)
+                create_xco_lc(obsid, bins; ObsPath=string(local_archive_cl, obsid),
+                    xsel_out=xsel_out, xsel_file_path=xsel_file_path, src_file="/source.reg")
             end
 
             append!(queue_paths, [xco_file_path])
