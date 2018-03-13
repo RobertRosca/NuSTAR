@@ -3,13 +3,9 @@ function create_xco_lc(ObsID, bins; ObsPath="", xsel_out="", xsel_file_path="", 
 
     xsel_name = split(tempname(), "/")[3]
 
-    #ObsPath = string(local_archive_cl, ObsID)
     xsel_pip = string(ObsPath, "/pipeline_out/")
     xsel_src = string(ObsPath, src_file)
     xsel_bin = bins
-    #xsel_out = string(local_archive_pr, ObsID, "/products/lc_$xsel_bin.fits")
-
-    #xsel_file_path = string(local_archive_pr, ObsID, "/xselect_scripts/lc_$xsel_bin", ".xco")
 
     xsel_file_session = "$xsel_name"
     xsel_file_read = "read event\n$xsel_pip\n$(string("nu", ObsID, "A01_cl.evt"))"
@@ -102,8 +98,7 @@ function XselLC(todo, bins;
     if dry
         println("gnome-terminal -e \"$run_xselect_command --clean=\"$local_archive_cl/\" --products=\"$local_archive_pr/\" --xselect_scripts=\"$queue_string\"\"")
     else
-        info("Running for:\n")
-        println(queue_paths)
+        info("Running for:$(size(queue_paths, 1))")
         run(`gnome-terminal -e "$run_xselect_command --clean="$local_archive_cl/" --products="$local_archive_pr/" --xselect_scripts=\"$queue_string\""`)
     end
 end
