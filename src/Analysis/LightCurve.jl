@@ -55,7 +55,7 @@ function plot_lightcurve(filepath, obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"])
     savefig(lc_plot, plt_lc_main)
 
     for (i, lc_individual) in enumerate(plt_intervals)
-        if interval_width = interval_time_end[i] - interval_time_start[i] < 100
+        if interval_time_end[i] - interval_time_start[i] < 100
             print("$i skipped")
             continue
         end
