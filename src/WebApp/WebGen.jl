@@ -265,10 +265,48 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         write(f, "\t<h4>Comments</h4>\n")
         write(f, "\t<p>$(df[i, :comments])</p>\n")
 
+        lc_dir = "$file_dir/images/lc/"
+
+        if isdir(lc_dir)
+            lightcurves = readdir(lc_dir)
+            if size(lightcurves, 1) > 0
+                for lc_folder in lightcurves
+                    write(f, "\t<hr>\n")
+                    write(f, "\t\t<h4>Lightcurves</h4>\n")
+                    make_lc(f, file_dir, lc_folder)
+                end
+            end
+        end
+
         write(f, "</body>")
 
         close(f)
     end
+end
+
+function make_lc(f, file_dir, lc_folder)
+    lc_path = "$file_dir/images/lc/$lc_folder/"
+    lc_plts = readdir(lc_path)
+
+    write(f, "<div class=\"panel-group\">")
+    write(f, "<div class=\"panel panel-default\">")
+    write(f, "<div class=\"panel-heading\">")
+    write(f, "<h4 class=\"panel-title\">")
+    write(f, "<a data-toggle=\"collapse\" href=\"#$lc_folder\">Lightcurve - $lc_folder</a>")
+    write(f, "</h4>")
+    write(f, "</div>")
+    write(f, "<div id=\"$lc_folder\" class=\"panel-collapse collapse\">")
+    write(f, "<div class=\"panel-body\">")
+    write(f, "<p>Found $(size(lc_plts, 1)-1) lightcurve intervals</p>")
+    for plt in lc_plts
+        write(f, "<hr>")
+        write(f, "\t\t\t<div><img src=\"./images/lc/$lc_folder/$plt\" alt=\"evt_uf\" width=\"100%\"></div>\n")
+    end
+    write(f, "</div>")
+    write(f, "<div class=\"panel-footer\"><a data-toggle=\"collapse\" href=\"#$lc_folder\">Collapse - $lc_folder</a></div>")
+    write(f, "</div>")
+
+    write(f, "\t</div>\n")
 end
 
 function make_table(f, df; table_id="", hidden_cols=[], select_cols=[], shown_cols=[], something_list_cols=[], list_choice="blacklist", data_show_columns="true", data_toggle="table", data_filter_control="true", data_filter_show_clear="true", data_pagination="true", data_page_size="100", data_page_list="[100, 500, 5000]", data_sort_name="Downloaded", data_sort_order="desc", data_sort_stable="true")
