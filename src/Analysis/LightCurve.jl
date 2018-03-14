@@ -43,7 +43,7 @@ function plot_lightcurve(filepath, obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"],
     vline!(lc_data[:Time][interval_time_start], color=:green, lab="Start", alpha=0.25)
     lc_plot = vline!(lc_data[:Time][interval_time_end], color=:red, lab="End", alpha=0.25)
 
-    interval_count = count(min_interval_width .> min_interval_width)
+    interval_count = count(interval_widths .> min_interval_width)
 
     plt_intervals = Array{Plots.Plot{Plots.PyPlotBackend},1}(interval_count)
 
@@ -51,7 +51,6 @@ function plot_lightcurve(filepath, obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"],
 
     for i = 1:interval_count
         if interval_widths < min_interval_width
-            plt_intervals[i] = plot()
             continue
         end
 
