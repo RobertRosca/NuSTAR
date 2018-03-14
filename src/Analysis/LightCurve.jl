@@ -50,6 +50,7 @@ function plot_lightcurve(filepath, obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"])
 
     for i = 1:interval_count
         if interval_time_end[i] - interval_time_start[i] < 100
+            plt_intervals[i] = plot()
             continue
         end
 
