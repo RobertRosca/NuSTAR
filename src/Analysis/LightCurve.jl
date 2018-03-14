@@ -51,8 +51,13 @@ function plot_lightcurve(filepath, obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"],
 
     interval_count = count(interval_widths .> min_interval_width)
 
+    interval_count_bad = count(interval_widths .< min_interval_width)
+
     plt_intervals = Array{Plots.Plot{Plots.PyPlotBackend},1}(interval_count)
 
+    if interval_count_bad > 0
+        warn("Excluded $interval_count_bad bad intervals with less than $min_interval_width rates")
+    end
     print("Found $interval_count intervals - plotting ")
 
     for i = 1:interval_count
