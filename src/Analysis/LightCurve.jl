@@ -10,7 +10,7 @@ function read_fits_lc(filepath)
     return lc_data
 end
 
-function plot_lightcurve(filepath, obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"])
+function plot_lightcurve(filepath, obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"], min_interval_width=100)
     lc_data = NuSTAR.read_fits_lc(filepath)
     lc_name = replace(basename(filepath), ".fits", "");
 
@@ -36,20 +36,21 @@ function plot_lightcurve(filepath, obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"])
 
     interval_time_end   = find(x->x!=lc_bins, diff(lc_data[:Time]))
     interval_time_start = find(x->x!=lc_bins, diff(lc_data[:Time])) .+ 1
-    interval_time_start = [1; interval_time_start];
+    interval_time_start = [1; interval_time_start]
+    interval_widths     = interval_time_end .- interval_time_start[1:end-1]
 
     plot(lc_data[:Time], lc_data[:Rate], size=(1920, 1080), lab="", title="$obsid - $lc_name - full lc")
     vline!(lc_data[:Time][interval_time_start], color=:green, lab="Start", alpha=0.25)
     lc_plot = vline!(lc_data[:Time][interval_time_end], color=:red, lab="End", alpha=0.25)
 
-    interval_count = size(interval_time_end, 1)
+    interval_count = count(min_interval_width .> min_interval_width)
 
     plt_intervals = Array{Plots.Plot{Plots.PyPlotBackend},1}(interval_count)
 
     print("Found $interval_count intervals - plotting ")
 
     for i = 1:interval_count
-        if interval_time_end[i] - interval_time_start[i] < 100
+        if interval_widths < min_interval_width
             plt_intervals[i] = plot()
             continue
         end
@@ -60,11 +61,6 @@ function plot_lightcurve(filepath, obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"])
     savefig(lc_plot, plt_lc_main)
 
     for (i, lc_individual) in enumerate(plt_intervals)
-        if interval_time_end[i] - interval_time_start[i] < 100
-            print("($i) ")
-            continue
-        end
-
         print("$i ")
         savefig(lc_individual, string(local_archive_pr, "/$obsid/images/lc/$lc_name/$lc_name", "_interval_$i.png"))
     end
