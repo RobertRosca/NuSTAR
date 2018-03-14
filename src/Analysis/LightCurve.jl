@@ -49,12 +49,17 @@ function plot_lightcurve(filepath, obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"])
     print("Found $interval_count intervals - plotting ")
 
     for i = 1:interval_count
-        plt_intervals[i] = plot(lc_data[:Time], lc_data[:Rate], xlims=(lc_data[:Time][interval_time_start[i]], lc_data[:Time][interval_time_end[i]]), lab="", title="$obsid - $lc_name - interval $i", size=(1920, 1080))
+        plt_intervals[i] = plot(lc_data[:Time][interval_time_start[i]:interval_time_end[i]], lc_data[:Rate][interval_time_start[i]:interval_time_end[i]], lab="", title="$obsid - $lc_name - interval $i", size=(1920, 1080))
     end
 
     savefig(lc_plot, plt_lc_main)
 
     for (i, lc_individual) in enumerate(plt_intervals)
+        if interval_width = interval_time_end[i] - interval_time_start[i] < 100
+            print("$i skipped")
+            continue
+        end
+
         print("$i ")
         savefig(lc_individual, string(local_archive_pr, "/$obsid/images/lc/$lc_name/$lc_name", "_interval_$i.png"))
     end
