@@ -286,7 +286,7 @@ end
 
 function make_lc(f, file_dir, lc_folder)
     lc_path = "$file_dir/images/lc/$lc_folder/"
-    lc_plts = readdir(lc_path)
+    lc_plts = sort(readdir(lc_path))
 
     write(f, "<div class=\"panel-group\">")
     write(f, "<div class=\"panel panel-default\">")
