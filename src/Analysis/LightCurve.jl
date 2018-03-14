@@ -22,7 +22,7 @@ function plot_lightcurve(filepath, obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"])
 
         if plt_lc_main_maketime - lc_data_maketime > 0 # Image newer than source lc data
             info("Skipped $obsid - $lc_name image newer than data"); print("\n")
-            return
+            return 0
         end
     else
         info("Making $obsid lc for $lc_name")
@@ -69,6 +69,8 @@ function plot_lightcurve(filepath, obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"])
     end
 
     print("\n\n")
+
+    return 1
 end
 
 function PlotLCs(;todo=1000, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utility=ENV["NU_ARCHIVE_UTIL"])
@@ -82,14 +84,16 @@ function PlotLCs(;todo=1000, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utilit
         @collect
     end
 
-    if size(queue, 1) > todo
-        queue = queue[1:todo]
-    end
+    i = 0
 
     for row in queue
         obsid = row[1]
         for path in row[2]
-            plot_lightcurve(path, obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"])
+            i += plot_lightcurve(path, obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"])
+
+            if i > todo
+                return
+            end
         end
     end
 end
