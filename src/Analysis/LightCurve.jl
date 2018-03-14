@@ -50,7 +50,7 @@ function plot_lightcurve(filepath, obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"],
     print("Found $interval_count intervals - plotting ")
 
     for i = 1:interval_count
-        if interval_widths < min_interval_width
+        if interval_widths[i] < min_interval_width
             continue
         end
 
