@@ -273,7 +273,9 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
                 write(f, "\t<hr>\n")
                 write(f, "\t\t<h4>Lightcurves</h4>\n")
                 for lc_folder in lightcurves
+                    write(f, "\t<hr>\n")
                     make_lc(f, file_dir, lc_folder)
+                    write(f, "\t<br>\n")
                 end
             end
         end
