@@ -270,9 +270,9 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         if isdir(lc_dir)
             lightcurves = readdir(lc_dir)
             if size(lightcurves, 1) > 0
+                write(f, "\t<hr>\n")
+                write(f, "\t\t<h4>Lightcurves</h4>\n")
                 for lc_folder in lightcurves
-                    write(f, "\t<hr>\n")
-                    write(f, "\t\t<h4>Lightcurves</h4>\n")
                     make_lc(f, file_dir, lc_folder)
                 end
             end
@@ -288,6 +288,9 @@ function make_lc(f, file_dir, lc_folder)
     lc_path = "$file_dir/images/lc/$lc_folder/"
     lc_plts = sort(readdir(lc_path), lt=natural)
 
+    write(f, "<p><b>$lc_folder</b> - Found $(size(lc_plts, 1)-1) lightcurve intervals</p>")
+    write(f, "\t\t\t<div><img src=\"./images/lc/$lc_folder/$(lc_plts[1])\" alt=\"evt_uf\" width=\"100%\"></div>\n")
+
     write(f, "<div class=\"panel-group\">")
     write(f, "<div class=\"panel panel-default\">")
     write(f, "<div class=\"panel-heading\">")
@@ -297,8 +300,7 @@ function make_lc(f, file_dir, lc_folder)
     write(f, "</div>")
     write(f, "<div id=\"$lc_folder\" class=\"panel-collapse collapse\">")
     write(f, "<div class=\"panel-body\">")
-    write(f, "<p>Found $(size(lc_plts, 1)-1) lightcurve intervals</p>")
-    for plt in lc_plts
+    for plt in lc_plts[2:end]
         write(f, "<hr>")
         write(f, "\t\t\t<div><img src=\"./images/lc/$lc_folder/$plt\" alt=\"evt_uf\" width=\"100%\"></div>\n")
     end
