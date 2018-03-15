@@ -10,7 +10,7 @@ function read_fits_lc(filepath)
     return lc_data
 end
 
-function plot_lightcurve(filepath, obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"], min_interval_width=100)
+function plot_lightcurve(filepath, obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"], min_interval_width_s=100)
     lc_data = NuSTAR.read_fits_lc(filepath)
     lc_name = replace(basename(filepath), ".fits", "");
 
@@ -42,6 +42,8 @@ function plot_lightcurve(filepath, obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"],
 
     interval_widths     = interval_time_end .- interval_time_start
 
+    min_interval_width = min_interval_width_s/lc_bins
+
     interval_time_start = interval_time_start[interval_widths .> min_interval_width]
     interval_time_end   = interval_time_end[interval_widths .> min_interval_width]
 
@@ -56,7 +58,7 @@ function plot_lightcurve(filepath, obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"],
     plt_intervals = Array{Plots.Plot{Plots.PyPlotBackend},1}(interval_count)
 
     if interval_count_bad > 0
-        warn("Excluded $interval_count_bad bad intervals with less than $min_interval_width rates")
+        warn("Excluded $interval_count_bad bad intervals under $min_interval_width [s]")
     end
     print("Found $interval_count intervals - plotting ")
 
