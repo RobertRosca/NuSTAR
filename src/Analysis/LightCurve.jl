@@ -21,7 +21,7 @@ function plot_lightcurve(filepath, obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"],
         lc_data_maketime = stat(filepath).mtime
 
         if plt_lc_main_maketime - lc_data_maketime > 0 # Image newer than source lc data
-            info("Skipped $obsid - $lc_name image newer than data"); print("\n")
+            #info("Skipped $obsid - $lc_name image newer than data"); print("\n")
             return 0
         end
     else
@@ -35,15 +35,15 @@ function plot_lightcurve(filepath, obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"],
     lc_bins = parse(Float64, replace(lc_name, "lc_", ""))
 
     interval_time_end   = find(x->x!=lc_bins, diff(lc_data[:Time]))
+    interval_time_end   = [interval_time_end; Int(length(lc_data[:Time]))]
+
     interval_time_start = find(x->x!=lc_bins, diff(lc_data[:Time])) .+ 1
     interval_time_start = [1; interval_time_start]
 
-    interval_widths     = interval_time_end .- interval_time_start[1:end-1]
+    interval_widths     = interval_time_end .- interval_time_start
 
-    interval_widths     = interval_time_end .- interval_time_start[1:end-1]
-
-    interval_time_start = [1; interval_time_start[2:end][interval_widths .> min_interval_width]]
-    interval_time_end = interval_time_end[interval_widths .> min_interval_width]
+    interval_time_start = interval_time_start[interval_widths .> min_interval_width]
+    interval_time_end   = interval_time_end[interval_widths .> min_interval_width]
 
     plot(lc_data[:Time], lc_data[:Rate], size=(1920, 1080), lab="", title="$obsid - $lc_name - full lc")
     vline!(lc_data[:Time][interval_time_start], color=:green, lab="Start", alpha=0.25)
@@ -87,7 +87,7 @@ function PlotLCs(;todo=1000, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utilit
         @collect
     end
 
-    i = 0
+    i = 1
 
     for row in queue
         obsid = row[1]
