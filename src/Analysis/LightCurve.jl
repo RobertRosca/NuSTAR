@@ -132,7 +132,9 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
 
     plt_lc_main_path = string(local_archive_pr, "/$obsid/images/lc/$lc_name/$lc_name", "_full.png")
 
-    if isfile(plt_lc_main_path) && !overwrite
+    fft_filepath = string(dirname(filepath), "/", lc_name, "_fft.hdf5")
+
+    if isfile(plt_lc_main_path) && isfile(fft_filepath) && !overwrite
         plt_lc_main_path_maketime = stat(plt_lc_main_path).mtime
         lc_data_maketime = stat(filepath).mtime
 
@@ -156,8 +158,6 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
     for gti in 1:interval_count
         lc_gti[gti] = lc_data[interval_time_start[gti]:interval_time_end[gti], :]
     end
-
-    fft_filepath = string(dirname(filepath), "/", lc_name, "_fft.hdf5")
 
     if isfile(fft_filepath)
         info("Reading saved FFT")
