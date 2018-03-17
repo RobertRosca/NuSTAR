@@ -132,9 +132,13 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
     lc_plot = vline!(lc_data[:Time][interval_time_end], color=:red, lab="End", alpha=0.25)
 
     lc_plot_fft = plot()
-    for i = 1:interval_count
-        plot!(lc_gti_fft[i], lab=i, alpha=0.25)
+
+    if flag_plot_intervals || flag_force_plot
+        for i = 1:interval_count
+            plot!(lc_gti_fft[i], lab=i, alpha=0.25)
+        end
     end
+    
     lc_plot_fft = plot!(sum_fft, lab="Sum", ylims=(0, largest_fft_amp*1.1))
 
     lc_combined_plot = plot(lc_plot, lc_plot_fft, size=(1920, 1080), layout=(2, 1))
