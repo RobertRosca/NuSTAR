@@ -87,7 +87,7 @@ function find_lightcurve_fft(lc_gti, interval_count)
         lc_gti_fft_matrix[:, gti] = lc_gti_fft[gti]
     end
 
-    conv_fft_significance =  maximum(conv_fft[3:end])
+    conv_fft_significance =  maximum(conv_fft[5:end])
 
     return lc_gti_fft_matrix, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance
 end
@@ -163,7 +163,7 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
         save_fft(fft_filepath, lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance)
     end
 
-    if conv_fft_significance > 0.8
+    if conv_fft_significance > 0.5
         info("*** Significant FFT peak: $(findmax(conv_fft)) ***")
     else
         flag_plot_intervals = false

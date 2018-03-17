@@ -124,7 +124,7 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
 
                 conv_fft_significance = maximum(conv_fft[5:end])
 
-                if conv_fft_significance > 0.8
+                if conv_fft_significance > 0.5
                     lc_fft_conv[itr] = 1
                 end
             end
