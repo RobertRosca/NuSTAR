@@ -83,10 +83,12 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
     numaster_df[:Downloaded] = downloaded
     numaster_df[:Cleaned]    = cleaned
 
-    valid_sci  = zeros(Int, numaster_df_n)
-    reg_src    = zeros(Int, numaster_df_n)
-    reg_bkg    = zeros(Int, numaster_df_n)
-    lc_files   = Array{String,1}(numaster_df_n)
+    valid_sci    = zeros(Int, numaster_df_n)
+    reg_src      = zeros(Int, numaster_df_n)
+    reg_bkg      = zeros(Int, numaster_df_n)
+    lc_files     = Array{String,1}(numaster_df_n)
+    lc_fft_files = Array{String,1}(numaster_df_n)
+    lc_fft_conv  = zeros(Int, numaster_df_n)
 
     for (itr, obs) in enumerate(numaster_df[:obsid])
         if cleaned[itr] == 1
@@ -110,16 +112,33 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
         # Read dir to get all files, join into a single-string list, remove .fits extensions
         lc_path = string(local_archive_pr, "/$obs/products/lc/")
         if isdir(lc_path)
-            lc_files[itr] = replace(join(filter(x->contains(x, ".fits"), readdir(lc_path)), " "), ".fits", "")
+            lc_files[itr]     = replace(join(filter(x->contains(x, ".fits"), readdir(lc_path)), " "), ".fits", "")
+            lc_fft_files[itr] = join(filter(x->contains(x, ".hdf5"), readdir(lc_path)), " ")
+
+            if length(lc_fft_files[itr]) == 0
+                lc_fft_files[itr]  = "none"
+            end
+
+            for fft in filter(x->contains(x, ".hdf5"), readdir(lc_path))
+                println("$lc_path$fft")
+                conv_fft_significance = h5read("$lc_path$fft", "conv_fft_significance")
+
+                if conv_fft_significance > 0.8
+                    lc_fft_conv[itr] = 1
+                end
+            end
         else
-            lc_files[itr] = "none"
+            lc_files[itr]      = "none"
+            lc_fft_files[itr]  = "none"
         end
     end
 
-    numaster_df[:ValidSci] = valid_sci
-    numaster_df[:RegSrc]   = reg_src
-    numaster_df[:RegBkg]   = reg_bkg
-    numaster_df[:LCData]   = lc_files
+    numaster_df[:ValidSci]     = valid_sci
+    numaster_df[:RegSrc]       = reg_src
+    numaster_df[:RegBkg]       = reg_bkg
+    numaster_df[:LCData]       = lc_files
+    numaster_df[:LCData_FFT]   = lc_fft_files
+    numaster_df[:LCData_FLG]   = lc_fft_conv
 
     # Convert modified Julian dates to readable dates
     numaster_df[:time] = map(x -> Base.Dates.julian2datetime(parse(Float64, x) + 2400000.5), numaster_df[:time])

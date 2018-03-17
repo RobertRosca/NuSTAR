@@ -11,11 +11,11 @@ function html_escape(cell)
     return cell
 end
 
-# NuSTAR.WebGen(filename="/home/robert/Scratch/WebApps/NuSTAR-WebView/NuSTAR-WebView.html", homedev=true, subpage_gen=false)
+# NuSTAR.WebGen(filename="/home/robert/Scratch/WebApps/NuSTAR-WebView/NuSTAR-WebView.html", homedev=true, subpage_gen=true)
 
-function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numaster(), select_cols=[:observation_mode, :spacecraft_mode, :slew_mode, :prnb, :category_code, :priority, :cycle, :obs_type, :issue_flag, :status, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], shown_cols=[:name, :obsid, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg, :obs_type, :category_code, :LCData], blacklist_cols=[:abstract, :pi_lname, :pi_fname, :copi_lname, :copi_fname, :country], whitelist_cols=[], list_choice="whitelist", homedev=false, local_archive_pr=ENV["NU_ARCHIVE_PR"], subpage_gen=true)
+function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numaster(), select_cols=[:observation_mode, :spacecraft_mode, :slew_mode, :prnb, :category_code, :priority, :cycle, :obs_type, :issue_flag, :status, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg, :LCData_FLG], shown_cols=[:name, :obsid, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :obs_type, :category_code, :LCData_FLG, :LCData], blacklist_cols=[:abstract, :pi_lname, :pi_fname, :copi_lname, :copi_fname, :country], whitelist_cols=[], list_choice="whitelist", homedev=false, local_archive_pr=ENV["NU_ARCHIVE_PR"], subpage_gen=true)
     if length(whitelist_cols) == 0
-        whitelist_cols = vcat(shown_cols, [:public_date, :obs_type, :observation_mode])
+        whitelist_cols = vcat(shown_cols, [:public_date, :obs_type, :observation_mode, :RegBkg])
     end
 
     if list_choice == "blacklist"
@@ -43,7 +43,8 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
         RegSrcDone=count(x->x==1, df[:RegSrc]),
         RegSrcIntr=count(x->x==2, df[:RegSrc]),
         RegSrcBad=count(x->x==-1, df[:RegSrc]),
-        RegSrcCheck=count(x->x==-2, df[:RegSrc]))
+        RegSrcCheck=count(x->x==-2, df[:RegSrc]),
+        InterestingLC=count(x->x==1, df[:LCData_FLG]))
 
     f = open(filename, "w")
 
@@ -149,6 +150,7 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
         df[row, :Cleaned] == 1 ? color_cleaned="table-success" : color_cleaned=""
         df[row, :ValidSci] == 1 ? color_validsci="table-success" : color_validsci=""
         df[row, :RegBkg] == 1 ? color_bkg="table-success" : color_bkg=""
+        df[row, :LCData_FLG] == 1 ? color_lcflg="table-success" : color_lcflg=""
         color_regsrc = ["table-warn", "table-failure", "", "table-success", "table-info"][3+df[row, :RegSrc]]
 
         write(f, "\t\t\t<tr>\n")
@@ -165,6 +167,8 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
                 write(f, "\t\t\t\t<td class=\"$color_validsci\">$(html_escape(cell))</td>\n")
             elseif column_name == :RegBkg
                 write(f, "\t\t\t\t<td class=\"$color_bkg\">$(html_escape(cell))</td>\n")
+            elseif column_name == :LCData_FLG
+                write(f, "\t\t\t\t<td class=\"$color_lcflg\">$(html_escape(cell))</td>\n")
             elseif column_name == :obsid
                 write(f, "\t\t\t\t<td><a href=\"$file_dir_web/obs/$obsid/details.html\" target=\"_blank\">$(html_escape(cell))</a></td>\n")
             elseif column_name == :category_code

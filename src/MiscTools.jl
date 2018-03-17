@@ -99,7 +99,7 @@ function read_numaster(numaster_path)
     #processing_date, public_date, software_version, prnb, abstract, subject_category
     #category_code, priority, pi_lname, pi_fname, copi_lname, copi_fname, country, cycle
     #obs_type, title, data_gap, nupsdout, solar_activity, coordinated, issue_flag, comments
-    #status, caldb_version, Downloaded, Cleaned, ValidSci, RegSrc, RegBkg
+    #status, caldb_version, Downloaded, Cleaned, ValidSci, RegSrc, RegBkg, lc_files, lc_fft_files, lc_fft_conv
 
     numaster_types = [String, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64},
     Union{Missings.Missing, Float64}, String, String, String, Float64,
@@ -110,7 +110,7 @@ function read_numaster(numaster_path)
     Int, String, Union{Missings.Missing, String}, Int, Int,
     Union{Missings.Missing, String}, Union{Missings.Missing, String}, Int, Union{Missings.Missing, String}, String,
     String, Int, Int, Int, Int,
-    Int, String];
+    Int, String, String, Int];
 
     # This is absurdly stupid looking, but seems to be the only way to get the CSV
     # to be read properly
