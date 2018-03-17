@@ -124,7 +124,7 @@ function create_fft_file(fft_filepath, lc_gti, interval_count)
     save_fft(fft_filepath, lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance)
 end
 
-function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR"], min_interval_width_s=100, overwrite=false, flag_plot_intervals=true, flag_force_plot=false, flag_overwrite_fft=false)
+function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR"], min_interval_width_s=100, overwrite=false, flag_plot_intervals=true, flag_force_plot=false)
     lc_data = NuSTAR.read_fits_lc(filepath)
     lc_name = replace(basename(filepath), ".fits", "");
 
@@ -159,7 +159,7 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
 
     fft_filepath = string(dirname(filepath), "/", lc_name, "_fft.hdf5")
 
-    if isfile(fft_filepath) || flag_overwrite_fft
+    if isfile(fft_filepath)
         info("Reading saved FFT")
         lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance = read_fft(fft_filepath)
     else
@@ -167,8 +167,6 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
         create_fft_file(fft_filepath, lc_gti, interval_count)
         lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance = read_fft(fft_filepath)
     end
-
-    return
 
     if conv_fft_significance > 0.8
         info("*** Significant FFT peak: $(findmax(conv_fft)) ***")
