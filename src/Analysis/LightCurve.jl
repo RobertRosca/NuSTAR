@@ -158,8 +158,8 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
     return 1
 end
 
-function PlotLCs(;todo=1000, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utility=ENV["NU_ARCHIVE_UTIL"])
-    numaster_path = string(local_utility, "/numaster_df.csv", overwrite=false)
+function PlotLCs(;todo=1000, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utility=ENV["NU_ARCHIVE_UTIL"], overwrite=false)
+    numaster_path = string(local_utility, "/numaster_df.csv")
 
     numaster_df = read_numaster(numaster_path)
 
