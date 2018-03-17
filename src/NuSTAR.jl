@@ -9,6 +9,7 @@ using CSV
 using LightXML
 using FITSIO
 using StatsBase
+using HDF5
 
 using Plots
 pyplot()
