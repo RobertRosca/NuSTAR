@@ -119,11 +119,6 @@ function read_fft(fft_filepath)
     return lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance
 end
 
-function create_fft_file(fft_filepath, lc_gti, interval_count)
-    lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance = find_lightcurve_fft(lc_gti, interval_count)
-    save_fft(fft_filepath, lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance)
-end
-
 function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR"], min_interval_width_s=100, overwrite=false, flag_plot_intervals=true, flag_force_plot=false)
     lc_data = NuSTAR.read_fits_lc(filepath)
     lc_name = replace(basename(filepath), ".fits", "");
@@ -164,8 +159,8 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
         lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance = read_fft(fft_filepath)
     else
         info("Creating FFT file")
-        create_fft_file(fft_filepath, lc_gti, interval_count)
-        lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance = read_fft(fft_filepath)
+        lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance = find_lightcurve_fft(lc_gti, interval_count)
+        save_fft(fft_filepath, lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance)
     end
 
     if conv_fft_significance > 0.8
