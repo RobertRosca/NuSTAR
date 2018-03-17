@@ -46,7 +46,7 @@ function find_lightcurve_fft(lc_gti, interval_count)
     largest_fft_dim = 0
 
     for gti in 1:interval_count
-        lc_gti_rate = lc_gti[gti][:Rate]
+        lc_gti_rate = lc_gti[gti][:Rate] .- mean(lc_gti[gti][:Rate]) # Signal detrending
         gti_size = size(lc_gti_rate, 1)
 
         if gti_size < largest_gti_dim
@@ -66,19 +66,25 @@ function find_lightcurve_fft(lc_gti, interval_count)
 
     sum_fft = zeros(largest_fft_dim)
 
+    conv_fft = ones(largest_fft_dim)
+
     for gti in 1:interval_count
-        sum_fft += lc_gti_fft[gti]
-        if maximum(lc_gti_fft[gti][10:end])>largest_fft_amp
-            largest_fft_amp = maximum(lc_gti_fft[gti][10:end])
+        sum_fft  += lc_gti_fft[gti]
+        conv_fft  = conv_fft.*lc_gti_fft[gti]
+        start_idx = round(Int, size(lc_gti_fft[gti],1)*0.005)+1
+        if maximum(lc_gti_fft[gti][start_idx:end])>largest_fft_amp
+            largest_fft_amp = maximum(lc_gti_fft[gti][start_idx:end])
         end
     end
 
     sum_fft = sum_fft ./ interval_count
 
-    return lc_gti_fft, sum_fft, largest_fft_amp
+    conv_fft = conv_fft ./ sum(conv_fft)
+
+    return lc_gti_fft, sum_fft, largest_fft_amp, conv_fft
 end
 
-function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR"], min_interval_width_s=100, overwrite=false)
+function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR"], min_interval_width_s=100, overwrite=false, flat_plot_intervals=true)
     lc_data = NuSTAR.read_fits_lc(filepath)
     lc_name = replace(basename(filepath), ".fits", "");
 
@@ -112,7 +118,14 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
         lc_gti[gti] = lc_data[interval_time_start[gti]:interval_time_end[gti], :]
     end
 
-    lc_gti_fft, sum_fft, largest_fft_amp = find_lightcurve_fft(lc_gti, interval_count)
+    lc_gti_fft, sum_fft, largest_fft_amp, conv_fft = find_lightcurve_fft(lc_gti, interval_count)
+
+    if maximum(conv_fft) > 0.8
+        info("*** Significant FFT peak: $(findmax(conv_fft)) ***")
+    else
+        flat_plot_intervals = false
+    end
+    #return plot(conv_fft, yaxis=:log10, ylims=(1.0e-15, 1))
 
     plot(lc_data[:Time], lc_data[:Rate], size=(1920, 1080), lab="", title="$obsid - $lc_name - full lc")
     vline!(lc_data[:Time][interval_time_start], color=:green, lab="Start", alpha=0.25)
@@ -127,33 +140,38 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
     lc_combined_plot = plot(lc_plot, lc_plot_fft, size=(1920, 1080), layout=(2, 1))
     savefig(lc_combined_plot, plt_lc_main_path)
 
-    if interval_count_bad > 0
-        warn("Excluded $interval_count_bad bad intervals under $min_interval_width [width]")
+    if flat_plot_intervals
+        if interval_count_bad > 0
+            warn("Excluded $interval_count_bad bad intervals under $min_interval_width [width]")
+        end
+
+        print("Found $interval_count intervals - plotting ")
+
+        plt_intervals = Array{Plots.Plot{Plots.PyPlotBackend},1}(interval_count)
+        for i = 1:interval_count
+            plt_intervals[i] = plot(lc_gti[i][:Time], lc_gti[i][:Rate], lab="", title="$obsid - $lc_name - interval $i", size=(1280, 720))
+        end
+
+        plt_intervals_fft = Array{Plots.Plot{Plots.PyPlotBackend},1}(interval_count)
+        for i = 1:interval_count
+            start_idx = round(Int, size(lc_gti_fft[i],1)*0.005)+1
+            plt_intervals_fft[i] = plot(lc_gti_fft[i], lab="", title="FFT $obsid - $lc_name - interval $i", size=(1280, 720), ylims=(0, maximum(lc_gti_fft[i][start_idx:end])*1.1))
+        end
+
+        plt_intervals_combined = Array{Plots.Plot{Plots.PyPlotBackend},1}(interval_count)
+        for i = 1:interval_count
+            plt_intervals_combined[i] = plot(plt_intervals[i], plt_intervals_fft[i], layout=(2, 1), size=(1280, 720))
+        end
+
+        for (i, lc_individual) in enumerate(plt_intervals)
+            print("$i ")
+            savefig(plt_intervals_combined[i], string(local_archive_pr, "/$obsid/images/lc/$lc_name/$lc_name", "_interval_$i.png"))
+        end
+
+        print("\n\n")
+    else
+        warn("Intervals not plotted, seem useless")
     end
-
-    print("Found $interval_count intervals - plotting ")
-
-    plt_intervals = Array{Plots.Plot{Plots.PyPlotBackend},1}(interval_count)
-    for i = 1:interval_count
-        plt_intervals[i] = plot(lc_gti[i][:Time], lc_gti[i][:Rate], lab="", title="$obsid - $lc_name - interval $i", size=(1280, 720))
-    end
-
-    plt_intervals_fft = Array{Plots.Plot{Plots.PyPlotBackend},1}(interval_count)
-    for i = 1:interval_count
-        plt_intervals_fft[i] = plot(lc_gti_fft[i], lab="", title="FFT $obsid - $lc_name - interval $i", size=(1280, 720), ylims=(0, maximum(lc_gti_fft[i][50:end])*1.1))
-    end
-
-    plt_intervals_combined = Array{Plots.Plot{Plots.PyPlotBackend},1}(interval_count)
-    for i = 1:interval_count
-        plt_intervals_combined[i] = plot(plt_intervals[i], plt_intervals_fft[i], layout=(2, 1), size=(1280, 720))
-    end
-
-    for (i, lc_individual) in enumerate(plt_intervals)
-        print("$i ")
-        savefig(plt_intervals_combined[i], string(local_archive_pr, "/$obsid/images/lc/$lc_name/$lc_name", "_interval_$i.png"))
-    end
-
-    print("\n\n")
 
     return 1
 end
