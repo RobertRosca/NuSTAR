@@ -1,14 +1,20 @@
-function create_xco_lc(ObsID, bins; ObsPath="", xsel_out="", xsel_file_path="", src_file="/source.reg")
-        #local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"], src_file=)
+function create_xco_lc(obsid, bins; ObsPath="", xsel_out="", xsel_file_path="", src_file="/source.reg",
+        local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"])
 
     xsel_name = split(tempname(), "/")[3]
+
+    if ObsPath==""; ObsPath = string(local_archive_cl, obsid); end
+
+    if xsel_out==""; xsel_out = string(local_archive_pr, obsid, "/products/lc/lc_$bins.fits"); end
+
+    if xsel_file_path==""; xsel_file_path = string(local_archive_pr, obsid, "/xselect_scripts/lc_$bins", ".xco"); end
 
     xsel_pip = string(ObsPath, "/pipeline_out/")
     xsel_src = string(ObsPath, src_file)
     xsel_bin = bins
 
     xsel_file_session = "$xsel_name"
-    xsel_file_read = "read event\n$xsel_pip\n$(string("nu", ObsID, "A01_cl.evt"))"
+    xsel_file_read = "read event\n$xsel_pip\n$(string("nu", obsid, "A01_cl.evt"))"
     xsel_file_filter = "filter region $xsel_src"
     xsel_file_extract = "extract CURVE bins=$xsel_bin"
     xsel_file_save = "save curve $xsel_out clobber=yes"
