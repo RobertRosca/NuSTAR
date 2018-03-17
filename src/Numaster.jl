@@ -120,8 +120,9 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
             end
 
             for fft in filter(x->contains(x, ".hdf5"), readdir(lc_path))
-                println("$lc_path$fft")
-                conv_fft_significance = h5read("$lc_path$fft", "conv_fft_significance")
+                conv_fft = h5read("$lc_path$fft", "conv_fft")
+
+                conv_fft_significance = maximum(conv_fft[3:end])
 
                 if conv_fft_significance > 0.8
                     lc_fft_conv[itr] = 1

@@ -87,7 +87,7 @@ function find_lightcurve_fft(lc_gti, interval_count)
         lc_gti_fft_matrix[:, gti] = lc_gti_fft[gti]
     end
 
-    conv_fft_significance =  maximum(conv_fft)
+    conv_fft_significance =  maximum(conv_fft[3:end])
 
     return lc_gti_fft_matrix, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance
 end
