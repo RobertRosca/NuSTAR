@@ -84,7 +84,7 @@ function find_lightcurve_fft(lc_gti, interval_count)
     return lc_gti_fft, sum_fft, largest_fft_amp, conv_fft
 end
 
-function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR"], min_interval_width_s=100, overwrite=false, flat_plot_intervals=true)
+function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR"], min_interval_width_s=100, overwrite=false, flag_plot_intervals=true, flag_force_plot=false)
     lc_data = NuSTAR.read_fits_lc(filepath)
     lc_name = replace(basename(filepath), ".fits", "");
 
@@ -123,7 +123,7 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
     if maximum(conv_fft) > 0.8
         info("*** Significant FFT peak: $(findmax(conv_fft)) ***")
     else
-        flat_plot_intervals = false
+        flag_plot_intervals = false
     end
     #return plot(conv_fft, yaxis=:log10, ylims=(1.0e-15, 1))
 
@@ -140,7 +140,7 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
     lc_combined_plot = plot(lc_plot, lc_plot_fft, size=(1920, 1080), layout=(2, 1))
     savefig(lc_combined_plot, plt_lc_main_path)
 
-    if flat_plot_intervals
+    if flag_plot_intervals || flag_force_plot
         if interval_count_bad > 0
             warn("Excluded $interval_count_bad bad intervals under $min_interval_width [width]")
         end
