@@ -144,6 +144,7 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
     fft_filepath = string(dirname(filepath), "/", lc_name, "_fft.hdf5")
 
     if isfile(fft_filepath)
+        info("Fixing $fft_filepath")
         fix_fft(fft_filepath)
     end
 
