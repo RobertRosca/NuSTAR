@@ -138,7 +138,7 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
             plot!(lc_gti_fft[i], lab=i, alpha=0.25)
         end
     end
-    
+
     lc_plot_fft = plot!(sum_fft, lab="Sum", ylims=(0, largest_fft_amp*1.1))
 
     lc_combined_plot = plot(lc_plot, lc_plot_fft, size=(1920, 1080), layout=(2, 1))
@@ -196,17 +196,7 @@ function PlotLCs(;todo=1000, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utilit
     for row in queue
         obsid = row[1]
         for path in row[2]
-            try
-                i += plot_lightcurve(path; obsid=obsid, local_archive_pr=ENV["NU_ARCHIVE_PR"], overwrite=overwrite)
-            catch error
-                if error == InterruptException
-                    warn("Quitting")
-                    return
-                end
-                warn("Failed creating lightcurve for $obsid - $path")
-                warn(error)
-                println("\n")
-            end
+            i += plot_lightcurve(path; obsid=obsid, local_archive_pr=ENV["NU_ARCHIVE_PR"], overwrite=overwrite)
 
             if i > todo
                 return
