@@ -174,7 +174,13 @@ function PlotLCs(;todo=1000, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utilit
     for row in queue
         obsid = row[1]
         for path in row[2]
-            i += plot_lightcurve(path; obsid=obsid, local_archive_pr=ENV["NU_ARCHIVE_PR"], overwrite=overwrite)
+            try
+                i += plot_lightcurve(path; obsid=obsid, local_archive_pr=ENV["NU_ARCHIVE_PR"], overwrite=overwrite)
+            catch error
+                warning("Failed creating lightcurve for $obsid - $path")
+                warning(error)
+                println("\n")
+            end
 
             if i > todo
                 return
