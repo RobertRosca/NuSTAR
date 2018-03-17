@@ -128,7 +128,7 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
     savefig(lc_combined_plot, plt_lc_main_path)
 
     if interval_count_bad > 0
-        warn("Excluded $interval_count_bad bad intervals under $min_interval_width [s]")
+        warn("Excluded $interval_count_bad bad intervals under $min_interval_width [width]")
     end
 
     print("Found $interval_count intervals - plotting ")
@@ -177,8 +177,8 @@ function PlotLCs(;todo=1000, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utilit
             try
                 i += plot_lightcurve(path; obsid=obsid, local_archive_pr=ENV["NU_ARCHIVE_PR"], overwrite=overwrite)
             catch error
-                warning("Failed creating lightcurve for $obsid - $path")
-                warning(error)
+                warn("Failed creating lightcurve for $obsid - $path")
+                warn(error)
                 println("\n")
             end
 
