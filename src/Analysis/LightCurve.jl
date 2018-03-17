@@ -102,6 +102,20 @@ function save_fft(fft_filepath, lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, 
     end
 end
 
+function fix_fft(fft_filepath)
+    lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance = read_fft(fft_filepath)
+
+    conv_fft_significance = maximum(conv_fft[3:end])
+
+    HDF5.h5open(fft_filepath, "w") do file
+        write(file, "lc_gti_fft", lc_gti_fft)
+        write(file, "sum_fft", sum_fft)
+        write(file, "largest_fft_amp", largest_fft_amp)
+        write(file, "conv_fft", conv_fft)
+        write(file, "conv_fft_significance", conv_fft_significance)
+    end
+end
+
 function read_fft(fft_filepath)
     lc_gti_fft = Array{Float64,2}
     sum_fft = Array{Float64,1}
@@ -126,6 +140,14 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
     obsid=="" ? obsid=split(abspath(string(dirname(filepath), "/..", "/..")), "/")[end-1] : ""
 
     plt_lc_main_path = string(local_archive_pr, "/$obsid/images/lc/$lc_name/$lc_name", "_full.png")
+
+    fft_filepath = string(dirname(filepath), "/", lc_name, "_fft.hdf5")
+
+    if isfile(fft_filepath)
+        fix_fft(fft_filepath)
+    end
+
+    return 1
 
     if isfile(plt_lc_main_path) && !overwrite
         plt_lc_main_path_maketime = stat(plt_lc_main_path).mtime
