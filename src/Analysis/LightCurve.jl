@@ -177,6 +177,10 @@ function PlotLCs(;todo=1000, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utilit
             try
                 i += plot_lightcurve(path; obsid=obsid, local_archive_pr=ENV["NU_ARCHIVE_PR"], overwrite=overwrite)
             catch error
+                if error == InterruptException
+                    warn("Quitting")
+                    return
+                end
                 warn("Failed creating lightcurve for $obsid - $path")
                 warn(error)
                 println("\n")
