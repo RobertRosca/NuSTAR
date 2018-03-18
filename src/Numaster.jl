@@ -113,10 +113,14 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
         lc_path = string(local_archive_pr, "/$obs/products/lc/")
         if isdir(lc_path)
             lc_files[itr]     = replace(join(filter(x->contains(x, ".fits"), readdir(lc_path)), " "), ".fits", "")
-            lc_fft_files[itr] = join(filter(x->contains(x, ".hdf5"), readdir(lc_path)), " ")
+            lc_fft_files[itr] = replace(join(filter(x->contains(x, ".hdf5"), readdir(lc_path)), " "), ".hdf5", "")
 
             if length(lc_fft_files[itr]) == 0
                 lc_fft_files[itr]  = "none"
+            end
+
+            if length(lc_files[itr]) == 0
+                lc_files[itr]  = "none"
             end
 
             for fft in filter(x->contains(x, ".hdf5"), readdir(lc_path))
