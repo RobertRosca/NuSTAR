@@ -255,7 +255,7 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         write(f, "\t</div>\n")
         write(f, "\t<hr>\n")
         write(f, "\t<h4>Status</h4>\n")
-        make_table(f, df[i, :]; something_list_cols=[:public_date, :status, :caldb_version, :Downloaded, :Cleaned, :ValidSci, :RegSrc,  :RegBkg], list_choice="whitelist", data_filter_show_clear="false", data_show_columns="false", data_filter_control="false", data_pagination="false")
+        make_table(f, df[i, :]; something_list_cols=[:public_date, :status, :caldb_version, :Downloaded, :Cleaned, :ValidSci, :RegSrc,  :RegBkg, :LCData_FLG], list_choice="whitelist", data_filter_show_clear="false", data_show_columns="false", data_filter_control="false", data_pagination="false")
         write(f, "\t<hr>\n")
         write(f, "\t<h4>Source Details</h4>\n")
         make_table(f, df[i, :]; something_list_cols=[:name, :obs_type, :ra, :dec, :lii, :bii], list_choice="whitelist", data_filter_show_clear="false", data_show_columns="false", data_filter_control="false", data_pagination="false")
