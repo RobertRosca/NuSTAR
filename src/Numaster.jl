@@ -127,7 +127,9 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
                 conv_fft_significance = maximum(conv_fft[5:end])
 
                 if conv_fft_significance > 0.5
-                    lc_fft_flags[itr] = replace(replace(join([lc_fft_flags[itr], fft], " "), "NA ", ""), ".hdf5", "")
+                    #replace(replace(replace(join([lc_fft_flags[itr], fft], " "), "NA ", ""), ".hdf5", ""), "fft", "")
+                    # Regex to remove NA, .hdft, fft and _fft from the flagged fft data file names
+                    lc_fft_flags[itr] = replace(join([lc_fft_flags[itr], fft], " "), r"(NA |.hdf5|fft|_fft)", "")
                 end
             end
         end
