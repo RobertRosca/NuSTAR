@@ -67,8 +67,8 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
 
     sort!(numaster_df, cols=(:public_date))
 
-    file_list_local       = readdir(local_archive)[2:end]
-    file_list_local_clean = readdir(local_archive_cl)[2:end]
+    file_list_local       = readdir(local_archive)[2:end] # Exclude the utility folder
+    file_list_local_clean = readdir(local_archive_cl)
 
     numaster_df_n = size(numaster_df, 1)
 
@@ -86,10 +86,9 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
     valid_sci    = zeros(Int, numaster_df_n)
     reg_src      = zeros(Int, numaster_df_n)
     reg_bkg      = zeros(Int, numaster_df_n)
-    lc_files     = Array{String,1}(numaster_df_n)
-    lc_fft_files = Array{String,1}(numaster_df_n)
-    lc_fft_files_flagged = Array{String,1}(numaster_df_n)
-    lc_fft_conv  = zeros(Int, numaster_df_n)
+    lc           = fill("NA", numaster_df_n)
+    lc_fft       = fill("NA", numaster_df_n)
+    lc_fft_flags = fill("NA", numaster_df_n)
 
     for (itr, obs) in enumerate(numaster_df[:obsid])
         if cleaned[itr] == 1
@@ -112,20 +111,14 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
 
         # Read dir to get all files, join into a single-string list, remove .fits extensions
         lc_path = string(local_archive_pr, "/$obs/products/lc/")
+
         if isdir(lc_path)
-            lc_files[itr]     = replace(join(filter(x->contains(x, ".fits"), readdir(lc_path)), " "), ".fits", "")
-            lc_fft_files[itr] = replace(join(filter(x->contains(x, ".hdf5"), readdir(lc_path)), " "), ".hdf5", "")
-
-            if length(lc_fft_files[itr]) == 0
-                lc_fft_files[itr]  = "none"
+            if length(filter(x->contains(x, ".fits"), readdir(lc_path))) > 0
+                lc[itr]     = replace(join(filter(x->contains(x, ".fits"), readdir(lc_path)), " "), ".fits", "")
             end
 
-            if length(lc_files[itr]) == 0
-                lc_files[itr]  = "none"
-            end
-
-            if length(lc_fft_files_flagged[itr]) == 0
-                lc_files[itr]  = ""
+            if length(filter(x->contains(x, ".hdf5"), readdir(lc_path))) > 0
+                lc_fft[itr] = replace(join(filter(x->contains(x, ".hdf5"), readdir(lc_path)), " "), ".hdf5", "")
             end
 
             for fft in filter(x->contains(x, ".hdf5"), readdir(lc_path))
@@ -134,23 +127,18 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
                 conv_fft_significance = maximum(conv_fft[5:end])
 
                 if conv_fft_significance > 0.5
-                    lc_fft_conv[itr] = 1
-                    lc_fft_files_flagged[itr] = join([lc_fft_files_flagged[itr], fft], " ")
+                    lc_fft_flags[itr] = replace(replace(join([lc_fft_flags[itr], fft], " "), "NA ", ""), ".hdf5", "")
                 end
             end
-        else
-            lc_files[itr]      = "none"
-            lc_fft_files[itr]  = "none"
         end
     end
 
-    numaster_df[:ValidSci]   = valid_sci
-    numaster_df[:RegSrc]     = reg_src
-    numaster_df[:RegBkg]     = reg_bkg
-    numaster_df[:LC]     = lc_files
-    numaster_df[:LC_FFT] = lc_fft_files
-    numaster_df[:LC_FLG] = lc_fft_conv
-    numaster_df[:LC_FFT_FLG] = lc_fft_files_flagged
+    numaster_df[:ValidSci] = valid_sci
+    numaster_df[:RegSrc]   = reg_src
+    numaster_df[:RegBkg]   = reg_bkg
+    numaster_df[:LC]       = lc
+    numaster_df[:LCfft]    = lc_fft
+    numaster_df[:LCFlags]  = lc_fft_flags
 
     # Convert modified Julian dates to readable dates
     numaster_df[:time] = map(x -> Base.Dates.julian2datetime(parse(Float64, x) + 2400000.5), numaster_df[:time])
@@ -163,7 +151,6 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
 
     try
         if isfile(numaster_path)
-            warn("Catalog file already exists, replacing")
             mv(numaster_path, string(local_utility, "/numaster_df_old.csv"), remove_destination=true)
         end
 

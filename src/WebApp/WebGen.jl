@@ -13,7 +13,7 @@ end
 
 # NuSTAR.WebGen(filename="/home/robert/Scratch/WebApps/NuSTAR-WebView/NuSTAR-WebView.html", homedev=true, subpage_gen=true)
 
-function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numaster(), select_cols=[:observation_mode, :spacecraft_mode, :slew_mode, :prnb, :category_code, :priority, :cycle, :obs_type, :issue_flag, :status, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], shown_cols=[:name, :obsid, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :obs_type, :category_code, :LC_FFT_FLG, :LC], blacklist_cols=[:abstract, :pi_lname, :pi_fname, :copi_lname, :copi_fname, :country], whitelist_cols=[], list_choice="whitelist", homedev=false, local_archive_pr=ENV["NU_ARCHIVE_PR"], subpage_gen=true)
+function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numaster(), select_cols=[:observation_mode, :spacecraft_mode, :slew_mode, :prnb, :category_code, :priority, :cycle, :obs_type, :issue_flag, :status, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], shown_cols=[:name, :obsid, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :obs_type, :category_code, :LCFlags], blacklist_cols=[:abstract, :pi_lname, :pi_fname, :copi_lname, :copi_fname, :country], whitelist_cols=[], list_choice="whitelist", homedev=false, local_archive_pr=ENV["NU_ARCHIVE_PR"], subpage_gen=true)
     if length(whitelist_cols) == 0
         whitelist_cols = vcat(shown_cols, [:public_date, :obs_type, :observation_mode, :RegBkg])
     end
@@ -44,7 +44,7 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
         RegSrcIntr=count(x->x==2, df[:RegSrc]),
         RegSrcBad=count(x->x==-1, df[:RegSrc]),
         RegSrcCheck=count(x->x==-2, df[:RegSrc]),
-        InterestingLC=count(x->x==1, df[:LC_FLG]))
+        InterestingLC=count(x->x!="NA", df[:LCFlags]))
 
     f = open(filename, "w")
 
@@ -150,7 +150,7 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
         df[row, :Cleaned] == 1 ? color_cleaned="table-success" : color_cleaned=""
         df[row, :ValidSci] == 1 ? color_validsci="table-success" : color_validsci=""
         df[row, :RegBkg] == 1 ? color_bkg="table-success" : color_bkg=""
-        df[row, :LC_FLG] == 1 ? color_lcflg="table-success" : color_lcflg=""
+        df[row, :LCFlags] != "NA" ? color_lcflg="table-success" : color_lcflg=""
         color_regsrc = ["table-warn", "table-failure", "", "table-success", "table-info"][3+df[row, :RegSrc]]
 
         write(f, "\t\t\t<tr>\n")
@@ -167,8 +167,8 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
                 write(f, "\t\t\t\t<td class=\"$color_validsci\">$(html_escape(cell))</td>\n")
             elseif column_name == :RegBkg
                 write(f, "\t\t\t\t<td class=\"$color_bkg\">$(html_escape(cell))</td>\n")
-            elseif column_name == :LC_FLG
-                write(f, "\t\t\t\t<td class=\"$color_lcflg\">$(html_escape(cell))</td>\n")
+            elseif column_name == :LCFlags
+                write(f, "\t\t\t\t<td class=\"$color_lcflg\">$(html_escape(cell=="NA" ? "" : cell))</td>\n")
             elseif column_name == :obsid
                 write(f, "\t\t\t\t<td><a href=\"$file_dir_web/obs/$obsid/details.html\" target=\"_blank\">$(html_escape(cell))</a></td>\n")
             elseif column_name == :category_code
@@ -255,7 +255,7 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         write(f, "\t</div>\n")
         write(f, "\t<hr>\n")
         write(f, "\t<h4>Status</h4>\n")
-        make_table(f, df[i, :]; something_list_cols=[:public_date, :status, :caldb_version, :Downloaded, :Cleaned, :ValidSci, :RegSrc,  :RegBkg, :LC_FLG], list_choice="whitelist", data_filter_show_clear="false", data_show_columns="false", data_filter_control="false", data_pagination="false")
+        make_table(f, df[i, :]; something_list_cols=[:public_date, :status, :caldb_version, :Downloaded, :Cleaned, :ValidSci, :RegSrc,  :RegBkg, :LCFlags], list_choice="whitelist", data_filter_show_clear="false", data_show_columns="false", data_filter_control="false", data_pagination="false")
         write(f, "\t<hr>\n")
         write(f, "\t<h4>Source Details</h4>\n")
         make_table(f, df[i, :]; something_list_cols=[:name, :obs_type, :ra, :dec, :lii, :bii], list_choice="whitelist", data_filter_show_clear="false", data_show_columns="false", data_filter_control="false", data_pagination="false")

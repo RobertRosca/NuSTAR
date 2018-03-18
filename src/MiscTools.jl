@@ -94,25 +94,18 @@ function check_obs_publicity_local(local_archive=ENV["NU_ARCHIVE"]; purge=false)
 end
 
 function read_numaster(numaster_path)
-    #name, ra, dec, lii, bii, roll_angle, time, end_time, obsid, exposure_a, exposure_b
-    #ontime_a, ontime_b, observation_mode, instrument_mode, spacecraft_mode, slew_mode
-    #processing_date, public_date, software_version, prnb, abstract, subject_category
-    #category_code, priority, pi_lname, pi_fname, copi_lname, copi_fname, country, cycle
-    #obs_type, title, data_gap, nupsdout, solar_activity, coordinated, issue_flag, comments
-    #status, caldb_version, Downloaded, Cleaned, ValidSci, RegSrc, RegBkg, lc_files, lc_fft_files, lc_fft_conv
+    numaster_types = [String, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64}, # :name, :ra, :dec, :lii, :bii
+    Union{Missings.Missing, Float64}, String, String, String, Float64, # :roll_angle, :time, :end_time, :obsid, :exposure_a
+    Float64, Float64, Float64, String, String, # :exposure_b, :ontime_a, :ontime_b, :observation_mode, :instrument_mode
+    String, String, String, String, String, # :spacecraft_mode, :slew_mode, :processing_date, :public_date, :software_version
+    Int, Union{Missings.Missing, String}, String, Int, String, # :prnb, :abstract, :subject_category, :category_code, :priority
+    String, String, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, String}, # :pi_lname, :pi_fname, :copi_lname, :copi_fname, :country
+    Int, String, Union{Missings.Missing, String}, Int, Int, # :cycle, :obs_type, :title, :data_gap, :nupsdout
+    Union{Missings.Missing, String}, Union{Missings.Missing, String}, Int, Union{Missings.Missing, String}, String, #:solar_activity, :coordinated, :issue_flag, :comments, :status
+    String, Int, Int, Int, Int, # :caldb_version, :Downloaded, :Cleaned, :ValidSci, :RegSrc
+    Int, String, String, String]; # :RegBkg, :LC, :LCfft, :LCFlags
 
-    numaster_types = [String, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64}, Union{Missings.Missing, Float64},
-    Union{Missings.Missing, Float64}, String, String, String, Float64,
-    Float64, Float64, Float64, String, String,
-    String, String, String, String, String,
-    Int, Union{Missings.Missing, String}, String, Int, String,
-    String, String, Union{Missings.Missing, String}, Union{Missings.Missing, String}, Union{Missings.Missing, String},
-    Int, String, Union{Missings.Missing, String}, Int, Int,
-    Union{Missings.Missing, String}, Union{Missings.Missing, String}, Int, Union{Missings.Missing, String}, String,
-    String, Int, Int, Int, Int,
-    Int, String, String, Int];
-
-    # This is absurdly stupid looking, but seems to be the only way to get the CSV
+    # This is absurdly stupid looking, but seems to be the best way to get the CSV
     # to be read properly
 
     CSV.read(numaster_path, types=numaster_types)
