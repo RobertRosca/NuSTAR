@@ -225,7 +225,7 @@ function PlotLCs(;todo=1000, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utilit
     numaster_df = read_numaster(numaster_path)
 
     queue = @from i in numaster_df begin
-        @where i.LC != "none"
+        @where i.LC != "NA"
         @select [i.obsid, string.("$local_archive_pr/", i.obsid, "/products/lc/", split(i.LC), ".fits")]
         @collect
     end
