@@ -8,5 +8,7 @@ Query
 Plots
 PyPlot
 GR
-HDF5
+FileIO
+JLD2
 DSP
+LombScargle

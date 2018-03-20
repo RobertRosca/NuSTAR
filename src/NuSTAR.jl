@@ -9,8 +9,9 @@ using CSV
 using LightXML
 using FITSIO
 using StatsBase
-using HDF5
-using DSP
+using FileIO, JLD2
+using DSP: rfftfreq, nextfastfft, hilbert
+using LombScargle
 
 using Plots
 pyplot()

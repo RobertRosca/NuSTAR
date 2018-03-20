@@ -30,100 +30,84 @@ function find_lightcurve_intervals(lc_data, lc_bins, min_interval_width_s)
     return interval_time_start, interval_time_end, interval_widths, min_interval_width, interval_count, interval_count_bad
 end
 
-function find_lightcurve_fft(lc_gti, interval_count)
-    lc_gti_fft = Dict()
-
-    largest_gti_dim = 0
-
-    for gti in 1:interval_count
-        gti_size = size(lc_gti[gti][:Rate], 1)
-
-        if gti_size > largest_gti_dim
-            largest_gti_dim = gti_size
-        end
+function lc_fft_lomb(lc_data, lc_bins, interval_count, interval_time_start, interval_time_end, interval_widths)
+    # Split data into GTIs
+    lc_gti_rate = Array{Array{Float64,1},1}(interval_count)
+    lc_gti_time = Array{Array{Float64,1},1}(interval_count)
+    for gti = 1:interval_count
+        lc_gti_rate[gti] = lc_data[:Rate][interval_time_start[gti]:interval_time_end[gti]]
+        lc_gti_time[gti] = lc_data[:Time][interval_time_start[gti]:interval_time_end[gti]]
     end
 
-    largest_fft_dim = 0
+    lc_gti_nextpow2 = nextfastfft(maximum(interval_widths)) # Used for zero-padding in padded FFT
 
-    lc_gti_rate_matrix = zeros(largest_gti_dim, interval_count)
+    # Perfrom FFT on GTI, also use padding
+    lc_gti_fft_pwers = Array{Array{Float64,1},1}(interval_count)
+    lc_gti_fft_freqs = Array{Array{Float64,1},1}(interval_count)
+    lc_gti_fft_pwers_zp = Array{Array{Float64,1},1}(interval_count)
+    lc_gti_fft_freqs_zp = Array{Array{Float64,1},1}(interval_count)
+    for gti = 1:interval_count
+        zero_padding = zeros(lc_gti_nextpow2 - length(lc_gti_rate[gti])+1)
 
-    for gti in 1:interval_count
-        lc_gti_rate = lc_gti[gti][:Rate] .- mean(lc_gti[gti][:Rate]) # Signal detrending
-        gti_size = size(lc_gti_rate, 1)
+        lc_gti_fft_pwers[gti] = abs.(rfft(lc_gti_rate[gti] .- mean(lc_gti_rate[gti])))
+        lc_gti_fft_freqs[gti] = rfftfreq(length(lc_gti_rate[gti]), lc_bins)
 
-        if gti_size < largest_gti_dim
-            diff = largest_gti_dim - gti_size
-            padding = zeros(diff)
-            lc_gti_rate = [lc_gti_rate; padding]
-        end
-
-        lc_gti_rate_matrix[:, gti] = lc_gti_rate
-
-        lc_gti_fft[gti] = abs.(rfft(lc_gti_rate))
-
-        if size(lc_gti_fft[gti], 1) > largest_fft_dim
-            largest_fft_dim = size(lc_gti_fft[gti], 1)
-        end
+        lc_gti_fft_pwers_zp[gti] = abs.(rfft([lc_gti_rate[gti]; zero_padding] .- mean(lc_gti_rate[gti])))
+        lc_gti_fft_freqs_zp[gti] = rfftfreq(length([lc_gti_rate[gti]; zero_padding]), lc_bins)
     end
 
-    largest_fft_amp = 0
-
-    sum_fft = zeros(largest_fft_dim)
-
-    conv_fft = ones(largest_fft_dim)
-
-    for gti in 1:interval_count
-        sum_fft  += lc_gti_fft[gti]
-        conv_fft  = conv_fft.*lc_gti_fft[gti]
-        start_idx = round(Int, size(lc_gti_fft[gti],1)*0.005)+1
-        if maximum(lc_gti_fft[gti][start_idx:end])>largest_fft_amp
-            largest_fft_amp = maximum(lc_gti_fft[gti][start_idx:end])
-        end
+    # Perfrom Lomb-Scargle
+    lc_gti_lomb_pwers = Array{Array{Float64,1},1}(interval_count)
+    lc_gti_lomb_freqs = Array{Array{Float64,1},1}(interval_count)
+    for gti = 1:interval_count
+        lc_gti_lomb_freqs[gti], lc_gti_lomb_pwers[gti] = freqpower(lombscargle(lc_gti_time[gti], lc_gti_rate[gti]))
     end
 
-    sum_fft = sum_fft ./ interval_count
+    # Create FFT summed line from padded data
+    lc_gti_fft_pwers_zp_avg = mean(lc_gti_fft_pwers_zp)
 
-    conv_fft = conv_fft ./ sum(conv_fft)
-
-    lc_gti_fft_matrix = zeros(largest_fft_dim, interval_count)
-
-    for gti in 1:interval_count
-        lc_gti_fft_matrix[:, gti] = lc_gti_fft[gti]
+    # Create FFT covarianc from padded data
+    lc_gti_fft_cov = ones(length(lc_gti_fft_pwers_zp[1]))
+    for gti = 1:interval_count
+        lc_gti_fft_cov .*= lc_gti_fft_pwers_zp[gti]
     end
 
-    conv_fft_significance =  maximum(conv_fft[5:end])
+    lc_gti_fft_cov = lc_gti_fft_cov.^(1/interval_count)
 
-    return lc_gti_rate_matrix, lc_gti_fft_matrix, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance
+    return lc_gti_rate, lc_gti_time, lc_gti_fft_pwers, lc_gti_fft_freqs, lc_gti_fft_pwers_zp, lc_gti_fft_freqs_zp, lc_gti_lomb_pwers, lc_gti_lomb_freqs, lc_gti_fft_pwers_zp_avg, lc_gti_fft_cov
 end
 
-function save_fft(fft_filepath, lc_gti_rate_matrix, lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance)
-    HDF5.h5open(fft_filepath, "w") do file
-        write(file, "lc_gti_rate_matrix", lc_gti_rate_matrix)
-        write(file, "lc_gti_fft", lc_gti_fft)
-        write(file, "sum_fft", sum_fft)
-        write(file, "largest_fft_amp", largest_fft_amp)
-        write(file, "conv_fft", conv_fft)
-        write(file, "conv_fft_significance", conv_fft_significance)
+function lc_fft_save(fft_data_filepath,
+        lc_gti_rate, lc_gti_time, lc_gti_fft_pwers, lc_gti_fft_freqs, lc_gti_fft_pwers_zp, lc_gti_fft_freqs_zp, lc_gti_lomb_pwers, lc_gti_lomb_freqs, lc_gti_fft_pwers_zp_avg, lc_gti_fft_cov)
+    jldopen(fft_data_filepath, "w") do file
+        file["lc_gti_rate"] = lc_gti_rate
+        file["lc_gti_time"] = lc_gti_time
+        file["lc_gti_fft_pwers"] = lc_gti_fft_pwers
+        file["lc_gti_fft_freqs"] = lc_gti_fft_freqs
+        file["lc_gti_fft_pwers_zp"] = lc_gti_fft_pwers_zp
+        file["lc_gti_fft_freqs_zp"] = lc_gti_fft_freqs_zp
+        file["lc_gti_lomb_pwers"] = lc_gti_lomb_pwers
+        file["lc_gti_lomb_freqs"] = lc_gti_lomb_freqs
+        file["lc_gti_fft_pwers_zp_avg"] = lc_gti_fft_pwers_zp_avg
+        file["lc_gti_fft_cov"] = lc_gti_fft_cov
     end
 end
 
-function read_fft(fft_filepath)
-    lc_gti_rate_matrix = Array{Float64,2}
-    lc_gti_fft = Array{Float64,2}
-    sum_fft = Array{Float64,1}
-    largest_fft_amp = Float32
-    conv_fft = Array{Float64,1}
-
-    HDF5.h5open(fft_filepath, "r") do file
-        lc_gti_rate_matrix = read(file, "lc_gti_rate_matrix")
-        lc_gti_fft = read(file, "lc_gti_fft")
-        sum_fft = read(file, "sum_fft")
-        largest_fft_amp = read(file, "largest_fft_amp")
-        conv_fft = read(file, "conv_fft")
-        conv_fft_significance = read(file, "conv_fft_significance")
+function lc_fft_read(fft_data_filepath)
+    jldopen(fft_data_filepath, "r") do file
+        lc_gti_rate = file["lc_gti_rate"]
+        lc_gti_time = file["lc_gti_time"]
+        lc_gti_fft_pwers = file["lc_gti_fft_pwers"]
+        lc_gti_fft_freqs = file["lc_gti_fft_freqs"]
+        lc_gti_fft_pwers_zp = file["lc_gti_fft_pwers_zp"]
+        lc_gti_fft_freqs_zp = file["lc_gti_fft_freqs_zp"]
+        lc_gti_lomb_pwers = file["lc_gti_lomb_pwers"]
+        lc_gti_lomb_freqs = file["lc_gti_lomb_freqs"]
+        lc_gti_fft_pwers_zp_avg = file["lc_gti_fft_pwers_zp_avg"]
+        lc_gti_fft_cov = file["lc_gti_fft_cov"]
     end
 
-    return lc_gti_rate_matrix, lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance
+    return lc_gti_rate, lc_gti_time, lc_gti_fft_pwers, lc_gti_fft_freqs, lc_gti_fft_pwers_zp, lc_gti_fft_freqs_zp, lc_gti_lomb_pwers, lc_gti_lomb_freqs, lc_gti_fft_pwers_zp_avg, lc_gti_fft_cov
 end
 
 function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR"], min_interval_width_s=100, overwrite=false, flag_plot_intervals=true, flag_force_plot=false)
@@ -134,9 +118,9 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
 
     plt_lc_main_path = string(local_archive_pr, "/$obsid/images/lc/$lc_name/$lc_name", "_full.png")
 
-    fft_filepath = string(dirname(filepath), "/", lc_name, "_fft.hdf5")
+    fft_data_filepath = string(dirname(filepath), "/", lc_name, "_fft.hdf5")
 
-    if isfile(plt_lc_main_path) && isfile(fft_filepath) && !overwrite
+    if isfile(plt_lc_main_path) && isfile(fft_data_filepath) && !overwrite
         plt_lc_main_path_maketime = stat(plt_lc_main_path).mtime
         lc_data_maketime = stat(filepath).mtime
 
@@ -161,39 +145,39 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
         lc_gti[gti] = lc_data[interval_time_start[gti]:interval_time_end[gti], :]
     end
 
-    if isfile(fft_filepath) &! overwrite
+    if isfile(fft_data_filepath) &! overwrite
         info("Reading saved FFT")
-        lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance = read_fft(fft_filepath)
+        lc_gti_rate, lc_gti_time, lc_gti_fft_pwers, lc_gti_fft_freqs, lc_gti_fft_pwers_zp, lc_gti_fft_freqs_zp, lc_gti_lomb_pwers, lc_gti_lomb_freqs, lc_gti_fft_pwers_zp_avg, lc_gti_fft_cov = lc_fft_read(fft_data_filepath)
     else
         info("Creating FFT file")
-        lc_gti_rate_matrix, lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance = find_lightcurve_fft(lc_gti, interval_count)
-        save_fft(fft_filepath, lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance)
+        lc_gti_rate, lc_gti_time, lc_gti_fft_pwers, lc_gti_fft_freqs, lc_gti_fft_pwers_zp, lc_gti_fft_freqs_zp, lc_gti_lomb_pwers, lc_gti_lomb_freqs, lc_gti_fft_pwers_zp_avg, lc_gti_fft_cov = lc_fft_lomb(lc_data, lc_bins, interval_count, interval_time_start, interval_time_end, interval_widths)
+        lc_fft_save(fft_data_filepath,
+                lc_gti_rate, lc_gti_time, lc_gti_fft_pwers, lc_gti_fft_freqs, lc_gti_fft_pwers_zp, lc_gti_fft_freqs_zp, lc_gti_lomb_pwers, lc_gti_lomb_freqs, lc_gti_fft_pwers_zp_avg, lc_gti_fft_cov)
     end
 
-    if conv_fft_significance > 0.5
-        info("*** Significant FFT peak: $(findmax(conv_fft)) ***")
+    if maximum(lc_gti_fft_cov[5:end]) > 0.5
+        info("*** Significant FFT peak ***")
+        flag_plot_intervals = true
     else
         flag_plot_intervals = false
     end
 
     plot(lc_data[:Time], lc_data[:Rate], size=(1920, 1080), lab="", title="$obsid - $lc_name - full lc")
     vline!(lc_data[:Time][interval_time_start], color=:green, lab="Start", alpha=0.25)
-    lc_plot = vline!(lc_data[:Time][interval_time_end], color=:red, lab="End", alpha=0.25)
+    plt_lc = vline!(lc_data[:Time][interval_time_end], color=:red, lab="End", alpha=0.25, xlab="Time [s]")
 
-    lc_plot_fft = plot()
+    plot(lc_gti_fft_freqs, lc_gti_fft_pwers, alpha=0.25, lab="",
+        ylims=(0, median(maximum.(lc_gti_fft_pwers))+std(maximum.(lc_gti_fft_pwers))))
+    plt_ffts = plot!(lc_gti_fft_freqs_zp[1], lc_gti_fft_pwers_zp_avg, color=:black, lab="Mean FFT")
 
-    fft_freq_axis = rfftfreq(size(lc_gti_rate_matrix, 1), 1)
+    plot(lc_gti_fft_freqs_zp[1], normalize(lc_gti_fft_cov), lab="Convoluted FFT [normalized]", color=:red, alpha=0.5)
+    plt_ffts_cv = plot!(lc_gti_fft_freqs_zp[1], normalize(lc_gti_fft_cov.*lc_gti_fft_freqs_zp[1]), lab="Convoluted FFT*freqT [normalized]", color=:black)
 
-    for i = 1:interval_count
-        plot!(fft_freq_axis, lc_gti_fft[:, i], lab="", alpha=0.25)
-    end
+    plot(lc_gti_lomb_freqs, lc_gti_lomb_pwers, alpha=0.5, xlims=(0, lc_bins/2), lab="", xlab="Frequency [Hz]",
+        ylims=(0, median(maximum.(lc_gti_lomb_pwers))+std(maximum.(lc_gti_lomb_pwers))))
+    plt_lmbs= plot!([-1000], [-1000], lab="Lomb-Scargle of GTIs", color=:white)
 
-    plot!(rfftfreq(size(lc_gti_rate_matrix, 1), 1), sum_fft, lab="Sum", linecolor=:black, title="fft")
-    lc_plot_fft = ylims!(0, largest_fft_amp*1.1)
-
-    lc_fft_conv = plot(fft_freq_axis, conv_fft, ylims=(1.0e-15, 1), lab="", title="fft conv", linecolor=:black)
-
-    lc_combined_plot = plot(lc_plot, lc_plot_fft, lc_fft_conv, size=(1920, 1080), layout=(3, 1))
+    lc_combined_plot = plot(plt_lc, plt_ffts, plt_ffts_cv, plt_lmbs, size=(1920, 2160), layout=(4, 1))
     savefig(lc_combined_plot, plt_lc_main_path)
 
     if flag_plot_intervals || flag_force_plot
@@ -210,8 +194,8 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
 
         plt_intervals_fft = Array{Plots.Plot{Plots.PyPlotBackend},1}(interval_count)
         for i = 1:interval_count
-            start_idx = round(Int, size(lc_gti_fft[:, i],1)*0.005)+1
-            plt_intervals_fft[i] = plot(fft_freq_axis, lc_gti_fft[:, i], lab="", title="fft", size=(1280, 720), ylims=(0, maximum(lc_gti_fft[:, i][start_idx:end])*1.1))
+            start_idx = round(Int, size(lc_gti_fft_pwers[i],1)*0.005)+1
+            plt_intervals_fft[i] = plot(lc_gti_fft_freqs[i], lc_gti_fft_pwers[i], lab="FFT", size=(1280, 720), ylims=(0, maximum(lc_gti_fft_pwers[i][start_idx:end])*1.1))
         end
 
         for i = 1:interval_count
