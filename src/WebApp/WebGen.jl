@@ -277,8 +277,8 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
                 write(f, "\t<hr>\n")
                 write(f, "\t\t<h4>Lightcurves</h4>\n")
                 for lc_folder in sort(lightcurves, lt=natural)
-                    write(f, "\t<hr>\n")
                     make_lc(f, file_dir, lc_folder)
+                    write(f, "\t<hr>\n")
                     write(f, "\t<br>\n")
                 end
             end
@@ -294,24 +294,24 @@ function make_lc(f, file_dir, lc_folder)
     lc_path = "$file_dir/images/lc/$lc_folder/"
     lc_plts = sort(readdir(lc_path), lt=natural)
 
-    write(f, "<p><b>$lc_folder</b> - Found $(size(lc_plts, 1)-1) lightcurve intervals</p>")
+    write(f, "<p><b>$lc_folder</b> - Found $(size(lc_plts, 1)-1) generated lightcurve</p>")
     write(f, "\t\t\t<div><img src=\"./images/lc/$lc_folder/$(lc_plts[1])\" alt=\"evt_uf\" width=\"100%\"></div>\n")
 
     write(f, "<div class=\"panel-group\">")
     write(f, "<div class=\"panel panel-default\">")
     write(f, "<div class=\"panel-heading\">")
     write(f, "<h4 class=\"panel-title\">")
-    write(f, "<a data-toggle=\"collapse\" href=\"#$lc_folder\">Lightcurve - $lc_folder</a>")
+    write(f, "<a data-toggle=\"collapse\" href=\"#$(replace(lc_folder, ".", "_"))\">Lightcurve - $lc_folder</a>")
     write(f, "</h4>")
     write(f, "</div>")
-    write(f, "<div id=\"$lc_folder\" class=\"panel-collapse collapse\">")
+    write(f, "<div id=\"$(replace(lc_folder, ".", "_"))\" class=\"panel-collapse collapse\">")
     write(f, "<div class=\"panel-body\">")
     for plt in lc_plts[2:end]
         write(f, "<hr>")
         write(f, "\t\t\t<div><img src=\"./images/lc/$lc_folder/$plt\" alt=\"evt_uf\" width=\"100%\"></div>\n")
     end
     write(f, "</div>")
-    write(f, "<div class=\"panel-footer\"><a data-toggle=\"collapse\" href=\"#$lc_folder\">Collapse - $lc_folder</a></div>")
+    write(f, "<div class=\"panel-footer\"><a data-toggle=\"collapse\" href=\"#$(replace(lc_folder, ".", "_"))\">Collapse - $lc_folder</a></div>")
     write(f, "</div>")
 
     write(f, "\t</div>\n")

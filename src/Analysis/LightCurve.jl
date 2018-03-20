@@ -118,7 +118,7 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
 
     plt_lc_main_path = string(local_archive_pr, "/$obsid/images/lc/$lc_name/$lc_name", "_full.png")
 
-    fft_data_filepath = string(dirname(filepath), "/", lc_name, "_fft.hdf5")
+    fft_data_filepath = string(dirname(filepath), "/", lc_name, "_fft.jld2")
 
     if isfile(plt_lc_main_path) && isfile(fft_data_filepath) && !overwrite
         plt_lc_main_path_maketime = stat(plt_lc_main_path).mtime
@@ -179,8 +179,6 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
 
     lc_combined_plot = plot(plt_lc, plt_ffts, plt_ffts_cv, plt_lmbs, size=(1920, 2160), layout=(4, 1))
     savefig(lc_combined_plot, plt_lc_main_path)
-
-    return
 
     if flag_plot_intervals || flag_force_plot
         if interval_count_bad > 0

@@ -117,19 +117,19 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
                 lc[itr]     = replace(join(filter(x->contains(x, ".fits"), readdir(lc_path)), " "), ".fits", "")
             end
 
-            if length(filter(x->contains(x, ".hdf5"), readdir(lc_path))) > 0
-                lc_fft[itr] = replace(join(filter(x->contains(x, ".hdf5"), readdir(lc_path)), " "), ".hdf5", "")
+            if length(filter(x->contains(x, ".jld2"), readdir(lc_path))) > 0
+                lc_fft[itr] = replace(join(filter(x->contains(x, ".jld2"), readdir(lc_path)), " "), ".jld2", "")
             end
 
-            for fft in filter(x->contains(x, ".hdf5"), readdir(lc_path))
-                conv_fft = h5read("$lc_path$fft", "conv_fft")
+            for fft in filter(x->contains(x, ".jld2"), readdir(lc_path))
+                conv_fft = load("$lc_path$fft", "lc_gti_fft_cov")
 
                 conv_fft_significance = maximum(conv_fft[5:end])
 
                 if conv_fft_significance > 0.5
                     #replace(replace(replace(join([lc_fft_flags[itr], fft], " "), "NA ", ""), ".hdf5", ""), "fft", "")
                     # Regex to remove NA, .hdft, fft and _fft from the flagged fft data file names
-                    lc_fft_flags[itr] = replace(join([lc_fft_flags[itr], fft], " "), r"(NA |.hdf5|fft|_fft)", "")
+                    lc_fft_flags[itr] = replace(join([lc_fft_flags[itr], fft], " "), r"(NA |.jld2|fft|_fft)", "")
                 end
             end
         end
