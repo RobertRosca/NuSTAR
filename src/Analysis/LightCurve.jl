@@ -11,10 +11,10 @@ function read_fits_lc(filepath)
 end
 
 function find_lightcurve_intervals(lc_data, lc_bins, min_interval_width_s)
-    interval_time_end   = find(x->x!=lc_bins, diff(lc_data[:Time]))
+    interval_time_end   = find(x->x>lc_bins, lc_data[:Time][2:end] .- lc_data[:Time][1:end-1] .- lc_bins)
     interval_time_end   = [interval_time_end; Int(length(lc_data[:Time]))]
 
-    interval_time_start = find(x->x!=lc_bins, diff(lc_data[:Time])) .+ 1
+    interval_time_start = find(x->x>lc_bins, lc_data[:Time][2:end] .- lc_data[:Time][1:end-1] .- lc_bins) .+ 1
     interval_time_start = [1; interval_time_start]
 
     interval_widths     = interval_time_end .- interval_time_start
