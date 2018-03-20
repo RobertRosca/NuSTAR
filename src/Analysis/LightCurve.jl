@@ -50,10 +50,10 @@ function lc_fft_lomb(lc_data, lc_bins, interval_count, interval_time_start, inte
         zero_padding = zeros(lc_gti_nextpow2 - length(lc_gti_rate[gti])+1)
 
         lc_gti_fft_pwers[gti] = abs.(rfft(lc_gti_rate[gti] .- mean(lc_gti_rate[gti])))
-        lc_gti_fft_freqs[gti] = rfftfreq(length(lc_gti_rate[gti]), lc_bins)
+        lc_gti_fft_freqs[gti] = rfftfreq(length(lc_gti_rate[gti]), 1/lc_bins)
 
         lc_gti_fft_pwers_zp[gti] = abs.(rfft([lc_gti_rate[gti]; zero_padding] .- mean(lc_gti_rate[gti])))
-        lc_gti_fft_freqs_zp[gti] = rfftfreq(length([lc_gti_rate[gti]; zero_padding]), lc_bins)
+        lc_gti_fft_freqs_zp[gti] = rfftfreq(length([lc_gti_rate[gti]; zero_padding]), 1/lc_bins)
     end
 
     # Perfrom Lomb-Scargle
@@ -173,12 +173,14 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
     plot(lc_gti_fft_freqs_zp[1], normalize(lc_gti_fft_cov), lab="Convoluted FFT [normalized]", color=:red, alpha=0.5)
     plt_ffts_cv = plot!(lc_gti_fft_freqs_zp[1], normalize(lc_gti_fft_cov.*lc_gti_fft_freqs_zp[1]), lab="Convoluted FFT*freqT [normalized]", color=:black)
 
-    plot(lc_gti_lomb_freqs, lc_gti_lomb_pwers, alpha=0.5, xlims=(0, lc_bins/2), lab="", xlab="Frequency [Hz]",
+    plot(lc_gti_lomb_freqs, lc_gti_lomb_pwers, alpha=0.5, xlims=(0, 1/(2*lc_bins)), lab="", xlab="Frequency [Hz]",
         ylims=(0, median(maximum.(lc_gti_lomb_pwers))+std(maximum.(lc_gti_lomb_pwers))))
     plt_lmbs= plot!([-1000], [-1000], lab="Lomb-Scargle of GTIs", color=:white)
 
     lc_combined_plot = plot(plt_lc, plt_ffts, plt_ffts_cv, plt_lmbs, size=(1920, 2160), layout=(4, 1))
     savefig(lc_combined_plot, plt_lc_main_path)
+
+    return
 
     if flag_plot_intervals || flag_force_plot
         if interval_count_bad > 0
