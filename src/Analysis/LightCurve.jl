@@ -211,7 +211,7 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
     return 1
 end
 
-function PlotLCs(;todo=1000, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utility=ENV["NU_ARCHIVE_UTIL"], overwrite=false)
+function PlotLCs(;todo=1000, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utility=ENV["NU_ARCHIVE_UTIL"], min_interval_width_s=100, overwrite_plot=false, overwrite_fft=false, flag_force_plot=false)
     numaster_path = string(local_utility, "/numaster_df.csv")
 
     numaster_df = read_numaster(numaster_path)
@@ -227,7 +227,7 @@ function PlotLCs(;todo=1000, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utilit
     for row in queue
         obsid = row[1]
         for path in row[2]
-            i += plot_lightcurve(path; obsid=obsid, local_archive_pr=ENV["NU_ARCHIVE_PR"], overwrite=overwrite)
+            i += plot_lightcurve(path; obsid=obsid, local_archive_pr=ENV["NU_ARCHIVE_PR"], min_interval_width_s=min_interval_width_s, overwrite_plot=overwrite_plot, overwrite_fft=overwrite_fft, flag_force_plot=flag_force_plot)
 
             if i > todo
                 return
