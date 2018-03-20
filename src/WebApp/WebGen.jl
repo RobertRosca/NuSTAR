@@ -273,13 +273,15 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
 
         if isdir(lc_dir)
             lightcurves = readdir(lc_dir)
-            if size(lightcurves, 1) > 0
+            if length(lightcurves) > 0
                 write(f, "\t<hr>\n")
                 write(f, "\t\t<h4>Lightcurves</h4>\n")
                 for lc_folder in sort(lightcurves, lt=natural)
-                    make_lc(f, file_dir, lc_folder)
-                    write(f, "\t<hr>\n")
-                    write(f, "\t<br>\n")
+                    if length(readdir("$file_dir/images/lc/$lc_folder/")) > 0
+                        make_lc(f, file_dir, lc_folder)
+                        write(f, "\t<hr>\n")
+                        write(f, "\t<br>\n")
+                    end
                 end
             end
         end
