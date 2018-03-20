@@ -94,23 +94,21 @@ function lc_fft_save(fft_data_filepath,
 end
 
 function lc_fft_read(fft_data_filepath)
-    jldopen(fft_data_filepath, "r") do file
-        lc_gti_rate = file["lc_gti_rate"]
-        lc_gti_time = file["lc_gti_time"]
-        lc_gti_fft_pwers = file["lc_gti_fft_pwers"]
-        lc_gti_fft_freqs = file["lc_gti_fft_freqs"]
-        lc_gti_fft_pwers_zp = file["lc_gti_fft_pwers_zp"]
-        lc_gti_fft_freqs_zp = file["lc_gti_fft_freqs_zp"]
-        lc_gti_lomb_pwers = file["lc_gti_lomb_pwers"]
-        lc_gti_lomb_freqs = file["lc_gti_lomb_freqs"]
-        lc_gti_fft_pwers_zp_avg = file["lc_gti_fft_pwers_zp_avg"]
-        lc_gti_fft_cov = file["lc_gti_fft_cov"]
-    end
+    lc_gti_rate = load(fft_data_filepath, "lc_gti_rate")
+    lc_gti_time = load(fft_data_filepath, "lc_gti_time")
+    lc_gti_fft_pwers = load(fft_data_filepath, "lc_gti_fft_pwers")
+    lc_gti_fft_freqs = load(fft_data_filepath, "lc_gti_fft_freqs")
+    lc_gti_fft_pwers_zp = load(fft_data_filepath, "lc_gti_fft_pwers_zp")
+    lc_gti_fft_freqs_zp = load(fft_data_filepath, "lc_gti_fft_freqs_zp")
+    lc_gti_lomb_pwers = load(fft_data_filepath, "lc_gti_lomb_pwers")
+    lc_gti_lomb_freqs = load(fft_data_filepath, "lc_gti_lomb_freqs")
+    lc_gti_fft_pwers_zp_avg = load(fft_data_filepath, "lc_gti_fft_pwers_zp_avg")
+    lc_gti_fft_cov = load(fft_data_filepath, "lc_gti_fft_cov")
 
     return lc_gti_rate, lc_gti_time, lc_gti_fft_pwers, lc_gti_fft_freqs, lc_gti_fft_pwers_zp, lc_gti_fft_freqs_zp, lc_gti_lomb_pwers, lc_gti_lomb_freqs, lc_gti_fft_pwers_zp_avg, lc_gti_fft_cov
 end
 
-function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR"], min_interval_width_s=100, overwrite=false, flag_plot_intervals=true, flag_force_plot=false)
+function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR"], min_interval_width_s=100, overwrite_plot=false, overwrite_fft=false, flag_force_plot=false)
     lc_data = NuSTAR.read_fits_lc(filepath)
     lc_name = replace(basename(filepath), ".fits", "");
 
@@ -120,7 +118,7 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
 
     fft_data_filepath = string(dirname(filepath), "/", lc_name, "_fft.jld2")
 
-    if isfile(plt_lc_main_path) && isfile(fft_data_filepath) && !overwrite
+    if isfile(plt_lc_main_path) && isfile(fft_data_filepath) && !overwrite_plot
         plt_lc_main_path_maketime = stat(plt_lc_main_path).mtime
         lc_data_maketime = stat(filepath).mtime
 
@@ -145,7 +143,7 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
         lc_gti[gti] = lc_data[interval_time_start[gti]:interval_time_end[gti], :]
     end
 
-    if isfile(fft_data_filepath) &! overwrite
+    if isfile(fft_data_filepath) &! overwrite_fft
         info("Reading saved FFT")
         lc_gti_rate, lc_gti_time, lc_gti_fft_pwers, lc_gti_fft_freqs, lc_gti_fft_pwers_zp, lc_gti_fft_freqs_zp, lc_gti_lomb_pwers, lc_gti_lomb_freqs, lc_gti_fft_pwers_zp_avg, lc_gti_fft_cov = lc_fft_read(fft_data_filepath)
     else
@@ -162,6 +160,7 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
         flag_plot_intervals = false
     end
 
+    info("Plotting full LC")
     plot(lc_data[:Time], lc_data[:Rate], size=(1920, 1080), lab="", title="$obsid - $lc_name - full lc")
     vline!(lc_data[:Time][interval_time_start], color=:green, lab="Start", alpha=0.25)
     plt_lc = vline!(lc_data[:Time][interval_time_end], color=:red, lab="End", alpha=0.25, xlab="Time [s]")
@@ -170,15 +169,15 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
         ylims=(0, median(maximum.(lc_gti_fft_pwers))+std(maximum.(lc_gti_fft_pwers))))
     plt_ffts = plot!(lc_gti_fft_freqs_zp[1], lc_gti_fft_pwers_zp_avg, color=:black, lab="Mean FFT")
 
-    plot(lc_gti_fft_freqs_zp[1], normalize(lc_gti_fft_cov), lab="Convoluted FFT [normalized]", color=:red, alpha=0.5)
-    plt_ffts_cv = plot!(lc_gti_fft_freqs_zp[1], normalize(lc_gti_fft_cov.*lc_gti_fft_freqs_zp[1]), lab="Convoluted FFT*freqT [normalized]", color=:black)
+    plot(lc_gti_fft_freqs_zp[1], normalize(lc_gti_fft_cov), lab="Convoluted FFT [normalized]", color=:red, alpha=0.25)
+    plt_ffts_cv = plot!(lc_gti_fft_freqs_zp[1], normalize(lc_gti_fft_cov.*lc_gti_fft_freqs_zp[1]), lab="Convoluted FFT*freqT [normalized]", color=:blue, alpha=0.25)
 
     plot(lc_gti_lomb_freqs, lc_gti_lomb_pwers, alpha=0.5, xlims=(0, 1/(2*lc_bins)), lab="", xlab="Frequency [Hz]",
         ylims=(0, median(maximum.(lc_gti_lomb_pwers))+std(maximum.(lc_gti_lomb_pwers))))
     plt_lmbs= plot!([-1000], [-1000], lab="Lomb-Scargle of GTIs", color=:white)
 
     lc_combined_plot = plot(plt_lc, plt_ffts, plt_ffts_cv, plt_lmbs, size=(1920, 2160), layout=(4, 1))
-    savefig(lc_combined_plot, plt_lc_main_path)
+    savefig(lc_combined_plot, plt_lc_main_path) # Create "./config/matplotlib/matplotlibrc" with "agg.path.chunksize : 10000" "Exceeded cell block limit" error
 
     if flag_plot_intervals || flag_force_plot
         if interval_count_bad > 0
