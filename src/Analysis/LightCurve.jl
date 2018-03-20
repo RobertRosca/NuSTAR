@@ -45,6 +45,8 @@ function find_lightcurve_fft(lc_gti, interval_count)
 
     largest_fft_dim = 0
 
+    lc_gti_rate_matrix = zeros(largest_gti_dim, interval_count)
+
     for gti in 1:interval_count
         lc_gti_rate = lc_gti[gti][:Rate] .- mean(lc_gti[gti][:Rate]) # Signal detrending
         gti_size = size(lc_gti_rate, 1)
@@ -54,6 +56,8 @@ function find_lightcurve_fft(lc_gti, interval_count)
             padding = zeros(diff)
             lc_gti_rate = [lc_gti_rate; padding]
         end
+
+        lc_gti_rate_matrix[:, gti] = lc_gti_rate
 
         lc_gti_fft[gti] = abs.(rfft(lc_gti_rate))
 
@@ -89,11 +93,12 @@ function find_lightcurve_fft(lc_gti, interval_count)
 
     conv_fft_significance =  maximum(conv_fft[5:end])
 
-    return lc_gti_fft_matrix, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance
+    return lc_gti_rate_matrix, lc_gti_fft_matrix, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance
 end
 
-function save_fft(fft_filepath, lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance)
+function save_fft(fft_filepath, lc_gti_rate_matrix, lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance)
     HDF5.h5open(fft_filepath, "w") do file
+        write(file, "lc_gti_rate_matrix", lc_gti_rate_matrix)
         write(file, "lc_gti_fft", lc_gti_fft)
         write(file, "sum_fft", sum_fft)
         write(file, "largest_fft_amp", largest_fft_amp)
@@ -103,12 +108,14 @@ function save_fft(fft_filepath, lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, 
 end
 
 function read_fft(fft_filepath)
+    lc_gti_rate_matrix = Array{Float64,2}
     lc_gti_fft = Array{Float64,2}
     sum_fft = Array{Float64,1}
     largest_fft_amp = Float32
     conv_fft = Array{Float64,1}
 
     HDF5.h5open(fft_filepath, "r") do file
+        lc_gti_rate_matrix = read(file, "lc_gti_rate_matrix")
         lc_gti_fft = read(file, "lc_gti_fft")
         sum_fft = read(file, "sum_fft")
         largest_fft_amp = read(file, "largest_fft_amp")
@@ -116,7 +123,7 @@ function read_fft(fft_filepath)
         conv_fft_significance = read(file, "conv_fft_significance")
     end
 
-    return lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance
+    return lc_gti_rate_matrix, lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance
 end
 
 function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR"], min_interval_width_s=100, overwrite=false, flag_plot_intervals=true, flag_force_plot=false)
@@ -154,12 +161,12 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
         lc_gti[gti] = lc_data[interval_time_start[gti]:interval_time_end[gti], :]
     end
 
-    if isfile(fft_filepath)
+    if isfile(fft_filepath) &! overwrite
         info("Reading saved FFT")
         lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance = read_fft(fft_filepath)
     else
         info("Creating FFT file")
-        lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance = find_lightcurve_fft(lc_gti, interval_count)
+        lc_gti_rate_matrix, lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance = find_lightcurve_fft(lc_gti, interval_count)
         save_fft(fft_filepath, lc_gti_fft, sum_fft, largest_fft_amp, conv_fft, conv_fft_significance)
     end
 
@@ -175,14 +182,16 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
 
     lc_plot_fft = plot()
 
+    fft_freq_axis = rfftfreq(size(lc_gti_rate_matrix, 1), 1)
+
     for i = 1:interval_count
-        plot!(lc_gti_fft[:, i], lab="", alpha=0.25)
+        plot!(fft_freq_axis, lc_gti_fft[:, i], lab="", alpha=0.25)
     end
 
-    plot!(sum_fft, lab="Sum", linecolor=:black, title="fft")
+    plot!(rfftfreq(size(lc_gti_rate_matrix, 1), 1), sum_fft, lab="Sum", linecolor=:black, title="fft")
     lc_plot_fft = ylims!(0, largest_fft_amp*1.1)
 
-    lc_fft_conv = plot(conv_fft, ylims=(1.0e-15, 1), lab="", title="fft conv", linecolor=:black)
+    lc_fft_conv = plot(fft_freq_axis, conv_fft, ylims=(1.0e-15, 1), lab="", title="fft conv", linecolor=:black)
 
     lc_combined_plot = plot(lc_plot, lc_plot_fft, lc_fft_conv, size=(1920, 1080), layout=(3, 1))
     savefig(lc_combined_plot, plt_lc_main_path)
@@ -202,7 +211,7 @@ function plot_lightcurve(filepath; obsid="", local_archive_pr=ENV["NU_ARCHIVE_PR
         plt_intervals_fft = Array{Plots.Plot{Plots.PyPlotBackend},1}(interval_count)
         for i = 1:interval_count
             start_idx = round(Int, size(lc_gti_fft[:, i],1)*0.005)+1
-            plt_intervals_fft[i] = plot(lc_gti_fft[:, i], lab="", title="fft", size=(1280, 720), ylims=(0, maximum(lc_gti_fft[:, i][start_idx:end])*1.1))
+            plt_intervals_fft[i] = plot(fft_freq_axis, lc_gti_fft[:, i], lab="", title="fft", size=(1280, 720), ylims=(0, maximum(lc_gti_fft[:, i][start_idx:end])*1.1))
         end
 
         for i = 1:interval_count

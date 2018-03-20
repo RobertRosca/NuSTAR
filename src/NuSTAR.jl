@@ -10,6 +10,7 @@ using LightXML
 using FITSIO
 using StatsBase
 using HDF5
+using DSP
 
 using Plots
 pyplot()
