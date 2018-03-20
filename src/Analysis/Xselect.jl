@@ -16,7 +16,7 @@ function create_xco_lc(obsid, bins; ObsPath="", xsel_out="", xsel_file_path="", 
     xsel_file_session = "$xsel_name"
     xsel_file_read = "read event\n$xsel_pip\n$(string("nu", obsid, "A01_cl.evt"))"
     xsel_file_filter = "filter region $xsel_src"
-    xsel_file_extract = "extract CURVE bins=$xsel_bin"
+    xsel_file_extract = "extract CURVE binsize=$xsel_bin"
     xsel_file_save = "save curve $xsel_out clobber=yes"
     xsel_file_exit = "exit"
     xsel_file_exit_no = "no"
