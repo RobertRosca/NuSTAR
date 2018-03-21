@@ -10,7 +10,7 @@ using LightXML
 using FITSIO
 using StatsBase
 using FileIO, JLD2
-using DSP: rfftfreq, nextfastfft, hilbert
+using DSP
 using LombScargle
 
 using Plots

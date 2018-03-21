@@ -65,9 +65,13 @@ function XselLC(todo, bins;
     end
 
     queue = @from i in numaster_df begin
-        @where i.RegSrc == 1
+        @where i.RegSrc == 1 && i.LC == "NA"
         @select i.obsid
         @collect
+    end
+
+    if size(queue, 1) > todo
+        queue = queue[1:todo]
     end
 
     queue_paths = []
@@ -87,17 +91,10 @@ function XselLC(todo, bins;
         end
     end
 
-    if size(queue_paths, 1) > todo
-        queue_paths = queue_paths[1:todo]
-    end
-
     queue_string = join(queue_paths, " ")
-
-    println(size(queue_paths, 1))
 
     if length(queue_string) == 0
         warn("No files in queue")
-
         return
     end
 
