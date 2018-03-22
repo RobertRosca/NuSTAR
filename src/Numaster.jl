@@ -89,6 +89,7 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
     lc           = fill("NA", numaster_df_n)
     lc_fft       = fill("NA", numaster_df_n)
     lc_fft_flags = fill("NA", numaster_df_n)
+    evt          = fill("NA", numaster_df_n)
 
     for (itr, obs) in enumerate(numaster_df[:obsid])
         if cleaned[itr] == 1
@@ -107,6 +108,17 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
             end
 
             reg_bkg[itr] = isfile(string(local_archive_cl, "/", obs, "/background.reg")) ? 1 : 0
+        end
+
+        evt_path_A = string(local_archive_pr, "/", obs, "/products/event/evt_A.fits")
+        evt_path_B = string(local_archive_pr, "/", obs, "/products/event/evt_B.fits")
+
+        if isfile(evt_path_A) && isfile(evt_path_B)
+            evt[itr] = "AB"
+        elseif isfile(evt_path_A)
+            evt[itr] = "A"
+        elseif isfile(evt_path_B)
+            evt[itr] = "B"
         end
 
         # Read dir to get all files, join into a single-string list, remove .fits extensions
@@ -141,6 +153,7 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
     numaster_df[:LC]       = lc
     numaster_df[:LCfft]    = lc_fft
     numaster_df[:LCFlags]  = lc_fft_flags
+    numaster_df[:EVT]  = evt
 
     # Convert modified Julian dates to readable dates
     numaster_df[:time] = map(x -> Base.Dates.julian2datetime(parse(Float64, x) + 2400000.5), numaster_df[:time])
