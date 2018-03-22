@@ -11,7 +11,7 @@ using FITSIO
 using StatsBase
 using FileIO, JLD2
 using DSP
-using LombScargle
+#using LombScargle
 
 using Plots
 pyplot()
@@ -33,8 +33,8 @@ include("Analysis/Xselect.jl")
 include("WebApp/WebGen.jl")
 include("Analysis/DS9Img.jl")
 include("Analysis/Plotters.jl")
-include("Analysis/LightCurve.jl")
 include("Analysis/ExtractEvents.jl")
+include("Analysis/LightCurve.jl")
 
 nustar_settings_file = string(homedir(), "/.config/julia-pkg/v0.6/NuSTAR/NuSTAR-settings.jl")
 
