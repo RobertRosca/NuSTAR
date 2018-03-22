@@ -7,6 +7,7 @@ struct unbinned_event
 end
 
 struct binned_event
+    obsid::String
     typeof::String
     bin::Number
     counts::SparseVector{Int64,Int64}
@@ -84,5 +85,5 @@ function bin_evts_lc(bin_sec, unbinned)
         sparse(hist_binning.weights) # Perform histogram fit, return sparse vector to save on computation
     end
 
-    return binned_event("lc", bin_sec, evt_counts, evt_time_edges, gtis)
+    return binned_event(unbinned.obsid, "lc", bin_sec, evt_counts, evt_time_edges, gtis)
 end
