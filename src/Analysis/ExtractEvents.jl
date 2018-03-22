@@ -9,23 +9,36 @@ end
 struct binned_event
     typeof::String
     bin::Number
-    evt_counts::SparseVector{Int64,Int64}
-    evt_time_edges::StepRangeLen{Float64,Base.TwicePrecision{Float64},Base.TwicePrecision{Float64}}
+    counts::SparseVector{Int64,Int64}
+    time_edges::StepRangeLen{Float64,Base.TwicePrecision{Float64},Base.TwicePrecision{Float64}}
     gtis::Array{UnitRange{Int64},1}
 end
 
-function evt_save(evt_data_path, evt)
+function save_evt(evt_data_path; kwargs...)
     jldopen(evt_data_path, "w") do file
-        file["evt"] = evt
+        for kw in kwargs
+            file[string(kw[1])] = kw[2]
+        end
     end
 
     return
 end
 
-function evt_read(evt_data_path)
-    evt = load(evt_data_path, "evt")
-    
-    return evt
+function read_evt(evt_data_path; item="")
+    data = ""
+
+    jldopen(evt_data_path, "r") do file
+        if item == ""
+            items = keys(file)
+            if length(items) == 1
+                data = load(evt_data_path, string(items[1]))
+            else
+                data = load(evt_data_path, "$item")
+            end
+        end
+    end
+
+    return data
 end
 
 function extract_evts(evt_path; gti_width_min::Number=128)
