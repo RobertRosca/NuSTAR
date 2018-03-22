@@ -61,7 +61,9 @@ function evt_fft(binned_evt::NuSTAR.binned_event)
     evt_time_edges = binned_evt.time_edges
     gtis = binned_evt.gtis
 
-    return lc_fft(evt_fft(evt_counts, evt_time_edges, gtis))
+    lc_gti_fft_freqs, lc_gti_fft_pwers, lc_gti_fft_freqs_zp, lc_gti_fft_pwers_zp, lc_fft_pwers_zp_avg, lc_fft_conv = evt_fft(evt_counts, evt_time_edges, gtis)
+
+    return lc_fft(lc_gti_fft_freqs, lc_gti_fft_pwers, lc_gti_fft_freqs_zp, lc_gti_fft_pwers_zp, lc_fft_pwers_zp_avg, lc_fft_conv)
 end
 
 function evt_periodogram(evt_counts, evt_time_edges, gtis)
@@ -78,12 +80,12 @@ function evt_periodogram(evt_counts, evt_time_edges, gtis)
         lc_gti_periodogram[i] = periodogram(evt_counts[gti].-mean(evt_counts[gti]); fs=1/lc_bins)
     end
 
-    lc_gti_periodogram_pwers = freq.(lc_gti_periodogram)
-    lc_gti_periodogram_freqs = power.(lc_gti_periodogram)
+    lc_gti_periodogram_pwers = DSP.freq.(lc_gti_periodogram)
+    lc_gti_periodogram_freqs = DSP.power.(lc_gti_periodogram)
 
     lc_periodogram = periodogram(evt_counts.-mean(evt_counts); fs=1/lc_bins)
-    lc_periodogram_freqs = freq(lc_periodogram)
-    lc_periodogram_pwers = power(lc_periodogram)
+    lc_periodogram_freqs = DSP.freq(lc_periodogram)
+    lc_periodogram_pwers = DSP.power(lc_periodogram)
 
     return lc_gti_periodogram_freqs, lc_gti_periodogram_pwers, lc_periodogram_freqs, lc_periodogram_pwers
 end
