@@ -1,11 +1,46 @@
-function extract_evts(evt_path; gti_width_min = 128)
+struct unbinned_event
+    obsid::String
+    event::DataFrames.DataFrame
+    gtis::Array{Array{Float64,1},1}
+    stop::Float64
+    start::Float64
+end
+
+struct binned_event
+    typeof::String
+    bin::Number
+    evt_counts::SparseVector{Int64,Int64}
+    evt_time_edges::StepRangeLen{Float64,Base.TwicePrecision{Float64},Base.TwicePrecision{Float64}}
+    gtis::Array{UnitRange{Int64},1}
+end
+
+function evt_save(evt_data_path, evt)
+    jldopen(evt_data_path, "w") do file
+        file["evt"] = evt
+    end
+
+    return
+end
+
+function evt_read(evt_data_path)
+    evt = load(evt_data_path, "evt")
+    
+    return evt
+end
+
+function extract_evts(evt_path; gti_width_min::Number=128)
     evt_file = FITS(evt_path)
+    evt_obsid = read_key(evt_file[1], "OBS_ID")[1]
     evt_time_start = read_key(evt_file[1], "TSTART")[1] + 0.5 # These are off by 1/2 sec, for some reason...
     evt_time_stop  = read_key(evt_file[1], "TSTOP")[1] + 0.5
     evt_time_elapse = read_key(evt_file[1], "TELAPSE")[1]
 
     evt_events = DataFrame(TIME=read(evt_file[2], "TIME").-evt_time_start, PI=read(evt_file[2], "PI"),
         X=read(evt_file[2], "X"), Y=read(evt_file[2], "Y"))
+
+    evt_gti = DataFrame(START=read(evt_file[3], "START").-evt_time_start, STOP=read(evt_file[3], "STOP").-evt_time_start)
+    evt_gti[:WIDTH] = evt_gti[:STOP] .- evt_gti[:START] # GTI interval width in seconds
+    evt_gti[:GOOD]  = evt_gti[:WIDTH] .>= gti_width_min;
 
     # Create tuple of GTI start and stop times, [sec] since evt_time_start
     evt_gtis = @from gti in evt_gti begin
@@ -14,20 +49,27 @@ function extract_evts(evt_path; gti_width_min = 128)
         @collect
     end
 
-    bin_sec = 2e-3 # 2e-3 for unbinned data
-    evt_time_edges = 1:bin_sec:(evt_time_stop-evt_time_start); # Construct edges for histogram, start at 0 and finish at stop time (w.r.t. obs start)
+    return unbinned_event(evt_obsid, evt_events, evt_gtis, evt_time_stop, evt_time_start)
+end
 
-    gti_intervals = size(evt_gtis, 1)
-    evt_gtis = hcat(evt_gtis...)' # Convert to matrix
+function bin_evts_lc(bin_sec, unbinned)
+    if bin_sec < 2e-3
+        error("NuSTAR temportal resolution is 2e-3, cannot bin under that value, binsec $bin_sec is invalid")
+    end
+
+    evt_time_edges = bin_sec:bin_sec:(unbinned.stop-unbinned.start); # Construct edges for histogram, finish at stop time (w.r.t. obs start)
+
+    gti_intervals = size(unbinned.gtis, 1)
+    evt_gtis = hcat(unbinned.gtis...)' # Convert to matrix
     evt_gtis = round.(evt_gtis, 3) # Fix floating point errors
 
     gtis = map(x->findfirst(evt_time_edges.>=x), evt_gtis) .- [zeros(Int, gti_intervals) ones(Int, gti_intervals)] # Subtract one from the GTI end bins
     gtis = range.(gtis[:, 1], gtis[:, 2].-gtis[:, 1])
 
     evt_counts = begin
-        hist_test = fit(Histogram, evt_events[:TIME], evt_time_edges, closed=:left)
-        sparse(hist_test.weights) # Perform histogram fit, return sparse vector to save on computation
+        hist_binning = fit(Histogram, unbinned.event[:TIME], evt_time_edges, closed=:right)
+        sparse(hist_binning.weights) # Perform histogram fit, return sparse vector to save on computation
     end
 
-    return evt_counts, evt_time_edges, gti_intervals
+    return binned_event("lc", bin_sec, evt_counts, evt_time_edges, gtis)
 end
