@@ -148,7 +148,7 @@ function create_xco_evt(obsid, instrument; ObsPath="", xsel_out="", xsel_file_pa
     return xsel_file_path
 end
 
-function XselEVT(todo, bins;
+function XselEVT(todo;
         local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utility=ENV["NU_ARCHIVE_UTIL"], scratch=ENV["NU_SCRATCH_FLAG"],
         src_file="/source.reg", dry=false)
 
@@ -185,7 +185,7 @@ function XselEVT(todo, bins;
 
     queue_paths = []
 
-    for instrument in ["A", "B"]#[queue_a..., queue_b...]
+    for instrument in ["A", "B"]
         queue = queue_inst[instrument]
         for (i, obsid) in enumerate(queue)
             xsel_out = string(local_archive_pr, obsid, "/products/event/evt_$instrument.fits")
@@ -194,7 +194,7 @@ function XselEVT(todo, bins;
             if !isfile(xsel_out) # If the .fits file doesn't exist
                 if !isfile(xsel_file_path) # If the .xco file, which creates the fits, doesn't exist
                     info("Generating xco for $obsid - $instrument")
-                    create_xco_evt(obsid, bins; ObsPath=string(local_archive_cl, obsid),
+                    create_xco_evt(obsid, instrument; ObsPath=string(local_archive_cl, obsid),
                         xsel_out=xsel_out, xsel_file_path=xsel_file_path, src_file="/source.reg")
                 end
 
