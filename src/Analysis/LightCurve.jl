@@ -80,8 +80,8 @@ function evt_periodogram(evt_counts, evt_time_edges, gtis)
         lc_gti_periodogram[i] = periodogram(evt_counts[gti].-mean(evt_counts[gti]); fs=1/lc_bins)
     end
 
-    lc_gti_periodogram_pwers = DSP.freq.(lc_gti_periodogram)
-    lc_gti_periodogram_freqs = DSP.power.(lc_gti_periodogram)
+    lc_gti_periodogram_freqs = DSP.freq.(lc_gti_periodogram)
+    lc_gti_periodogram_pwers = DSP.power.(lc_gti_periodogram)
 
     lc_periodogram = periodogram(evt_counts.-mean(evt_counts); fs=1/lc_bins)
     lc_periodogram_freqs = DSP.freq(lc_periodogram)
@@ -95,5 +95,25 @@ function evt_periodogram(binned_evt::NuSTAR.binned_event)
     evt_time_edges = binned_evt.time_edges
     gtis = binned_evt.gtis
 
-    return evt_periodogram(evt_counts, evt_time_edges, gtis)
+    lc_gti_periodogram_freqs, lc_gti_periodogram_pwers, lc_periodogram_freqs, lc_periodogram_pwers = evt_periodogram(evt_counts, evt_time_edges, gtis)
+
+    return lc_periodogram(lc_gti_periodogram_freqs, lc_gti_periodogram_pwers, lc_periodogram_freqs, lc_periodogram_pwers)
+end
+
+function evt_stft(evt_counts, lc_bins, interval_time_end)
+    stft = DSP.stft(evt_counts.-mean(evt_counts), 512; fs=1/lc_bins)
+    stft_time = linspace(0, interval_time_end, size(stft, 2))
+    stft_freq = linspace(0, 0.5*(1/lc_bins), size(stft, 1))
+
+    return stft, stft_time, stft_freq
+end
+
+function evt_stft(binned_evt::NuSTAR.binned_event)
+    evt_counts = binned_evt.counts
+    lc_bins = binned_evt.bin
+    interval_time_end = maximum(binned_evt.time_edges)
+
+    stft, stft_time, stft_freq = evt_stft(evt_counts, lc_bins, interval_time_end)
+
+    return stft, stft_time, stft_freq
 end
