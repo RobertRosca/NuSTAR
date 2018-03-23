@@ -109,7 +109,7 @@ end
 
 
 function create_xco_evt(obsid, instrument; ObsPath="", xsel_out="", xsel_file_path="", src_file="/source.reg",
-        local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"])
+        local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"], scratch=ENV["NU_SCRATCH_FLAG"], r=false)
 
     xsel_name = split(tempname(), "/")[3]
 
@@ -143,6 +143,19 @@ function create_xco_evt(obsid, instrument; ObsPath="", xsel_out="", xsel_file_pa
         for line in xsel_file
             write(f, "$line \n")
         end
+    end
+
+    if r
+        if scratch == "true"
+            local_archive_cl=ENV["NU_ARCHIVE_CL_LIVE"]
+            local_archive_pr=ENV["NU_ARCHIVE_PR_LIVE"]
+
+            run_xselect_command =  string(Pkg.dir(), "/NuSTAR/src/Scripts/run_xselect.sh")
+        else
+            run_xselect_command = string(Pkg.dir(), "/NuSTAR/src/Scripts/run_native_xselect.sh")
+        end
+
+        run(`gnome-terminal -e "$run_xselect_command --clean="$local_archive_cl/" --products="$local_archive_pr/" --xselect_scripts=\"$xsel_out\""`)
     end
 
     return xsel_file_path

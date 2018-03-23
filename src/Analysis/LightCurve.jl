@@ -1,17 +1,29 @@
-struct lc_fft
+struct Lc_fft
+    obsid::String
     gti_freqs::Array{Array{Float64,1},1}
     gti_pwers::Array{Array{Float64,1},1}
     gti_freqs_zp::Array{Array{Float64,1},1}
     gti_pwers_zp::Array{Array{Float64,1},1}
     pwers_zp_avg::Array{Float64,1}
     conv::Array{Float64,1}
+    bin::Number
 end
 
-struct lc_periodogram
+struct Lc_periodogram
+    obsid::String
     gti_freqs::Array{Array{Float64,1},1}
     gti_pwers::Array{Array{Float64,1},1}
     freqs::Array{Float64,1}
     pwers::Array{Float64,1}
+    bin::Number
+end
+
+struct Lc_stft
+    obsid::String
+    pwers::Array{Float64,2}
+    time::StepRangeLen{Float64,Base.TwicePrecision{Float64},Base.TwicePrecision{Float64}}
+    freq::StepRangeLen{Float64,Base.TwicePrecision{Float64},Base.TwicePrecision{Float64}}
+    bin::Number
 end
 
 function evt_fft(evt_counts, evt_time_edges, gtis)
@@ -56,14 +68,14 @@ function evt_fft(evt_counts, evt_time_edges, gtis)
     return lc_gti_fft_freqs, lc_gti_fft_pwers, lc_gti_fft_freqs_zp, lc_gti_fft_pwers_zp, lc_fft_pwers_zp_avg, lc_fft_conv
 end
 
-function evt_fft(binned_evt::NuSTAR.binned_event)
+function evt_fft(binned_evt::NuSTAR.Binned_event)
     evt_counts = binned_evt.counts
     evt_time_edges = binned_evt.time_edges
     gtis = binned_evt.gtis
 
     lc_gti_fft_freqs, lc_gti_fft_pwers, lc_gti_fft_freqs_zp, lc_gti_fft_pwers_zp, lc_fft_pwers_zp_avg, lc_fft_conv = evt_fft(evt_counts, evt_time_edges, gtis)
 
-    return lc_fft(lc_gti_fft_freqs, lc_gti_fft_pwers, lc_gti_fft_freqs_zp, lc_gti_fft_pwers_zp, lc_fft_pwers_zp_avg, lc_fft_conv)
+    return Lc_fft(binned_evt.obsid, lc_gti_fft_freqs, lc_gti_fft_pwers, lc_gti_fft_freqs_zp, lc_gti_fft_pwers_zp, lc_fft_pwers_zp_avg, lc_fft_conv, binned_evt.bin)
 end
 
 function evt_periodogram(evt_counts, evt_time_edges, gtis)
@@ -90,30 +102,63 @@ function evt_periodogram(evt_counts, evt_time_edges, gtis)
     return lc_gti_periodogram_freqs, lc_gti_periodogram_pwers, lc_periodogram_freqs, lc_periodogram_pwers
 end
 
-function evt_periodogram(binned_evt::NuSTAR.binned_event)
+function evt_periodogram(binned_evt::NuSTAR.Binned_event)
     evt_counts = binned_evt.counts
     evt_time_edges = binned_evt.time_edges
     gtis = binned_evt.gtis
 
     lc_gti_periodogram_freqs, lc_gti_periodogram_pwers, lc_periodogram_freqs, lc_periodogram_pwers = evt_periodogram(evt_counts, evt_time_edges, gtis)
 
-    return lc_periodogram(lc_gti_periodogram_freqs, lc_gti_periodogram_pwers, lc_periodogram_freqs, lc_periodogram_pwers)
+    return Lc_periodogram(binned_evt.obsid, lc_gti_periodogram_freqs, lc_gti_periodogram_pwers, lc_periodogram_freqs, lc_periodogram_pwers, binned_evt.bin)
 end
 
-function evt_stft(evt_counts, lc_bins, interval_time_end)
-    stft = DSP.stft(evt_counts.-mean(evt_counts), 512; fs=1/lc_bins)
-    stft_time = linspace(0, interval_time_end, size(stft, 2))
-    stft_freq = linspace(0, 0.5*(1/lc_bins), size(stft, 1))
+function evt_stft(evt_counts, lc_bins, interval_time_end, stft_bins=512)
+    stft_pwers  = abs.(DSP.stft(evt_counts.-mean(evt_counts), stft_bins; fs=1/lc_bins)).^2
+    stft_time = linspace(0, interval_time_end, size(stft_pwers, 2))
+    stft_freq = linspace(0, 0.5*(1/lc_bins), size(stft_pwers, 1))
 
-    return stft, stft_time, stft_freq
+    return stft_pwers, stft_time, stft_freq
 end
 
-function evt_stft(binned_evt::NuSTAR.binned_event)
+function evt_stft(binned_evt::NuSTAR.Binned_event, stft_bins=512)
     evt_counts = binned_evt.counts
     lc_bins = binned_evt.bin
     interval_time_end = maximum(binned_evt.time_edges)
 
-    stft, stft_time, stft_freq = evt_stft(evt_counts, lc_bins, interval_time_end)
+    stft_pwers, stft_time, stft_freq = evt_stft(evt_counts, lc_bins, interval_time_end, stft_bins)
 
-    return stft, stft_time, stft_freq
+    return Lc_stft(binned_evt.obsid, stft_pwers, stft_time, stft_freq, binned_evt.bin)
+end
+
+function generate_standard_lc_files(path_fits_lc, path_evt_unbinned, path_lc_dir; overwrite=true)
+    if isfile(path_evt_unbinned) && !overwrite
+        unbinned_evt = read_evt(path_evt_unbinned)
+    else
+        unbinned_evt = extract_evts(path_fits_lc; gti_width_min=128)
+        save_evt(path_evt_unbinned, unbinned_evt=unbinned_evt)
+    end
+
+    lc_ub = NuSTAR.bin_evts_lc(2e-3, unbinned_evt)
+    lc_ub_fft = NuSTAR.evt_fft(lc_ub)
+    save_evt(string(path_lc_dir, "lc_0.jld2"), lc=lc_ub, fft=lc_ub_fft)
+
+    lc_1 = NuSTAR.bin_evts_lc(1, unbinned_evt)
+    lc_1_periodogram = NuSTAR.evt_periodogram(lc_1)
+    save_evt(string(path_lc_dir, "lc_1.jld2"), lc=lc_1, periodogram=lc_1_periodogram)
+
+    lc_01 = NuSTAR.bin_evts_lc(0.1, unbinned_evt)
+    lc_01_stft = NuSTAR.evt_stft(lc_01)
+    save_evt(string(path_lc_dir, "lc_01.jld2"), lc=lc_01, stft=lc_01_stft)
+end
+
+function generate_standard_lc_files(obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"], instrument="A", overwrite=true)
+    path_fits_lc = string(local_archive_pr, obsid, "/products/event/evt_$instrument.fits")
+
+    if !isfile(path_fits_lc); error("$path_fits_lc not found"); end
+
+    path_evt_unbinned = string(local_archive_pr, obsid, "/products/event/evt_$instrument.jld2")
+
+    path_lc_dir = string(local_archive_pr, obsid, "/products/lc/")
+
+    generate_standard_lc_files(path_fits_lc, path_evt_unbinned, path_lc_dir; overwrite=overwrite)
 end

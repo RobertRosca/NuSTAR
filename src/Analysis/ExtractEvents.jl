@@ -1,4 +1,4 @@
-struct unbinned_event
+struct Unbinned_event
     obsid::String
     event::DataFrames.DataFrame
     gtis::Array{Array{Float64,1},1}
@@ -6,7 +6,7 @@ struct unbinned_event
     start::Float64
 end
 
-struct binned_event
+struct Binned_event
     obsid::String
     typeof::String
     bin::Number
@@ -25,21 +25,29 @@ function save_evt(evt_data_path; kwargs...)
     return
 end
 
-function read_evt(evt_data_path; item="")
-    data = ""
+function save_evt!(evt_data_path; kwargs...)
+    jldopen(evt_data_path, "a+") do file
+        for kw in kwargs
+            file[string(kw[1])] = kw[2]
+        end
+    end
 
+    return
+end
+
+function read_evt(evt_data_path, item="")
     jldopen(evt_data_path, "r") do file
         if item == ""
             items = keys(file)
             if length(items) == 1
-                data = load(evt_data_path, string(items[1]))
+                return load(evt_data_path, string(items[1]))
             else
-                data = load(evt_data_path, "$item")
+                error("$(length(items)) groups in data file, set item to: $items")
             end
+        else
+            return load(evt_data_path, item)
         end
     end
-
-    return data
 end
 
 function extract_evts(evt_path; gti_width_min::Number=128)
@@ -63,7 +71,7 @@ function extract_evts(evt_path; gti_width_min::Number=128)
         @collect
     end
 
-    return unbinned_event(evt_obsid, evt_events, evt_gtis, evt_time_stop, evt_time_start)
+    return Unbinned_event(evt_obsid, evt_events, evt_gtis, evt_time_stop, evt_time_start)
 end
 
 function bin_evts_lc(bin_sec, unbinned)
@@ -85,5 +93,5 @@ function bin_evts_lc(bin_sec, unbinned)
         sparse(hist_binning.weights) # Perform histogram fit, return sparse vector to save on computation
     end
 
-    return binned_event(unbinned.obsid, "lc", bin_sec, evt_counts, evt_time_edges, gtis)
+    return Binned_event(unbinned.obsid, "lc", bin_sec, evt_counts, evt_time_edges, gtis)
 end
