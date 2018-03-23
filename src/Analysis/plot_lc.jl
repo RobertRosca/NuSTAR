@@ -4,17 +4,20 @@ function plot_binned_lc(binned_lc::Binned_event)
     vline!(maximum.(binned_lc.gtis), color=:red, lab="GTI Stop")
 end
 
-function plot_binned_fft(lc_fft::Lc_fft; title="Full FFT", logx=true, logy=true, nu=false, denoise=false, hz_min=0.001)
+function plot_binned_fft(lc_fft::Lc_fft; title="Full FFT", logx=true, logy=true, nu=false, denoise=false, hz_min=0.001, hz_max=0)
     min_idx = findfirst(lc_fft.gti_freqs_zp[1].>=hz_min)
     min_idx < 2 ? min_idx=2 : min_idx=min_idx
+
+    max_idx = findfirst(lc_fft.gti_freqs_zp[1].>=hz_max)
+    max_idx < 2 ? max_idx=length(lc_fft.conv) : max_idx=max_idx
 
     if denoise
         np2 = zeros(nextpow2(length(lc_fft.conv))-length(lc_fft.conv))
         denoised = abs.(Wavelets.denoise([lc_fft.conv; np2])[1:length(lc_fft.conv)])
-        plot(lc_fft.gti_freqs_zp[1][min_idx:end], lc_fft.conv[min_idx:end], lab="", title=title)
-        plot!(lc_fft.gti_freqs_zp[1][min_idx:end], denoised[min_idx:end], lab="", title=title, alpha=0.5)
+        plot(lc_fft.gti_freqs_zp[1][min_idx:max_idx], lc_fft.conv[min_idx:max_idx], lab="", title=title)
+        plot!(lc_fft.gti_freqs_zp[1][min_idx:max_idx], denoised[min_idx:max_idx], lab="", title=title, alpha=0.5)
     else
-        plot(lc_fft.gti_freqs_zp[1][min_idx:end], lc_fft.conv[min_idx:end], lab="", title=title)
+        plot(lc_fft.gti_freqs_zp[1][min_idx:max_idx], lc_fft.conv[min_idx:max_idx], lab="", title=title)
     end
 
     logx ? xaxis!("Freq [Hz - log10]", :log10) : xaxis!("Freq [Hz]")
@@ -25,16 +28,18 @@ function plot_binned_fft_tiled(lc_fft::Lc_fft)
     nyquist = 1/(2*lc_fft.bin)
 
     nyquist > 1e2 ? c_hz_min=1e1 : c_hz_min=1e0
+    nyquist > 1e2 ? c_hz_max=1e1 : c_hz_max=0
 
-    a = plot_binned_fft(lc_fft; logx=false, logy=false, hz_min=2e-3)
-    b = plot_binned_fft(lc_fft; logx=true, logy=true, hz_min=2e-3, denoise=true, title="FFT log-log")
-    c = plot_binned_fft(lc_fft; logx=true, logy=true, hz_min=c_hz_min, denoise=true, title="FFT log-log $(c_hz_min)Hz+")
-    d = plot_binned_fft(lc_fft; logx=true, logy=false, hz_min=2e-3, denoise=true, title="FFT semi-log")
-    e = plot_binned_fft(lc_fft; logx=true, logy=false, hz_min=c_hz_min, denoise=true, title="FFT semi-log $(c_hz_min)Hz+")
+    a1 = plot_binned_fft(lc_fft; logx=false, logy=false, hz_min=2e-3, hz_max=c_hz_max, title="FFT 0 to $c_hz_max Hz")
+    a2 = plot_binned_fft(lc_fft; logx=false, logy=false, hz_min=c_hz_min, hz_max=0, title="FFT $c_hz_max Hz+")
+    b = plot_binned_fft(lc_fft; logx=true, logy=true, hz_min=2e-3, hz_max=c_hz_max, denoise=true, title="log-log")
+    c = plot_binned_fft(lc_fft; logx=true, logy=true, hz_min=c_hz_min, hz_max=0, denoise=true, title="log-log")
+    d = plot_binned_fft(lc_fft; logx=true, logy=false, hz_min=2e-3, hz_max=c_hz_max, denoise=true, title="semi-log")
+    e = plot_binned_fft(lc_fft; logx=true, logy=false, hz_min=c_hz_min, hz_max=0, denoise=true, title="semi-log")
 
-    ly = @layout [ a{1w}; [b{0.5w} c{0.5w}];  [d{0.5w} e{0.5w}] ]
+    ly = @layout [ [a1{0.5w} a2{0.5w}]; [b{0.5w} c{0.5w}];  [d{0.5w} e{0.5w}] ]
 
-    plot(layout=ly, a, b, c, d, e)
+    plot(layout=ly, a1, a2, b, c, d, e)
 end
 
 function plot_binned_stft(lc_stft::Lc_stft; hz_min=2e-3, norm_type="pow2db")
