@@ -11,4 +11,4 @@ GR
 FileIO
 JLD2
 DSP
-LombScargle
+Wavelets
