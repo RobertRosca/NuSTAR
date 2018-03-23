@@ -62,9 +62,12 @@ end
 
 function plot_binned_periodogram(lc_periodogram::Lc_periodogram; hz_min=2e-3)
     min_idx = findfirst(lc_periodogram.freqs.>=hz_min)
+    min_idx_ylim = findfirst(lc_periodogram.freqs.>=0.1)
+
+    min_ylim = maximum(lc_periodogram.pwers[min_idx_ylim:end]) + std(lc_periodogram.pwers[min_idx:end])
 
     plot(lc_periodogram.freqs[min_idx:end], lc_periodogram.pwers[min_idx:end], xlab="Frequency [Hz]", ylab="Power", lab="", title="Periodogram - binned $(lc_periodogram.bin)s")
-    ylims!(0, median(maximum.(lc_periodogram.freqs))+std(maximum.(lc_periodogram.freqs)))
+    ylims!(0, min_ylim)
 end
 
 function plot_overview(binned_lc_1::Binned_event, lc_ub_fft::Lc_fft, lc_01_stft::Lc_stft, lc_1_periodogram::Lc_periodogram, lc_2_periodogram::Lc_periodogram; plot_width=1200, plot_height=300)
