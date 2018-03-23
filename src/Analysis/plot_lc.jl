@@ -60,14 +60,22 @@ function plot_binned_stft(lc_stft::Lc_stft; hz_min=2e-3, norm_type="pow2db")
     heatmap(lc_stft.freq[min_idx:end], lc_stft.time, pwers_normed[:, min_idx:end], xlab="Frequency [Hz]", ylab="Time [s]", legend=false, xticks=linspace(0, 0.5*(1/(lc_stft.bin)), 11), title="STFT - binned $(lc_stft.bin)s - $norm_type")
 end
 
-function plot_binned_periodogram(lc_periodogram::Lc_periodogram; hz_min=2e-3)
+function plot_binned_periodogram(lc_periodogram::Lc_periodogram; hz_min=2e-3, title="Periodogram - binned $(lc_periodogram.bin)s", denoise=true)
     min_idx = findfirst(lc_periodogram.freqs.>=hz_min)
     min_idx_ylim = findfirst(lc_periodogram.freqs.>=0.1)
 
     min_ylim = maximum(lc_periodogram.pwers[min_idx_ylim:end]) + std(lc_periodogram.pwers[min_idx:end])
 
-    plot(lc_periodogram.freqs[min_idx:end], lc_periodogram.pwers[min_idx:end], xlab="Frequency [Hz]", ylab="Power", lab="", title="Periodogram - binned $(lc_periodogram.bin)s")
-    ylims!(0, min_ylim)
+    if denoise
+        np2 = zeros(nextpow2(length(lc_periodogram.pwers))-length(lc_periodogram.pwers))
+        denoised = abs.(Wavelets.denoise([lc_periodogram.pwers; np2])[1:length(lc_periodogram.pwers)])
+        plot(lc_periodogram.freqs[min_idx:end], lc_periodogram.pwers[min_idx:end], xlab="Frequency [Hz]", ylab="Power", lab="", title=title)
+        plot!(lc_periodogram.freqs[min_idx:end], denoised[min_idx:end], xlab="Frequency [Hz]", ylab="Power", lab="", title=title, alpha=0.5, color=:red)
+        ylims!(0, min_ylim)
+    else
+        plot(lc_periodogram.freqs[min_idx:end], lc_periodogram.pwers[min_idx:end], xlab="Frequency [Hz]", ylab="Power", lab="", title=title)
+        ylims!(0, min_ylim)
+    end
 end
 
 function plot_overview(binned_lc_1::Binned_event, lc_ub_fft::Lc_fft, lc_01_stft::Lc_stft, lc_1_periodogram::Lc_periodogram, lc_2_periodogram::Lc_periodogram; plot_width=1200, plot_height=300)
