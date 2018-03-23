@@ -63,10 +63,10 @@ end
 function plot_binned_periodogram(lc_periodogram::Lc_periodogram; hz_min=2e-3)
     min_idx = findfirst(lc_periodogram.freqs.>=hz_min)
 
-    plot(lc_periodogram.freqs[min_idx:end], lc_periodogram.pwers[min_idx:end], xlab="Frequency [Hz]", ylab="Power", lab="", title="Periodogram -  binned $(lc_periodogram.bin)s")
+    plot(lc_periodogram.freqs[min_idx:end], lc_periodogram.pwers[min_idx:end], xlab="Frequency [Hz]", ylab="Power", lab="", title="Periodogram - semilog - binned $(lc_periodogram.bin)s", yaxis=:log10)
 end
 
-function plot_overview(binned_lc_1::Binned_event, lc_ub_fft::Lc_fft, lc_01_stft::Lc_stft, lc_1_periodogram::Lc_periodogram; plot_width=1200, plot_height=300)
+function plot_overview(binned_lc_1::Binned_event, lc_ub_fft::Lc_fft, lc_01_stft::Lc_stft, lc_1_periodogram::Lc_periodogram, lc_2_periodogram::Lc_periodogram; plot_width=1200, plot_height=300)
     plt_binned_lc = NuSTAR.plot_binned_lc(binned_lc_1)
 
     plt_binned_fft_tiled = NuSTAR.plot_binned_fft_tiled(lc_ub_fft)
@@ -75,7 +75,9 @@ function plot_overview(binned_lc_1::Binned_event, lc_ub_fft::Lc_fft, lc_01_stft:
 
     plt_binned_periodogram = NuSTAR.plot_binned_periodogram(lc_1_periodogram)
 
-    plot(plt_binned_lc, plt_binned_fft_tiled, plt_binned_stft, plt_binned_periodogram, layout=grid(4, 1, heights=[1/8, 4/8, 2/8, 1/8]), size=(plot_width, plot_height*5))
+    plt_binned_periodogram2 = NuSTAR.plot_binned_periodogram(lc_2_periodogram)
+
+    plot(plt_binned_lc, plt_binned_fft_tiled, plt_binned_stft, plt_binned_periodogram, plt_binned_periodogram2, layout=grid(5, 1, heights=[1/9, 4/9, 2/9, 1/9, 1/9]), size=(plot_width, plot_height*5))
 end
 
 function plot_overview(unbinned_evt::Unbinned_event; plot_width=1200, plot_height=300)
@@ -98,8 +100,9 @@ function plot_overview(obsid::String; plot_width=1200, plot_height=300, local_ar
     lc_ub_fft = read_evt(string(path_lc_dir, "lc_0.jld2"), "fft")
     lc_01_stft = read_evt(string(path_lc_dir, "lc_01.jld2"), "stft")
     lc_1_periodogram = read_evt(string(path_lc_dir, "lc_1.jld2"), "periodogram")
+    lc_2_periodogram = read_evt(string(path_lc_dir, "lc_2.jld2"), "periodogram")
 
-    plt_overview = plot_overview(binned_lc_1, lc_ub_fft, lc_01_stft, lc_1_periodogram; plot_width=1200, plot_height=300)
+    plt_overview = plot_overview(binned_lc_1, lc_ub_fft, lc_01_stft, lc_1_periodogram, lc_2_periodogram; plot_width=1200, plot_height=300)
 
     savefig(plt_overview, string(path_lc_dir, "overview.png"))
 end

@@ -130,7 +130,7 @@ function evt_stft(binned_evt::NuSTAR.Binned_event, stft_bins=512)
     return Lc_stft(binned_evt.obsid, stft_pwers, stft_time, stft_freq, binned_evt.bin)
 end
 
-function generate_standard_lc_files(path_fits_lc, path_evt_unbinned, path_lc_dir; overwrite=true)
+function generate_standard_lc_files(path_fits_lc, path_evt_unbinned, path_lc_dir; overwrite=false)
     if isfile(path_evt_unbinned) && !overwrite
         unbinned_evt = read_evt(path_evt_unbinned)
     else
@@ -138,20 +138,40 @@ function generate_standard_lc_files(path_fits_lc, path_evt_unbinned, path_lc_dir
         save_evt(path_evt_unbinned, unbinned_evt=unbinned_evt)
     end
 
-    lc_ub = NuSTAR.bin_evts_lc(2e-3, unbinned_evt)
-    lc_ub_fft = NuSTAR.evt_fft(lc_ub)
-    save_evt(string(path_lc_dir, "lc_0.jld2"), lc=lc_ub, fft=lc_ub_fft)
+    if isfile(string(path_lc_dir, "lc_0.jld2")) && !overwrite
+        info("lc_0 file exists, skipping generation")
+    else
+        lc_ub = NuSTAR.bin_evts_lc(2e-3, unbinned_evt)
+        lc_ub_fft = NuSTAR.evt_fft(lc_ub)
+        save_evt(string(path_lc_dir, "lc_0.jld2"), lc=lc_ub, fft=lc_ub_fft)
+    end
 
-    lc_1 = NuSTAR.bin_evts_lc(1, unbinned_evt)
-    lc_1_periodogram = NuSTAR.evt_periodogram(lc_1)
-    save_evt(string(path_lc_dir, "lc_1.jld2"), lc=lc_1, periodogram=lc_1_periodogram)
+    if isfile(string(path_lc_dir, "lc_01.jld2")) && !overwrite
+        info("lc_01 file exists, skipping generation")
+    else
+        lc_01 = NuSTAR.bin_evts_lc(0.1, unbinned_evt)
+        lc_01_stft = NuSTAR.evt_stft(lc_01)
+        save_evt(string(path_lc_dir, "lc_01.jld2"), lc=lc_01, stft=lc_01_stft)
+    end
 
-    lc_01 = NuSTAR.bin_evts_lc(0.1, unbinned_evt)
-    lc_01_stft = NuSTAR.evt_stft(lc_01)
-    save_evt(string(path_lc_dir, "lc_01.jld2"), lc=lc_01, stft=lc_01_stft)
+    if isfile(string(path_lc_dir, "lc_1.jld2")) && !overwrite
+        info("lc_1 file exists, skipping generation")
+    else
+        lc_1 = NuSTAR.bin_evts_lc(1, unbinned_evt)
+        lc_1_periodogram = NuSTAR.evt_periodogram(lc_1)
+        save_evt(string(path_lc_dir, "lc_1.jld2"), lc=lc_1, periodogram=lc_1_periodogram)
+    end
+
+    if isfile(string(path_lc_dir, "lc_2.jld2")) && !overwrite
+        info("lc_2 file exists, skipping generation")
+    else
+        lc_2 = NuSTAR.bin_evts_lc(2, unbinned_evt)
+        lc_2_periodogram = NuSTAR.evt_periodogram(lc_2)
+        save_evt(string(path_lc_dir, "lc_2.jld2"), lc=lc_2, periodogram=lc_2_periodogram)
+    end
 end
 
-function generate_standard_lc_files(obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"], instrument="A", overwrite=true)
+function generate_standard_lc_files(obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"], instrument="A", overwrite=false)
     path_fits_lc = string(local_archive_pr, obsid, "/products/event/evt_$instrument.fits")
 
     if !isfile(path_fits_lc); error("$path_fits_lc not found"); end

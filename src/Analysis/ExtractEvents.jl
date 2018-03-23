@@ -54,7 +54,7 @@ function extract_evts(evt_path; gti_width_min::Number=128)
     evt_file = FITS(evt_path)
     evt_obsid = read_key(evt_file[1], "OBS_ID")[1]
     evt_time_start = read_key(evt_file[1], "TSTART")[1] + 0.5 # These are off by 1/2 sec, for some reason...
-    evt_time_stop  = read_key(evt_file[1], "TSTOP")[1] + 0.5
+    evt_time_stop  = read_key(evt_file[1], "TSTOP")[1]
     evt_time_elapse = read_key(evt_file[1], "TELAPSE")[1]
 
     evt_events = DataFrame(TIME=read(evt_file[2], "TIME").-evt_time_start, PI=read(evt_file[2], "PI"),
@@ -79,13 +79,14 @@ function bin_evts_lc(bin_sec, unbinned)
         error("NuSTAR temportal resolution is 2e-3, cannot bin under that value, binsec $bin_sec is invalid")
     end
 
-    evt_time_edges = bin_sec:bin_sec:(unbinned.stop-unbinned.start); # Construct edges for histogram, finish at stop time (w.r.t. obs start)
+    evt_time_edges = bin_sec:bin_sec:(unbinned.stop-unbinned.start) # Construct edges for histogram, finish at stop time (w.r.t. obs start)
 
     gti_intervals = size(unbinned.gtis, 1)
     evt_gtis = hcat(unbinned.gtis...)' # Convert to matrix
     evt_gtis = round.(evt_gtis, 3) # Fix floating point errors
 
     gtis = map(x->findfirst(evt_time_edges.>=x), evt_gtis) .- [zeros(Int, gti_intervals) ones(Int, gti_intervals)] # Subtract one from the GTI end bins
+    if gtis[end] == -1; gtis[end] = length(evt_time_edges); end # Fix for GTI at end of time
     gtis = range.(gtis[:, 1], gtis[:, 2].-gtis[:, 1])
 
     evt_counts = begin
