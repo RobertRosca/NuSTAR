@@ -74,7 +74,7 @@ function extract_evts(evt_path; gti_width_min::Number=128)
     return Unbinned_event(evt_obsid, evt_events, evt_gtis, evt_time_stop, evt_time_start)
 end
 
-function bin_evts_lc(bin_sec, unbinned)
+function bin_evts_lc(unbinned::Unbinned_event, bin_sec::Real)
     if bin_sec < 2e-3
         error("NuSTAR temportal resolution is 2e-3, cannot bin under that value, binsec $bin_sec is invalid")
     end

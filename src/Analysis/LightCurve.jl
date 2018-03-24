@@ -158,7 +158,7 @@ function generate_standard_lc_files(path_fits_lc, path_evt_unbinned, path_lc_dir
     if isfile(string(path_lc_dir, "lc_0.jld2")) && !overwrite
         info("lc_0 file exists, skipping generation")
     else
-        lc_ub = NuSTAR.bin_evts_lc(2e-3, unbinned_evt)
+        lc_ub = NuSTAR.bin_evts_lc(unbinned_evt, 2e-3)
         lc_ub_fft = NuSTAR.evt_fft(lc_ub)
         save_evt(string(path_lc_dir, "lc_0.jld2"), lc=lc_ub, fft=lc_ub_fft)
     end
@@ -166,7 +166,7 @@ function generate_standard_lc_files(path_fits_lc, path_evt_unbinned, path_lc_dir
     if isfile(string(path_lc_dir, "lc_05.jld2")) && !overwrite
         info("lc_05 file exists, skipping generation")
     else
-        lc_05 = NuSTAR.bin_evts_lc(0.5, unbinned_evt)
+        lc_05 = NuSTAR.bin_evts_lc(unbinned_evt, 0.5)
         lc_05_stft = NuSTAR.evt_stft(lc_05)
         lc_05_periodogram = NuSTAR.evt_periodogram(lc_05)
         save_evt(string(path_lc_dir, "lc_05.jld2"), lc=lc_05, periodogram=lc_05_periodogram, stft=lc_05_stft)
@@ -175,7 +175,7 @@ function generate_standard_lc_files(path_fits_lc, path_evt_unbinned, path_lc_dir
     if isfile(string(path_lc_dir, "lc_2.jld2")) && !overwrite
         info("lc_2 file exists, skipping generation")
     else
-        lc_2 = NuSTAR.bin_evts_lc(2, unbinned_evt)
+        lc_2 = NuSTAR.bin_evts_lc(unbinned_evt, 2)
         lc_2_stft = NuSTAR.evt_stft(lc_2)
         lc_2_periodogram = NuSTAR.evt_periodogram(lc_2)
         save_evt(string(path_lc_dir, "lc_2.jld2"), lc=lc_2, periodogram=lc_2_periodogram, stft=lc_2_stft)
@@ -209,7 +209,7 @@ function generate_lc_bin(obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"], instrumen
 
     unbinned_evt = read_evt(path_evt_unbinned)
 
-    lc_1 = NuSTAR.bin_evts_lc(2, unbinned_evt)
+    lc_1 = NuSTAR.bin_evts_lc(unbinned_evt, 2)
     return lc_1
     save_evt(string(path_lc_dir, "lc_1.jld2"), lc=lc_1)
     info("Saved to:", string(path_lc_dir, "lc_1.jld2"))
