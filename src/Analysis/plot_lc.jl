@@ -1,3 +1,5 @@
+using Measures
+
 function plot_lc(binned_lc::Binned_event)
     plot(binned_lc.time_edges, binned_lc.counts, xlab="Time [s]", ylab="Counts [per s]", lab="Count", title="$(binned_lc.obsid) - $(binned_lc.bin)s $(binned_lc.typeof)")
     vline!(binned_lc.time_edges[minimum.(binned_lc.gtis)], color=:green, lab="GTI Start")
@@ -22,6 +24,7 @@ function plot_fft(lc_fft::Lc_fft; title="Full FFT", logx=true, logy=true, nu=fal
 
     logx ? xaxis!("Freq [Hz - log10]", :log10) : xaxis!("Freq [Hz]")
     logy ? yaxis!("Power [log10]", :log10) : yaxis!("Power")
+    plot!(title_location=:left, titlefontsize=10, margin=0mm, xguidefontsize=10, yguidefontsize=10)
 end
 
 function plot_fft_tiled(lc_fft::Lc_fft)
@@ -40,9 +43,10 @@ function plot_fft_tiled(lc_fft::Lc_fft)
     ly = @layout [ [a1{0.5w} a2{0.5w}]; [b{0.5w} c{0.5w}];  [d{0.5w} e{0.5w}] ]
 
     plot(layout=ly, a1, a2, b, c, d, e)
+    plot!(title_location=:left, titlefontsize=10, margin=0mm, xguidefontsize=10, yguidefontsize=10)
 end
 
-function plot_stft(lc_stft::Lc_stft; hz_min=2*2e-3, norm_type="pow2db2")
+function plot_stft(lc_stft::Lc_stft; hz_min=2*2e-3, norm_type="pow2db2", title="STFT - binned $(lc_stft.bin)s - $norm_type - GTI only")
     min_idx = findfirst(lc_stft.freq.>=hz_min)
 
     if norm_type=="pow2db"
@@ -59,7 +63,8 @@ function plot_stft(lc_stft::Lc_stft; hz_min=2*2e-3, norm_type="pow2db2")
         norm_type = "no scaling"
     end
 
-    heatmap(lc_stft.freq[min_idx:end], lc_stft.time, pwers_normed[:, min_idx:end], xlab="Frequency [Hz]", ylab="Time [s]", legend=false, xticks=linspace(0, 0.5*(1/(lc_stft.bin)), 11), title="STFT - binned $(lc_stft.bin)s - $norm_type - GTI only")
+    heatmap(lc_stft.freq[min_idx:end], lc_stft.time, pwers_normed[:, min_idx:end], xlab="Frequency [Hz]", ylab="Time [s]", legend=false, xticks=linspace(0, 0.5*(1/(lc_stft.bin)), 11), title=title)
+    plot!(title_location=:left, titlefontsize=10, margin=0mm, xguidefontsize=10, yguidefontsize=10)
 end
 
 function plot_periodogram(lc_periodogram::Lc_periodogram; hz_min=2e-3, title="Periodogram - binned $(lc_periodogram.bin)s", denoise=false, welch=true, logx=false, logy=false)
@@ -92,20 +97,29 @@ function plot_periodogram(lc_periodogram::Lc_periodogram; hz_min=2e-3, title="Pe
 
     logx ? xaxis!("Freq [Hz - log10]", :log10) : xaxis!("Freq [Hz]")
     logy ? yaxis!("Power [log10]", :log10) : yaxis!("Power")
+    plot!(title_location=:left, titlefontsize=10, margin=0mm, xguidefontsize=10, yguidefontsize=10)
 end
 
-function plot_overview(binned_lc_1::Binned_event, lc_ub_fft::Lc_fft, lc_1_stft::Lc_stft, lc_1_periodogram::Lc_periodogram, lc_2_periodogram::Lc_periodogram; plot_width=1200, plot_height=300)
-    plt_binned_lc = NuSTAR.plot_lc(binned_lc_1)
+function plot_per_stft_tiled(lc_stft::Lc_stft, lc_periodogram::Lc_periodogram; hz_min=2*2e-3, norm_type="pow2db2", title_stft="STFT - binned $(lc_stft.bin)s - $norm_type - GTI only", title_periodogram="Periodogram - binned $(lc_periodogram.bin)s", denoise=false, welch=true, logx=false, logy=false)
 
-    plt_binned_fft_tiled = NuSTAR.plot_fft_tiled(lc_ub_fft)
+    plt_stft = plot_stft(lc_stft::Lc_stft; hz_min=2*2e-3, norm_type="pow2db2", title="STFT - binned $(lc_stft.bin)s - $norm_type - GTI only")
 
-    plt_binned_stft = NuSTAR.plot_stft(lc_1_stft)
+    plt_periodogram = plot_periodogram(lc_periodogram::Lc_periodogram; hz_min=2e-3, title="Periodogram - binned $(lc_periodogram.bin)s", denoise=false, welch=true, logx=false, logy=false)
 
-    plt_binned_periodogram = NuSTAR.plot_periodogram(lc_1_periodogram)
+    plot(plt_stft, plt_periodogram, layout=(2, 1))
+end
 
-    plt_binned_periodogram2 = NuSTAR.plot_periodogram(lc_2_periodogram)
+function plot_overview(binned_lc_1::Binned_event, lc_ub_fft::Lc_fft, lc_1_stft::Lc_stft, lc_1_periodogram::Lc_periodogram, lc_2_stft::Lc_stft, lc_2_periodogram::Lc_periodogram; plot_width=1200, plot_height=300)
+    plt_lc = NuSTAR.plot_lc(binned_lc_1)
 
-    plot(plt_binned_lc, plt_binned_fft_tiled, plt_binned_stft, plt_binned_periodogram, plt_binned_periodogram2, layout=grid(5, 1, heights=[1/9, 4/9, 2/9, 1/9, 1/9]), size=(plot_width, plot_height*5))
+    plt_fft_tiled = NuSTAR.plot_fft_tiled(lc_ub_fft)
+
+    plt_per_stft_tiled_1 = plot_per_stft_tiled(lc_1_stft, lc_1_periodogram)
+
+    plt_per_stft_tiled_2 = plot_per_stft_tiled(lc_2_stft, lc_2_periodogram)
+
+    plot(plt_lc, plt_fft_tiled, plt_per_stft_tiled_1, plt_per_stft_tiled_2, layout=grid(4, 1, heights=[1/9, 4/9, 2/9, 2/9]), size=(plot_width, plot_height*(9/2)))
+    plot!(title_location=:left, titlefontsize=10, margin=0mm, xguidefontsize=10, yguidefontsize=10)
 end
 
 function plot_overview(unbinned_evt::Unbinned_event; plot_width=1200, plot_height=300)
@@ -128,9 +142,10 @@ function plot_overview(obsid::String; plot_width=1200, plot_height=300, local_ar
     lc_ub_fft = read_evt(string(path_lc_dir, "lc_0.jld2"), "fft")
     lc_1_stft = read_evt(string(path_lc_dir, "lc_1.jld2"), "stft")
     lc_1_periodogram = read_evt(string(path_lc_dir, "lc_1.jld2"), "periodogram")
+    lc_2_stft = read_evt(string(path_lc_dir, "lc_2.jld2"), "stft")
     lc_2_periodogram = read_evt(string(path_lc_dir, "lc_2.jld2"), "periodogram")
 
-    plt_overview = plot_overview(binned_lc_1, lc_ub_fft, lc_1_stft, lc_1_periodogram, lc_2_periodogram; plot_width=1200, plot_height=300)
+    plt_overview = plot_overview(binned_lc_1, lc_ub_fft, lc_1_stft, lc_1_periodogram, lc_2_stft, lc_2_periodogram; plot_width=1200, plot_height=300)
 
     savefig(plt_overview, string(path_lc_dir, "overview.png"))
 end
