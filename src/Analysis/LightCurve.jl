@@ -163,13 +163,13 @@ function generate_standard_lc_files(path_fits_lc, path_evt_unbinned, path_lc_dir
         save_evt(string(path_lc_dir, "lc_0.jld2"), lc=lc_ub, fft=lc_ub_fft)
     end
 
-    if isfile(string(path_lc_dir, "lc_1.jld2")) && !overwrite
-        info("lc_1 file exists, skipping generation")
+    if isfile(string(path_lc_dir, "lc_05.jld2")) && !overwrite
+        info("lc_05 file exists, skipping generation")
     else
-        lc_1 = NuSTAR.bin_evts_lc(1, unbinned_evt)
-        lc_1_stft = NuSTAR.evt_stft(lc_1)
-        lc_1_periodogram = NuSTAR.evt_periodogram(lc_1)
-        save_evt(string(path_lc_dir, "lc_1.jld2"), lc=lc_1, periodogram=lc_1_periodogram, stft=lc_1_stft)
+        lc_05 = NuSTAR.bin_evts_lc(0.5, unbinned_evt)
+        lc_05_stft = NuSTAR.evt_stft(lc_05)
+        lc_05_periodogram = NuSTAR.evt_periodogram(lc_05)
+        save_evt(string(path_lc_dir, "lc_05.jld2"), lc=lc_05, periodogram=lc_05_periodogram, stft=lc_05_stft)
     end
 
     if isfile(string(path_lc_dir, "lc_2.jld2")) && !overwrite
@@ -192,7 +192,7 @@ function generate_standard_lc_files(obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"]
          warn("$path_fits_lc not found, fallback to B")
          path_fits_lc = string(local_archive_pr, obsid, "/products/event/evt_B.fits")
     else !isfile(path_fits_lc)
-        warn("Event file not founr at $path_fits_lc")
+        warn("Event file not found at $path_fits_lc")
     end
 
     path_evt_unbinned = string(local_archive_pr, obsid, "/products/event/evt_$instrument.jld2")
