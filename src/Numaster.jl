@@ -132,7 +132,7 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
             if length(lc_path_files) > 0
                 lc[itr] = replace(join(lc_path_files, " "), ".jld2", "")
             end
-
+            #= Interesting flag is broken, FIX later
             for file_name in lc_path_files
                 println(lc_path)
                 file = jldopen(string(lc_path, file_name), "r")
@@ -145,7 +145,7 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
                     info("$(numaster_df[:obsid][itr]) flagged as interesting")
                     continue
                 end
-            end
+            end=#
         end
     end
 
