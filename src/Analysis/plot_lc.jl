@@ -194,6 +194,10 @@ function full_workflow(batch_size=10000)
 
     NuSTAR.xsel_evt_batch(batch_size=batch_size)
 
+    info("PRESS ENTER ONCE XSELECT HAS FINISHED")
+
+    readline(STDIN)
+
     NuSTAR.Numaster(download=false)
 
     info("generate_standard_lc_files_batch")

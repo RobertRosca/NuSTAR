@@ -166,38 +166,28 @@ function generate_all_binned(unbinned_evt::Unbinned_event, bin::Number)
 end
 
 function generate_standard_lc_files(path_fits_lc, path_evt_unbinned, path_lc_dir; overwrite=false)
-    if isfile(path_evt_unbinned) && !overwrite
-        unbinned_evt = read_evt(path_evt_unbinned)
-    else
+    if !isfile(path_evt_unbinned) || !overwrite
         unbinned_evt = extract_evts(path_fits_lc; gti_width_min=128)
         save_evt(path_evt_unbinned, unbinned_evt=unbinned_evt)
     end
 
-    if isfile(string(path_lc_dir, "lc_0.jld2")) && !overwrite
-        info("lc_0 file exists, skipping generation")
-    else
+    if !isfile(string(path_lc_dir, "lc_0.jld2")) || !overwrite
         lc_ub = NuSTAR.bin_evts_lc(unbinned_evt, 2e-3)
         lc_ub_fft = NuSTAR.evt_fft(lc_ub)
         save_evt(string(path_lc_dir, "lc_0.jld2"), lc=lc_ub, fft=lc_ub_fft)
     end
 
-    if isfile(string(path_lc_dir, "lc_05.jld2")) && !overwrite
-        info("lc_05 file exists, skipping generation")
-    else
+    if !isfile(string(path_lc_dir, "lc_05.jld2")) || !overwrite
         lc_05, lc_05_fft, lc_05_stft, lc_05_periodogram = generate_all_binned(unbinned_evt, 0.5)
         save_evt(string(path_lc_dir, "lc_05.jld2"), lc=lc_05, periodogram=lc_05_periodogram, stft=lc_05_stft, fft=lc_05_fft)
     end
 
-    if isfile(string(path_lc_dir, "lc_1.jld2")) && !overwrite
-        info("lc_1 file exists, skipping generation")
-    else
+    if !isfile(string(path_lc_dir, "lc_1.jld2")) || !overwrite
         lc_1, lc_1_fft, lc_1_stft, lc_1_periodogram = generate_all_binned(unbinned_evt, 1)
         save_evt(string(path_lc_dir, "lc_1.jld2"), lc=lc_1, periodogram=lc_1_periodogram, stft=lc_1_stft, fft=lc_1_fft)
     end
 
-    if isfile(string(path_lc_dir, "lc_2.jld2")) && !overwrite
-        info("lc_2 file exists, skipping generation")
-    else
+    if !isfile(string(path_lc_dir, "lc_2.jld2")) || !overwrite
         lc_2, lc_2_fft, lc_2_stft, lc_2_periodogram = generate_all_binned(unbinned_evt, 2)
         save_evt(string(path_lc_dir, "lc_2.jld2"), lc=lc_2, periodogram=lc_2_periodogram, stft=lc_2_stft, fft=lc_2_fft)
     end
