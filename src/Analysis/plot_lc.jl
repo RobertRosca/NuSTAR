@@ -186,3 +186,29 @@ end
 function plt_batch(;batch_size=10000, plot_width=1200, plot_height=300, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utility=ENV["NU_ARCHIVE_UTIL"], numaster_path=string(local_utility, "/numaster_df.csv"), overwrite=false)
     plot_overview_batch(;batch_size=10000, plot_width=1200, plot_height=300, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utility=ENV["NU_ARCHIVE_UTIL"], numaster_path=string(local_utility, "/numaster_df.csv"), overwrite=false)
 end
+
+function full_workflow(batch_size=10000)
+    NuSTAR.Numaster(download=false)
+
+    info("xsel_evt_batch")
+
+    NuSTAR.xsel_evt_batch(batch_size=batch_size)
+
+    NuSTAR.Numaster(download=false)
+
+    info("generate_standard_lc_files_batch")
+
+    NuSTAR.generate_standard_lc_files_batch(batch_size=batch_size)
+
+    NuSTAR.Numaster(download=false)
+
+    info("plot_overview_batch")
+
+    NuSTAR.plot_overview_batch(batch_size=batch_size)
+
+    NuSTAR.Numaster(download=false)
+
+    info("WebGen")
+
+    NuSTAR.WebGen()
+end
