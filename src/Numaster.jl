@@ -87,7 +87,6 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
     reg_src      = zeros(Int, numaster_df_n)
     reg_bkg      = zeros(Int, numaster_df_n)
     lc           = fill("NA", numaster_df_n)
-    lc_fft       = fill("NA", numaster_df_n)
     lc_fft_flags = fill("NA", numaster_df_n)
     evt          = fill("NA", numaster_df_n)
 
@@ -110,11 +109,14 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
             reg_bkg[itr] = isfile(string(local_archive_cl, "/", obs, "/background.reg")) ? 1 : 0
         end
 
+        evt_path_AB = string(local_archive_pr, "/", obs, "/products/event/evt_AB.fits")
         evt_path_A = string(local_archive_pr, "/", obs, "/products/event/evt_A.fits")
         evt_path_B = string(local_archive_pr, "/", obs, "/products/event/evt_B.fits")
 
-        if isfile(evt_path_A) && isfile(evt_path_B)
+        if isfile(evt_path_AB)
             evt[itr] = "AB"
+        elseif isfile(evt_path_A) && isfile(evt_path_B)
+            evt[itr] = "A&B"
         elseif isfile(evt_path_A)
             evt[itr] = "A"
         elseif isfile(evt_path_B)
@@ -125,23 +127,23 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
         lc_path = string(local_archive_pr, "/$obs/products/lc/")
 
         if isdir(lc_path)
-            if length(filter(x->contains(x, ".fits"), readdir(lc_path))) > 0
-                lc[itr]     = replace(join(filter(x->contains(x, ".fits"), readdir(lc_path)), " "), ".fits", "")
+            lc_path_files = filter(x->contains(x, ".jld2"), readdir(lc_path))
+
+            if length(lc_path_files) > 0
+                lc[itr] = replace(join(lc_path_files, " "), ".jld2", "")
             end
 
-            if length(filter(x->contains(x, ".jld2"), readdir(lc_path))) > 0
-                lc_fft[itr] = replace(join(filter(x->contains(x, ".jld2"), readdir(lc_path)), " "), ".jld2", "")
-            end
+            for file_name in lc_path_files
+                println(lc_path)
+                file = jldopen(string(lc_path, file_name), "r")
 
-            for fft in filter(x->contains(x, ".jld2"), readdir(lc_path))
-                conv_fft = load("$lc_path$fft", "lc_gti_fft_cov")
-
-                conv_fft_significance = maximum(conv_fft[5:end])
-
-                if conv_fft_significance > 0.5
-                    #replace(replace(replace(join([lc_fft_flags[itr], fft], " "), "NA ", ""), ".hdf5", ""), "fft", "")
-                    # Regex to remove NA, .hdft, fft and _fft from the flagged fft data file names
-                    lc_fft_flags[itr] = replace(join([lc_fft_flags[itr], fft], " "), r"(NA |.jld2|fft|_fft)", "")
+                if !contains(==, keys(file), "fft")
+                    warn("No FFT group found in $(string(lc_path, file_name))")
+                    continue
+                elseif file["fft"].interesting_flag_auto
+                    lc_fft_flags[itr] = replace(join([lc_fft_flags[itr], file_name], " "), r"(NA |.jld2|fft|_fft)", "")
+                    info("$(numaster_df[:obsid][itr]) flagged as interesting")
+                    continue
                 end
             end
         end
@@ -151,9 +153,8 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
     numaster_df[:RegSrc]   = reg_src
     numaster_df[:RegBkg]   = reg_bkg
     numaster_df[:LC]       = lc
-    numaster_df[:LCfft]    = lc_fft
     numaster_df[:LCFlags]  = lc_fft_flags
-    numaster_df[:EVT]  = evt
+    numaster_df[:EVT]      = evt
 
     # Convert modified Julian dates to readable dates
     numaster_df[:time] = map(x -> Base.Dates.julian2datetime(parse(Float64, x) + 2400000.5), numaster_df[:time])

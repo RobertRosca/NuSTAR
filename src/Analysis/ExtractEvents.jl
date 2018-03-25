@@ -16,6 +16,10 @@ struct Binned_event
 end
 
 function save_evt(evt_data_path; kwargs...)
+    if !isdir(dirname(evt_data_path))
+        mkpath(dirname(evt_data_path))
+    end
+    
     jldopen(evt_data_path, "w") do file
         for kw in kwargs
             file[string(kw[1])] = kw[2]

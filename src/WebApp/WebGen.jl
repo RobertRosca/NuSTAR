@@ -269,14 +269,22 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         write(f, "\t<h4>Comments</h4>\n")
         write(f, "\t<p>$(df[i, :comments])</p>\n")
 
-        lc_dir = "$file_dir/images/lc/"
+        img_dir = "$file_dir/images/"
 
-        if isdir(lc_dir)
-            lightcurves = readdir(lc_dir)
-            if length(lightcurves) > 0
+        if isdir(img_dir)
+            img_contents = readdir(img_dir)
+            img_lc_dir = string(img_dir, "/lc/")
+
+            if isfile("$img_dir/summary.png")
                 write(f, "\t<hr>\n")
                 write(f, "\t\t<h4>Lightcurves</h4>\n")
-                for lc_folder in sort(lightcurves, lt=natural)
+                write(f, "\t\t\t<div><img src=\"./images/summary.png\" alt=\"summary\" width=\"100%\"></div>\n")
+            end
+
+            if isdir(img_lc_dir) && false
+                lc_folders = readdir(img_lc_dir)
+
+                for lc_folder in sort(lc_folders, lt=natural)
                     if length(readdir("$file_dir/images/lc/$lc_folder/")) > 0
                         make_lc(f, file_dir, lc_folder)
                         write(f, "\t<hr>\n")

@@ -7,6 +7,7 @@ struct Lc_fft
     pwers_zp_avg::Array{Float64,1}
     conv::Array{Float64,1}
     bin::Number
+    interesting_flag_auto::Bool
 end
 
 struct Lc_periodogram
@@ -67,7 +68,15 @@ function evt_fft(evt_counts, evt_time_edges, gtis)
 
     lc_fft_conv = lc_fft_conv.^(1/interval_count)
 
-    return lc_gti_fft_freqs, lc_gti_fft_pwers, lc_gti_fft_freqs_zp, lc_gti_fft_pwers_zp, lc_fft_pwers_zp_avg, lc_fft_conv
+    min_freq_idx = findfirst(lc_gti_fft_freqs_zp[1] .> 2e-3)
+    fft_conv_std = std(lc_fft_conv[min_freq_idx:end])
+
+    interesting_flag_auto = false
+    if maximum(lc_fft_conv[min_freq_idx:end]) > mean(lc_fft_conv[min_freq_idx:end])+(fft_conv_std*2)
+        interesting_flag_auto = true
+    end
+
+    return lc_gti_fft_freqs, lc_gti_fft_pwers, lc_gti_fft_freqs_zp, lc_gti_fft_pwers_zp, lc_fft_pwers_zp_avg, lc_fft_conv, interesting_flag_auto
 end
 
 function evt_fft(binned_evt::NuSTAR.Binned_event)
@@ -75,9 +84,9 @@ function evt_fft(binned_evt::NuSTAR.Binned_event)
     evt_time_edges = binned_evt.time_edges
     gtis = binned_evt.gtis
 
-    lc_gti_fft_freqs, lc_gti_fft_pwers, lc_gti_fft_freqs_zp, lc_gti_fft_pwers_zp, lc_fft_pwers_zp_avg, lc_fft_conv = evt_fft(evt_counts, evt_time_edges, gtis)
+    lc_gti_fft_freqs, lc_gti_fft_pwers, lc_gti_fft_freqs_zp, lc_gti_fft_pwers_zp, lc_fft_pwers_zp_avg, lc_fft_conv, interesting_flag_auto = evt_fft(evt_counts, evt_time_edges, gtis)
 
-    return Lc_fft(binned_evt.obsid, lc_gti_fft_freqs, lc_gti_fft_pwers, lc_gti_fft_freqs_zp, lc_gti_fft_pwers_zp, lc_fft_pwers_zp_avg, lc_fft_conv, binned_evt.bin)
+    return Lc_fft(binned_evt.obsid, lc_gti_fft_freqs, lc_gti_fft_pwers, lc_gti_fft_freqs_zp, lc_gti_fft_pwers_zp, lc_fft_pwers_zp_avg, lc_fft_conv, binned_evt.bin, interesting_flag_auto)
 end
 
 function evt_periodogram(evt_counts, evt_time_edges, gtis)
@@ -147,6 +156,15 @@ function evt_stft(binned_evt::NuSTAR.Binned_event, stft_bins=1024, gti_counts_on
     return Lc_stft(binned_evt.obsid, stft_pwers, stft_time, stft_freq, binned_evt.bin)
 end
 
+function generate_all_binned(unbinned_evt::Unbinned_event, bin::Number)
+    lc = NuSTAR.bin_evts_lc(unbinned_evt, bin)
+    lc_fft = NuSTAR.evt_fft(lc)
+    lc_stft = NuSTAR.evt_stft(lc)
+    lc_periodogram = NuSTAR.evt_periodogram(lc)
+
+    return lc, lc_fft, lc_stft, lc_periodogram
+end
+
 function generate_standard_lc_files(path_fits_lc, path_evt_unbinned, path_lc_dir; overwrite=false)
     if isfile(path_evt_unbinned) && !overwrite
         unbinned_evt = read_evt(path_evt_unbinned)
@@ -166,34 +184,45 @@ function generate_standard_lc_files(path_fits_lc, path_evt_unbinned, path_lc_dir
     if isfile(string(path_lc_dir, "lc_05.jld2")) && !overwrite
         info("lc_05 file exists, skipping generation")
     else
-        lc_05 = NuSTAR.bin_evts_lc(unbinned_evt, 0.5)
-        lc_05_stft = NuSTAR.evt_stft(lc_05)
-        lc_05_periodogram = NuSTAR.evt_periodogram(lc_05)
-        save_evt(string(path_lc_dir, "lc_05.jld2"), lc=lc_05, periodogram=lc_05_periodogram, stft=lc_05_stft)
+        lc_05, lc_05_fft, lc_05_stft, lc_05_periodogram = generate_all_binned(unbinned_evt, 0.5)
+        save_evt(string(path_lc_dir, "lc_05.jld2"), lc=lc_05, periodogram=lc_05_periodogram, stft=lc_05_stft, fft=lc_05_fft)
+    end
+
+    if isfile(string(path_lc_dir, "lc_1.jld2")) && !overwrite
+        info("lc_1 file exists, skipping generation")
+    else
+        lc_1, lc_1_fft, lc_1_stft, lc_1_periodogram = generate_all_binned(unbinned_evt, 1)
+        save_evt(string(path_lc_dir, "lc_1.jld2"), lc=lc_1, periodogram=lc_1_periodogram, stft=lc_1_stft, fft=lc_1_fft)
     end
 
     if isfile(string(path_lc_dir, "lc_2.jld2")) && !overwrite
         info("lc_2 file exists, skipping generation")
     else
-        lc_2 = NuSTAR.bin_evts_lc(unbinned_evt, 2)
-        lc_2_stft = NuSTAR.evt_stft(lc_2)
-        lc_2_periodogram = NuSTAR.evt_periodogram(lc_2)
-        save_evt(string(path_lc_dir, "lc_2.jld2"), lc=lc_2, periodogram=lc_2_periodogram, stft=lc_2_stft)
+        lc_2, lc_2_fft, lc_2_stft, lc_2_periodogram = generate_all_binned(unbinned_evt, 2)
+        save_evt(string(path_lc_dir, "lc_2.jld2"), lc=lc_2, periodogram=lc_2_periodogram, stft=lc_2_stft, fft=lc_2_fft)
     end
 end
 
-function generate_standard_lc_files(obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"], instrument="AB", overwrite=false)
+function generate_standard_lc_files(obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"], instrument="auto", overwrite=false)
+    if instrument=="auto"
+        instrument_list = ["AB"; "A"; "B"]
+        instrument_path = string.(local_archive_pr, obsid, "/products/event/evt_", instrument_list, ".fits")
+        instrument_idx = findfirst(isfile.(instrument_path))
+
+        if instrument_idx == 0
+            error("Event file not found automatically, ensure one of $(join(basename.(instrument_path), ", ")) is present in $(dirname(instrument_path[1]))")
+        end
+
+        instrument = instrument_list[instrument_idx]
+    end
+
     path_fits_lc = string(local_archive_pr, obsid, "/products/event/evt_$instrument.fits")
 
-    if !isfile(path_fits_lc) && instrument!="A"
-         warn("$path_fits_lc not found, fallback to A")
-         path_fits_lc = string(local_archive_pr, obsid, "/products/event/evt_A.fits")
-    elseif !isfile(path_fits_lc) && instrument!="B"
-         warn("$path_fits_lc not found, fallback to B")
-         path_fits_lc = string(local_archive_pr, obsid, "/products/event/evt_B.fits")
-    else !isfile(path_fits_lc)
-        warn("Event file not found at $path_fits_lc")
+    if !isfile(path_fits_lc)
+        error("Event file not found at $path_fits_lc")
     end
+
+    info("$path_fits_lc loaded")
 
     path_evt_unbinned = string(local_archive_pr, obsid, "/products/event/evt_$instrument.jld2")
 
@@ -202,15 +231,26 @@ function generate_standard_lc_files(obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"]
     generate_standard_lc_files(path_fits_lc, path_evt_unbinned, path_lc_dir; overwrite=overwrite)
 end
 
-function generate_lc_bin(obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"], instrument="AB", overwrite=false)
-    path_evt_unbinned = string(local_archive_pr, obsid, "/products/event/evt_$instrument.jld2")
-    path_fits_lc = string(local_archive_pr, obsid, "/products/event/evt_$instrument.fits")
-    path_lc_dir = string(local_archive_pr, obsid, "/products/lc/")
+function std_lc_files(obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"], instrument="auto", overwrite=false)
+    generate_standard_lc_files(obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"], instrument="auto", overwrite=false)
+end
 
-    unbinned_evt = read_evt(path_evt_unbinned)
+function generate_standard_lc_files_batch(;batch_size=10000, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utility=ENV["NU_ARCHIVE_UTIL"], numaster_path=string(local_utility, "/numaster_df.csv"), overwrite=false)
+    numaster_df=read_numaster(numaster_path)
 
-    lc_1 = NuSTAR.bin_evts_lc(unbinned_evt, 2)
-    return lc_1
-    save_evt(string(path_lc_dir, "lc_1.jld2"), lc=lc_1)
-    info("Saved to:", string(path_lc_dir, "lc_1.jld2"))
+    queue = @from i in numaster_df begin
+        @where i.EVT != "NA"
+        @select i.obsid
+        @collect
+    end
+
+    i = 0
+
+    for obsid in queue
+        generate_standard_lc_files(obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"], instrument="auto", overwrite=overwrite)
+    end
+end
+
+function std_lc_files_batch(;batch_size=10000, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utility=ENV["NU_ARCHIVE_UTIL"], numaster_path=string(local_utility, "/numaster_df.csv"), overwrite=false)
+    generate_standard_lc_files_batch(;batch_size=10000, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utility=ENV["NU_ARCHIVE_UTIL"], numaster_path=string(local_utility, "/numaster_df.csv"), overwrite=false)
 end

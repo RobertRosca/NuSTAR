@@ -1,7 +1,5 @@
 using Measures
 
-pyplot()
-
 function plot_lc(binned_lc::Binned_event)
     plot(binned_lc.time_edges, binned_lc.counts, xlab="Time [s]", ylab="Counts [per s]", lab="Count", title="$(binned_lc.obsid) - $(binned_lc.bin)s $(binned_lc.typeof)")
     vline!(binned_lc.time_edges[minimum.(binned_lc.gtis)], color=:green, lab="GTI Start")
@@ -35,8 +33,8 @@ function plot_fft_tiled(lc_fft::Lc_fft)
     nyquist > 1e2 ? c_hz_min=1e1 : c_hz_min=1e0
     nyquist > 1e2 ? c_hz_max=1e1 : c_hz_max=0
 
-    a1 = plot_fft(lc_fft; logx=false, logy=false, hz_min=2e-3, hz_max=c_hz_max, title="FFT 0 to $c_hz_max Hz")
-    a2 = plot_fft(lc_fft; logx=false, logy=false, hz_min=c_hz_min, hz_max=0, title="FFT $c_hz_max Hz+")
+    a1 = plot_fft(lc_fft; logx=false, logy=false, hz_min=2e-3, hz_max=c_hz_max, denoise=true, title="FFT 0 to $c_hz_max Hz")
+    a2 = plot_fft(lc_fft; logx=false, logy=false, hz_min=c_hz_min, hz_max=0, denoise=true, title="FFT $c_hz_max Hz+")
     b = plot_fft(lc_fft; logx=true, logy=true, hz_min=2e-3, hz_max=c_hz_max, denoise=true, title="log-log")
     c = plot_fft(lc_fft; logx=true, logy=true, hz_min=c_hz_min, hz_max=0, denoise=true, title="log-log")
     d = plot_fft(lc_fft; logx=true, logy=false, hz_min=2e-3, hz_max=c_hz_max, denoise=true, title="semi-log")
@@ -125,9 +123,9 @@ function plot_overview(binned_lc_1::Binned_event, lc_ub_fft::Lc_fft, lc_05_stft:
 end
 
 function plot_overview(unbinned_evt::Unbinned_event; plot_width=1200, plot_height=300)
-    binned_lc_1 = NuSTAR.bin_evts_lc(1, unbinned_evt)
+    binned_lc_1 = NuSTAR.bin_evts_lc(unbinned_evt, 1)
 
-    lc_ub_fft = NuSTAR.evt_fft(NuSTAR.bin_evts_lc(2e-3, unbinned_evt))
+    lc_ub_fft = NuSTAR.evt_fft(NuSTAR.bin_evts_lc(unbinned_evt, 2e-3))
 
     lc_1_stft = NuSTAR.evt_stft(binned_lc_01)
 
@@ -137,8 +135,8 @@ function plot_overview(unbinned_evt::Unbinned_event; plot_width=1200, plot_heigh
 end
 
 function plot_overview(obsid::String; plot_width=1200, plot_height=300, local_archive_pr=ENV["NU_ARCHIVE_PR"])
-
     path_lc_dir = string(local_archive_pr, obsid, "/products/lc/")
+    path_img_dir = string(local_archive_pr, obsid, "/images/")
 
     binned_lc_1 = read_evt(string(path_lc_dir, "lc_1.jld2"), "lc")
     lc_ub_fft = read_evt(string(path_lc_dir, "lc_0.jld2"), "fft")
@@ -147,7 +145,44 @@ function plot_overview(obsid::String; plot_width=1200, plot_height=300, local_ar
     lc_2_stft = read_evt(string(path_lc_dir, "lc_2.jld2"), "stft")
     lc_2_periodogram = read_evt(string(path_lc_dir, "lc_2.jld2"), "periodogram")
 
-    plt_overview = plot_overview(binned_lc_1, lc_ub_fft, lc_05_stft, lc_05_periodogram, lc_2_stft, lc_2_periodogram; plot_width=1200, plot_height=300)
+    plt_overview = plot_overview(binned_lc_1, lc_ub_fft, lc_05_stft, lc_05_periodogram, lc_2_stft, lc_2_periodogram; plot_width=plot_width, plot_height=plot_height)
 
-    savefig(plt_overview, string(path_lc_dir, "overview.png"))
+    savefig(plt_overview, string(path_img_dir, "summary.png"))
+end
+
+function plot_overview_batch(;batch_size=10000, plot_width=1200, plot_height=300, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utility=ENV["NU_ARCHIVE_UTIL"], numaster_path=string(local_utility, "/numaster_df.csv"), overwrite=false)
+    numaster_df=read_numaster(numaster_path)
+
+    queue = @from i in numaster_df begin
+        @where contains(i.LC, "lc_05 lc_0 lc_1 lc_2")
+        @select i.obsid
+        @collect
+    end
+
+    i = 0
+
+    for obsid in queue
+        img_path = string(string(local_archive_pr, obsid, "/images/"), "summary.png")
+        lc_paths = string.(string(local_archive_pr, obsid, "/products/lc/"), ["lc_05.jld2", "lc_0.jld2", "lc_1.jld2", "lc_2.jld2"])
+
+        newest_lc = maximum(mtime.(lc_paths))
+        summary_age = mtime(img_path)
+
+        if summary_age - newest_lc < 0
+            println("$obsid - LC newer than image - plotting")
+            plot_overview(obsid; plot_width=plot_width, plot_height=plot_height, local_archive_pr=local_archive_pr)
+            i += 1
+        else
+            println("$obsid - LC older than image - skipping")
+            continue
+        end
+
+        if i >= batch_size
+            return
+        end
+    end
+end
+
+function plt_batch(;batch_size=10000, plot_width=1200, plot_height=300, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utility=ENV["NU_ARCHIVE_UTIL"], numaster_path=string(local_utility, "/numaster_df.csv"), overwrite=false)
+    plot_overview_batch(;batch_size=10000, plot_width=1200, plot_height=300, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utility=ENV["NU_ARCHIVE_UTIL"], numaster_path=string(local_utility, "/numaster_df.csv"), overwrite=false)
 end
