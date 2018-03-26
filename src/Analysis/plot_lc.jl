@@ -188,7 +188,7 @@ function plot_overview_batch(;batch_size=10000, plot_width=1200, plot_height=300
             plot_overview(obsid; plot_width=plot_width, plot_height=plot_height, local_archive_pr=local_archive_pr)
             i += 1
         else
-            println("$obsid - LC older than image - skipping")
+            #println("$obsid - LC older than image - skipping")
             continue
         end
 
