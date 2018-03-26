@@ -157,40 +157,48 @@ function evt_stft(binned_evt::NuSTAR.Binned_event, stft_bins=1024, gti_counts_on
 end
 
 function generate_all_binned(unbinned_evt::Unbinned_event, bin::Number)
-    lc = NuSTAR.bin_evts_lc(unbinned_evt, bin)
-    lc_fft = NuSTAR.evt_fft(lc)
-    lc_stft = NuSTAR.evt_stft(lc)
-    lc_periodogram = NuSTAR.evt_periodogram(lc)
+    lc = NuSTAR.bin_evts_lc(unbinned_evt, bin); print(".")
+    lc_fft = NuSTAR.evt_fft(lc); print(".")
+    lc_stft = NuSTAR.evt_stft(lc); print(".")
+    lc_periodogram = NuSTAR.evt_periodogram(lc); print(".")
 
     return lc, lc_fft, lc_stft, lc_periodogram
 end
 
 function generate_standard_lc_files(path_fits_lc, path_evt_unbinned, path_lc_dir; overwrite=false)
-    if !isfile(path_evt_unbinned) || !overwrite
+    if !isfile(path_evt_unbinned) || overwrite
         unbinned_evt = extract_evts(path_fits_lc; gti_width_min=128)
         save_evt(path_evt_unbinned, unbinned_evt=unbinned_evt)
+    else
+        unbinned_evt = read_evt(path_evt_unbinned)
     end
 
-    if !isfile(string(path_lc_dir, "lc_0.jld2")) || !overwrite
-        lc_ub = NuSTAR.bin_evts_lc(unbinned_evt, 2e-3)
-        lc_ub_fft = NuSTAR.evt_fft(lc_ub)
-        save_evt(string(path_lc_dir, "lc_0.jld2"), lc=lc_ub, fft=lc_ub_fft)
+    if !isfile(string(path_lc_dir, "lc_0.jld2")) || overwrite
+        print("lc_0")
+        lc_ub = NuSTAR.bin_evts_lc(unbinned_evt, 2e-3); print(".")
+        lc_ub_fft = NuSTAR.evt_fft(lc_ub); print(".")
+        save_evt(string(path_lc_dir, "lc_0.jld2"), lc=lc_ub, fft=lc_ub_fft); print(". ")
     end
 
-    if !isfile(string(path_lc_dir, "lc_05.jld2")) || !overwrite
+    if !isfile(string(path_lc_dir, "lc_05.jld2")) || overwrite
+        print("lc_05")
         lc_05, lc_05_fft, lc_05_stft, lc_05_periodogram = generate_all_binned(unbinned_evt, 0.5)
-        save_evt(string(path_lc_dir, "lc_05.jld2"), lc=lc_05, periodogram=lc_05_periodogram, stft=lc_05_stft, fft=lc_05_fft)
+        save_evt(string(path_lc_dir, "lc_05.jld2"), lc=lc_05, periodogram=lc_05_periodogram, stft=lc_05_stft, fft=lc_05_fft); print(". ")
     end
 
-    if !isfile(string(path_lc_dir, "lc_1.jld2")) || !overwrite
+    if !isfile(string(path_lc_dir, "lc_1.jld2")) || overwrite
+        print("lc_1")
         lc_1, lc_1_fft, lc_1_stft, lc_1_periodogram = generate_all_binned(unbinned_evt, 1)
-        save_evt(string(path_lc_dir, "lc_1.jld2"), lc=lc_1, periodogram=lc_1_periodogram, stft=lc_1_stft, fft=lc_1_fft)
+        save_evt(string(path_lc_dir, "lc_1.jld2"), lc=lc_1, periodogram=lc_1_periodogram, stft=lc_1_stft, fft=lc_1_fft); print(". ")
     end
 
-    if !isfile(string(path_lc_dir, "lc_2.jld2")) || !overwrite
+    if !isfile(string(path_lc_dir, "lc_2.jld2")) || overwrite
+        print("lc_2")
         lc_2, lc_2_fft, lc_2_stft, lc_2_periodogram = generate_all_binned(unbinned_evt, 2)
-        save_evt(string(path_lc_dir, "lc_2.jld2"), lc=lc_2, periodogram=lc_2_periodogram, stft=lc_2_stft, fft=lc_2_fft)
+        save_evt(string(path_lc_dir, "lc_2.jld2"), lc=lc_2, periodogram=lc_2_periodogram, stft=lc_2_stft, fft=lc_2_fft); print(". ")
     end
+
+    print("\n")
 end
 
 function generate_standard_lc_files(obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"], instrument="auto", overwrite=false)
