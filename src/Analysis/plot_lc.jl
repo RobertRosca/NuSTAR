@@ -13,17 +13,32 @@ function plot_fft(lc_fft::Lc_fft; title="Full FFT", logx=true, logy=true, nu=fal
     max_idx = findfirst(lc_fft.gti_freqs_zp[1].>=hz_max)
     max_idx < 2 ? max_idx=length(lc_fft.conv) : max_idx=max_idx
 
+    if size(lc_fft.conv, 1) > 1e6 && denoise
+        warn("Denoise disabled due to large FFT data")
+        denoise = false
+    end
+
+    if logy
+        conv_logged = log10.(lc_fft.conv)
+        conv_not_finite = .!isfinite.(conv_logged)
+        lc_fft_conv = lc_fft.conv
+        lc_fft_conv[conv_not_finite] = NaN
+    else
+        lc_fft_conv = lc_fft.conv
+    end
+
+    plot(lc_fft.gti_freqs_zp[1][min_idx:max_idx], lc_fft_conv[min_idx:max_idx], lab="", title=title)
+
     if denoise
         np2 = zeros(nextpow2(length(lc_fft.conv))-length(lc_fft.conv))
-        denoised = abs.(Wavelets.denoise([lc_fft.conv; np2])[1:length(lc_fft.conv)])
-        plot(lc_fft.gti_freqs_zp[1][min_idx:max_idx], lc_fft.conv[min_idx:max_idx], lab="", title=title)
+        denoised = abs.(Wavelets.denoise([lc_fft_conv; np2])[1:length(lc_fft.conv)])
+        if logy; denoised[.!isfinite.(log10.(denoised))] = NaN; end
         plot!(lc_fft.gti_freqs_zp[1][min_idx:max_idx], denoised[min_idx:max_idx], lab="", title=title, color=:red, alpha=0.5)
-    else
-        plot(lc_fft.gti_freqs_zp[1][min_idx:max_idx], lc_fft.conv[min_idx:max_idx], lab="", title=title)
     end
 
     logx ? xaxis!("Freq [Hz - log10]", :log10) : xaxis!("Freq [Hz]")
     logy ? yaxis!("Power [log10]", :log10) : yaxis!("Power")
+
     plot!(title_location=:left, titlefontsize=10, margin=2mm, xguidefontsize=10, yguidefontsize=10)
 end
 
