@@ -86,11 +86,6 @@ function plot_periodogram(lc_periodogram::Lc_periodogram; hz_min=2e-3, title="Pe
     min_idx = findfirst(lc_periodogram.freqs.>=hz_min)
     min_idx_welch = findfirst(lc_periodogram.freqs_welch.>=hz_min)
 
-    avg_idx_highest_gtis = round(Int, mean([i[2] for i in findmax.(lc_periodogram.gti_pwers)]))
-    min_ylim_gtis = lc_periodogram.pwers[avg_idx_highest_gtis]*1.1
-
-    min_ylim = min_ylim_gtis * size(lc_periodogram.gti_pwers, 1)
-
     if logy
         lc_periodogram.pwers[lc_periodogram.pwers .<= 1] = NaN
     end
