@@ -103,7 +103,7 @@ function read_numaster(numaster_path)
     Int, String, Union{Missings.Missing, String}, Int, Int, # :cycle, :obs_type, :title, :data_gap, :nupsdout
     Union{Missings.Missing, String}, Union{Missings.Missing, String}, Int, Union{Missings.Missing, String}, String, #:solar_activity, :coordinated, :issue_flag, :comments, :status
     String, Int, Int, Int, Int, # :caldb_version, :Downloaded, :Cleaned, :ValidSci, :RegSrc
-    Int, String, String, String]; # :RegBkg, :LC, :LCFlags, :EVT
+    Int, String, String, String]; # :RegBkg, :LC, :Interesting, :EVT
 
     # This is absurdly stupid looking, but seems to be the best way to get the CSV
     # to be read properly
@@ -232,4 +232,46 @@ function natural(x::AbstractString, y::AbstractString)
     end
 
     return donex && !doney
+end
+
+function interesting(obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"])
+    path_obs = string(local_archive_pr, obsid)
+    path_obs_comment = string(path_obs, "/interesting_comment.txt")
+
+    if !isdir(path_obs)
+        error("$path_obs not found!")
+    end
+
+    print("Enter flag name: ")
+    comment = []
+    comment = append!(comment, [readline(STDIN)])
+
+    print("Enter other comments (empty line to finish): ")
+
+    while true
+        comment_line = readline(STDIN)
+        comment_line == "" ? break : append!(comment, [string("\n$comment_line")])
+    end
+
+    comment = replace.(comment, ",", ";") # Commas screw with CSV
+
+    open(path_obs_comment, "w") do f
+        write(f, comment)
+    end
+
+    println("Saved to: $path_obs_comment")
+end
+
+function interesting(; local_archive_pr=ENV["NU_ARCHIVE_PR"])
+    clipboard_contents = clipboard()
+
+    if length(clipboard_contents) == 11
+        print("Obsid ($clipboard_contents): ")
+        readline(STDIN) == "" ? obsid = clipboard_contents : obsid = readline(STDIN)
+    else
+        print("Obsid: ")
+        obsid = readline(STDIN)
+    end
+
+    interesting(obsid; local_archive_pr=local_archive_pr)
 end

@@ -87,7 +87,7 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
     reg_src      = zeros(Int, numaster_df_n)
     reg_bkg      = zeros(Int, numaster_df_n)
     lc           = fill("NA", numaster_df_n)
-    lc_fft_flags = fill("NA", numaster_df_n)
+    interesting_flag = fill("NA", numaster_df_n)
     evt          = fill("NA", numaster_df_n)
 
     for (itr, obs) in enumerate(numaster_df[:obsid])
@@ -123,6 +123,13 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
             evt[itr] = "B"
         end
 
+        # Comments/manual intersting flagging
+        comment_file = string(local_archive_pr, "/", obs, "/interesting_comment.txt")
+
+        if isfile(comment_file)
+            interesting_flag[itr] = readline(comment_file)
+        end
+
         # Read dir to get all files, join into a single-string list, remove .fits extensions
         lc_path = string(local_archive_pr, "/$obs/products/lc/")
 
@@ -132,7 +139,8 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
             if length(lc_path_files) > 0
                 lc[itr] = replace(join(lc_path_files, " "), ".jld2", "")
             end
-            #= Interesting flag is broken, FIX later
+
+            #= Auto interesting flag is broken, FIX later
             for file_name in lc_path_files
                 println(lc_path)
                 file = jldopen(string(lc_path, file_name), "r")
@@ -153,7 +161,7 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
     numaster_df[:RegSrc]   = reg_src
     numaster_df[:RegBkg]   = reg_bkg
     numaster_df[:LC]       = lc
-    numaster_df[:LCFlags]  = lc_fft_flags
+    numaster_df[:Interesting]  = interesting_flag
     numaster_df[:EVT]      = evt
 
     # Convert modified Julian dates to readable dates

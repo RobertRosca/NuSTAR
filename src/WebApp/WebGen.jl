@@ -13,7 +13,7 @@ end
 
 # NuSTAR.WebGen(filename="/home/robert/Scratch/WebApps/NuSTAR-WebView/NuSTAR-WebView.html", homedev=true, subpage_gen=true)
 
-function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numaster(), select_cols=[:observation_mode, :spacecraft_mode, :slew_mode, :prnb, :category_code, :priority, :cycle, :obs_type, :issue_flag, :status, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], shown_cols=[:name, :obsid, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :obs_type, :category_code, :LCFlags], blacklist_cols=[:abstract, :pi_lname, :pi_fname, :copi_lname, :copi_fname, :country], whitelist_cols=[], list_choice="whitelist", homedev=false, local_archive_pr=ENV["NU_ARCHIVE_PR"], subpage_gen=true)
+function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numaster(), select_cols=[:observation_mode, :spacecraft_mode, :slew_mode, :prnb, :category_code, :priority, :cycle, :obs_type, :issue_flag, :status, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :RegBkg], shown_cols=[:name, :obsid, :Downloaded, :Cleaned, :ValidSci, :RegSrc, :obs_type, :category_code, :Interesting], blacklist_cols=[:abstract, :pi_lname, :pi_fname, :copi_lname, :copi_fname, :country], whitelist_cols=[], list_choice="whitelist", homedev=false, local_archive_pr=ENV["NU_ARCHIVE_PR"], subpage_gen=true)
     if length(whitelist_cols) == 0
         whitelist_cols = vcat(shown_cols, [:public_date, :obs_type, :observation_mode, :RegBkg])
     end
@@ -44,7 +44,7 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
         RegSrcIntr=count(x->x==2, df[:RegSrc]),
         RegSrcBad=count(x->x==-1, df[:RegSrc]),
         RegSrcCheck=count(x->x==-2, df[:RegSrc]),
-        InterestingLC=count(x->x!="NA", df[:LCFlags]))
+        InterestingLC=count(x->x!="NA"&&x!="No", df[:Interesting]))
 
     f = open(filename, "w")
 
@@ -124,7 +124,7 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
     write(f, "\t<hr>\n")
 
     # Table
-    write(f, "\t<table id=\"table\"\n\t\t\tdata-show-columns=\"true\"\n\t\t\tdata-toggle=\"table\"\n\t\t\tdata-filter-control=\"true\"\n\t\t\tdata-filter-show-clear=\"true\"\n\t\t\tdata-pagination=\"true\"\n\t\t\tdata-page-size=\"100\"\n\t\t\tdata-page-list=\"[100, 500, 5000]\"\n\t\t\tdata-sort-name=\"RegBkg\"\n\t\t\tdata-sort-order=\"desc\"\n\t\t\tdata-sort-stable=\"true\">\n")
+    write(f, "\t<table id=\"table\"\n\t\t\tdata-show-columns=\"true\"\n\t\t\tdata-toggle=\"table\"\n\t\t\tdata-filter-control=\"true\"\n\t\t\tdata-filter-show-clear=\"true\"\n\t\t\tdata-pagination=\"true\"\n\t\t\tdata-page-size=\"100\"\n\t\t\tdata-page-list=\"[100, 500, 5000]\"\n\t\t\tdata-sort-name=\"Interesting\"\n\t\t\tdata-sort-order=\"desc\"\n\t\t\tdata-sort-stable=\"true\">\n")
 
     cnames = names(df)
 
@@ -150,7 +150,8 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
         df[row, :Cleaned] == 1 ? color_cleaned="table-success" : color_cleaned=""
         df[row, :ValidSci] == 1 ? color_validsci="table-success" : color_validsci=""
         df[row, :RegBkg] == 1 ? color_bkg="table-success" : color_bkg=""
-        df[row, :LCFlags] != "NA" ? color_lcflg="table-success" : color_lcflg=""
+        df[row, :Interesting] != "NA" ? color_lcflg="table-success" : color_lcflg=""
+        df[row, :Interesting] == "No" ? color_lcflg="table-failure" : color_lcflg=color_lcflg
         color_regsrc = ["table-warn", "table-failure", "", "table-success", "table-info"][3+df[row, :RegSrc]]
 
         write(f, "\t\t\t<tr>\n")
@@ -167,7 +168,7 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
                 write(f, "\t\t\t\t<td class=\"$color_validsci\">$(html_escape(cell))</td>\n")
             elseif column_name == :RegBkg
                 write(f, "\t\t\t\t<td class=\"$color_bkg\">$(html_escape(cell))</td>\n")
-            elseif column_name == :LCFlags
+            elseif column_name == :Interesting
                 write(f, "\t\t\t\t<td class=\"$color_lcflg\">$(html_escape(cell=="NA" ? "" : cell))</td>\n")
             elseif column_name == :obsid
                 write(f, "\t\t\t\t<td><a href=\"$file_dir_web/obs/$obsid/details.html\" target=\"_blank\">$(html_escape(cell))</a></td>\n")
@@ -232,7 +233,6 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         write(f, "\t<meta charset=\"utf-8\">\n\n")
         write(f, "\t<link rel=\"stylesheet\" href=\"../../assets/bootstrap/css/bootstrap.min.css\">\n")
         write(f, "\t<link rel=\"stylesheet\" href=\"../../assets/bootstrap-table/src/bootstrap-table.css\">\n")
-        #write(f, "\t<link rel=\"stylesheet\" href=\"../../assets/bootstrap-table/src/extensions/sticky-header/bootstrap-table-sticky-header.css\">\n")
         write(f, "\t<link rel=\"stylesheet\" href=\"../../assets/flex.css\">\n")
         write(f, "\t<script src=\"../../assets/jquery.min.js\"></script>\n")
         write(f, "\t<script src=\"../../assets/bootstrap/js/bootstrap.min.js\"></script>\n")
@@ -255,7 +255,7 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         write(f, "\t</div>\n")
         write(f, "\t<hr>\n")
         write(f, "\t<h4>Status</h4>\n")
-        make_table(f, df[i, :]; something_list_cols=[:public_date, :status, :caldb_version, :Downloaded, :Cleaned, :ValidSci, :RegSrc,  :RegBkg, :LCFlags], list_choice="whitelist", data_filter_show_clear="false", data_show_columns="false", data_filter_control="false", data_pagination="false")
+        make_table(f, df[i, :]; something_list_cols=[:public_date, :status, :caldb_version, :Downloaded, :Cleaned, :ValidSci, :RegSrc,  :RegBkg, :Interesting], list_choice="whitelist", data_filter_show_clear="false", data_show_columns="false", data_filter_control="false", data_pagination="false")
         write(f, "\t<hr>\n")
         write(f, "\t<h4>Source Details</h4>\n")
         make_table(f, df[i, :]; something_list_cols=[:name, :obs_type, :ra, :dec, :lii, :bii], list_choice="whitelist", data_filter_show_clear="false", data_show_columns="false", data_filter_control="false", data_pagination="false")
@@ -268,6 +268,12 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         write(f, "\t<hr>\n")
         write(f, "\t<h4>Comments</h4>\n")
         write(f, "\t<p>$(df[i, :comments])</p>\n")
+
+        interesting_file = string("$local_archive_pr$obsid/interesting_comment.txt")
+        if isfile(interesting_file)
+            write(f, "\t<hr>\n")
+            write(f, "\t<p>$(join(readlines(interesting_file), "<br>"))</p>\n")
+        end
 
         img_dir = "$file_dir/images/"
 
