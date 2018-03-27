@@ -64,6 +64,11 @@ end
 function plot_stft(lc_stft::Lc_stft; hz_min=2*2e-3, norm_type="pow2db2", title="STFT - binned $(lc_stft.bin)s - $norm_type - GTI only")
     min_idx = findfirst(lc_stft.freq.>=hz_min)
 
+    if lc_stft.pwers == [0.0 0.0; 0.0 0.0]
+        warn("\nError plotting $title")
+        return plot(title="Error plotting $title")
+    end
+
     if norm_type=="pow2db"
         pwers_normed = pow2db.(abs.(lc_stft.pwers)')
     elseif norm_type=="nu"
@@ -122,11 +127,26 @@ end
 function plot_overview(binned_lc_1::Binned_event, lc_ub_fft::Lc_fft, lc_05_stft::Lc_stft, lc_05_periodogram::Lc_periodogram, lc_2_stft::Lc_stft, lc_2_periodogram::Lc_periodogram; plot_width=1200, plot_height=300)
     plt_lc = NuSTAR.plot_lc(binned_lc_1)
 
-    plt_fft_tiled = NuSTAR.plot_fft_tiled(lc_ub_fft)
+    plt_fft_tiled = Plots.Plot{Plots.PyPlotBackend}; try
+        plt_fft_tiled = NuSTAR.plot_fft_tiled(lc_ub_fft)
+    catch plot_error
+        warn("Error plotting plt_fft_tiled - $plot_error")
+        plt_fft_tiled = plot([1], [1], title="Plot error")
+    end
 
-    plt_per_stft_tiled_05 = plot_per_stft_tiled(lc_05_stft, lc_05_periodogram)
+    plt_per_stft_tiled_05 = Plots.Plot{Plots.PyPlotBackend}; try
+        plt_per_stft_tiled_05 = plot_per_stft_tiled(lc_05_stft, lc_05_periodogram)
+    catch plot_error
+        warn("Error plotting plt_per_stft_tiled_05 - $plot_error")
+        plt_per_stft_tiled_05 = plot([1], [1], title="Plot error")
+    end
 
-    plt_per_stft_tiled_2 = plot_per_stft_tiled(lc_2_stft, lc_2_periodogram)
+    plt_per_stft_tiled_2 = Plots.Plot{Plots.PyPlotBackend}; try
+        plt_per_stft_tiled_2 = plot_per_stft_tiled(lc_2_stft, lc_2_periodogram)
+    catch plot_error
+        warn("Error plotting plt_per_stft_tiled_2 - $plot_error")
+        plt_per_stft_tiled_2 = plot([1], [1], title="Plot error")
+    end
 
     plot(plt_lc, plt_fft_tiled, plt_per_stft_tiled_05, plt_per_stft_tiled_2, layout=grid(4, 1, heights=[1/9, 4/9, 2/9, 2/9]), size=(plot_width, plot_height*(9/2)))
     plot!(title_location=:left, titlefontsize=10, margin=2mm, xguidefontsize=10, yguidefontsize=10)
