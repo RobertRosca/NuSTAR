@@ -155,6 +155,8 @@ function MakeSourceReg(path; skip_bad=false)
             return
         end
 
+        cd(path)
+
         command = `ds9 $path -regions $source_reg_file_unchecked`
 
         run(command)
