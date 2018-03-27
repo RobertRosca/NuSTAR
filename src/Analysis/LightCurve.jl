@@ -134,6 +134,7 @@ function evt_periodogram(binned_evt::NuSTAR.Binned_event)
 end
 
 function evt_stft(evt_counts, lc_bins, interval_time_end, stft_bins=512)
+    stft_bins > size(evt_counts, 1) ? stft_bins = prevpow2(size(evt_counts, 1)) : ""
     stft_pwers  = abs.(DSP.stft(evt_counts.-mean(evt_counts), stft_bins; fs=1/lc_bins)).^2
     stft_time = linspace(0, interval_time_end, size(stft_pwers, 2))
     stft_freq = linspace(0, 0.5*(1/lc_bins), size(stft_pwers, 1))
