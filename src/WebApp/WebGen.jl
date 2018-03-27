@@ -284,6 +284,10 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         write(f, "\t<input type=\"text\" value=\"$obsid\" id=\"obsidInput\" readonly>\n")
         write(f, "\t<button onclick=\"copyObsid()\">Copy obsid</button>\n")
 
+        write(f, "\t<hr>\n")
+        write(f, "\t<h4>Comments</h4>\n")
+        write(f, "\t<p>$(df[i, :comments])</p>\n")
+
         next_idx = findfirst(obsid_list_rev.<parse(Int, obsid))
         if next_idx > 0
             prev_obsid_with_plot = obsid_list_rev[next_idx]
@@ -299,10 +303,6 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
             write(f, "\t\t<button>Next obs (with plot)</button>\n")
             write(f, "\t</a>\n")
         end
-
-        write(f, "\t<hr>\n")
-        write(f, "\t<h4>Comments</h4>\n")
-        write(f, "\t<p>$(df[i, :comments])</p>\n")
 
         interesting_file = string("$local_archive_pr$obsid/interesting_comment.txt")
         if isfile(interesting_file)
