@@ -296,7 +296,7 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         if prev_idx > 0
             next_obsid_with_plot = obsid_list[prev_idx]
             write(f, "\t<a href=\"http://asimov.phys.soton.ac.uk/~robertr/obs/$next_obsid_with_plot/details.html\">\n")
-            write(f, "\t\t<button>Previous obs (with plot)</button>\n")
+            write(f, "\t\t<button>Next obs (with plot)</button>\n")
             write(f, "\t</a>\n")
         end
 
