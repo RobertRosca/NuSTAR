@@ -163,8 +163,8 @@ function MakeSourceReg(path; skip_bad=false)
         response = readline(STDIN)
 
         if response == "y"
-            save_ds9_img = `ds9 $path -regions $source_reg_file_unchecked -saveimage $(string(obs_path, "source_region_", splitdir(path)[2][1:end-4], ".jpeg")) -exit`
-            run(save_ds9_img)
+            #save_ds9_img = `ds9 $path -regions $source_reg_file_unchecked -saveimage $(string(obs_path, "source_region_", splitdir(path)[2][1:end-4], ".jpeg")) -exit`
+            #run(save_ds9_img)
 
             mv(source_reg_file_unchecked, string(obs_path, "source.reg"))
         elseif response == "n"
