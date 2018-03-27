@@ -213,6 +213,12 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         mkdir("$folder_path/obs/")
     end
 
+    obsid_list = parse.(Int, df[:obsid])
+    obsid_list = obsid_list[df[:EVT].!="NA"]
+    sort!(obsid_list)
+
+    obsid_list_rev = obsid_list[end:-1:1]
+
     for i in 1:size(df, 1)
         if !isdir("$folder_path/obs/$(df[i, :obsid])")
             mkdir("$folder_path/obs/$(df[i, :obsid])")
@@ -237,6 +243,15 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         write(f, "\t<script src=\"../../assets/jquery.min.js\"></script>\n")
         write(f, "\t<script src=\"../../assets/bootstrap/js/bootstrap.min.js\"></script>\n")
         write(f, "\t<script src=\"../../assets/bootstrap-table/src/bootstrap-table.js\"></script>\n")
+
+        write(f, "\t<script>\n")
+        write(f, "\tfunction copyObsid() {\n")
+        write(f, "\t\tvar copyText = document.getElementById(\"obsidInput\");;\n")
+        write(f, "\t\tcopyText.select();\n")
+        write(f, "\t\tdocument.execCommand(\"Copy\");\n")
+        write(f, "\t}\n")
+        write(f, "\t</script>\n")
+
         write(f, "</head>\n")
 
         # Body
@@ -265,6 +280,26 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         write(f, "\t<hr>\n")
         write(f, "\t<h4>Instrument Details</h4>\n")
         make_table(f, df[i, :]; something_list_cols=[:spacecraft_mode, :instrument_mode, :observation_mode, :slew_mode, :solar_activity, :issue_flag], list_choice="whitelist", data_filter_show_clear="false", data_show_columns="false", data_filter_control="false", data_pagination="false")
+        write(f, "\t<hr>\n")
+        write(f, "\t<input type=\"text\" value=\"$obsid\" id=\"obsidInput\" readonly>\n")
+        write(f, "\t<button onclick=\"copyObsid()\">Copy obsid</button>\n")
+
+        next_idx = findfirst(obsid_list_rev.<parse(Int, obsid))
+        if next_idx > 0
+            prev_obsid_with_plot = obsid_list_rev[next_idx]
+            write(f, "\t<a href=\"http://asimov.phys.soton.ac.uk/~robertr/obs/$prev_obsid_with_plot/details.html\">\n")
+            write(f, "\t\t<button>Previous obs (with plot)</button>\n")
+            write(f, "\t</a>\n")
+        end
+
+        prev_idx = findfirst(obsid_list.>parse(Int, obsid))
+        if prev_idx > 0
+            next_obsid_with_plot = obsid_list[prev_idx]
+            write(f, "\t<a href=\"http://asimov.phys.soton.ac.uk/~robertr/obs/$next_obsid_with_plot/details.html\">\n")
+            write(f, "\t\t<button>Previous obs (with plot)</button>\n")
+            write(f, "\t</a>\n")
+        end
+
         write(f, "\t<hr>\n")
         write(f, "\t<h4>Comments</h4>\n")
         write(f, "\t<p>$(df[i, :comments])</p>\n")
