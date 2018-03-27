@@ -280,13 +280,14 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         write(f, "\t<hr>\n")
         write(f, "\t<h4>Instrument Details</h4>\n")
         make_table(f, df[i, :]; something_list_cols=[:spacecraft_mode, :instrument_mode, :observation_mode, :slew_mode, :solar_activity, :issue_flag], list_choice="whitelist", data_filter_show_clear="false", data_show_columns="false", data_filter_control="false", data_pagination="false")
-        write(f, "\t<hr>\n")
-        write(f, "\t<input type=\"text\" value=\"$obsid\" id=\"obsidInput\" readonly>\n")
-        write(f, "\t<button onclick=\"copyObsid()\">Copy obsid</button>\n")
 
         write(f, "\t<hr>\n")
         write(f, "\t<h4>Comments</h4>\n")
         write(f, "\t<p>$(df[i, :comments])</p>\n")
+        
+        write(f, "\t<hr>\n")
+        write(f, "\t<input type=\"text\" value=\"$obsid\" id=\"obsidInput\" readonly>\n")
+        write(f, "\t<button onclick=\"copyObsid()\">Copy obsid</button>\n")
 
         next_idx = findfirst(obsid_list_rev.<parse(Int, obsid))
         if next_idx > 0
