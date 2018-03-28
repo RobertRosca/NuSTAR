@@ -284,7 +284,7 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         write(f, "\t<hr>\n")
         write(f, "\t<h4>Comments</h4>\n")
         write(f, "\t<p>$(df[i, :comments])</p>\n")
-        
+
         write(f, "\t<hr>\n")
         write(f, "\t<input type=\"text\" value=\"$obsid\" id=\"obsidInput\" readonly>\n")
         write(f, "\t<button onclick=\"copyObsid()\">Copy obsid</button>\n")
@@ -305,7 +305,7 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
             write(f, "\t</a>\n")
         end
 
-        interesting_file = string("$local_archive_pr$obsid/interesting_comment.txt")
+        interesting_file = string("$local_archive_pr$obsid/comments.txt")
         if isfile(interesting_file)
             write(f, "\t<hr>\n")
             write(f, "\t<p>$(join(readlines(interesting_file), "<br>"))</p>\n")

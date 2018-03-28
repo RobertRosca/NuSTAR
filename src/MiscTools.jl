@@ -236,15 +236,28 @@ end
 
 function interesting(obsid; local_archive_pr=ENV["NU_ARCHIVE_PR"])
     path_obs = string(local_archive_pr, obsid)
-    path_obs_comment = string(path_obs, "/interesting_comment.txt")
+    path_obs_comment = string(path_obs, "/comments.txt")
 
     if !isdir(path_obs)
         error("$path_obs not found!")
     end
 
     print("Enter flag name: ")
+    flag_name = readline(STDIN)
+
+    flag_name == "" ? flag_name="No" : ""
+
     comment = []
-    comment = append!(comment, [readline(STDIN)])
+    comment = append!(comment, [flag_name])
+
+    if flag_name == "No"
+        open(path_obs_comment, "w") do f
+            write(f, comment)
+        end
+        println("Saved to: $path_obs_comment")
+
+        return
+    end
 
     print("Enter other comments (empty line to finish): ")
 
