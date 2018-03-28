@@ -124,7 +124,7 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
         end
 
         # Comments/manual intersting flagging
-        comment_file = string(local_archive_pr, "/", obs, "/interesting_comment.txt")
+        comment_file = string(local_archive_pr, "/", obs, "/comments.txt")
 
         if isfile(comment_file)
             interesting_flag[itr] = readline(comment_file)
