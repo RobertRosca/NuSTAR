@@ -152,6 +152,7 @@ function WebGen(;filename="/home/robertr/public_html/index.html", df=load_numast
         df[row, :RegBkg] == 1 ? color_bkg="table-success" : color_bkg=""
         df[row, :Interesting] != "NA" ? color_lcflg="table-success" : color_lcflg=""
         df[row, :Interesting] == "No" ? color_lcflg="table-failure" : color_lcflg=color_lcflg
+        df[row, :Interesting] == "No" ? df[row, :Interesting]="-" : 1
         color_regsrc = ["table-warn", "table-failure", "", "table-success", "table-info"][3+df[row, :RegSrc]]
 
         write(f, "\t\t\t<tr>\n")
