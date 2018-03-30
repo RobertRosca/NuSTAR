@@ -296,17 +296,17 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         write(f, "\t<input type=\"text\" value=\"$obsid\" id=\"obsidInput\" readonly>\n")
         write(f, "\t<button onclick=\"copyObsid()\">Copy obsid</button>\n")
 
-        prev_idx = findfirst(obsid_list.<parse(Int, obsid))
+        prev_idx = findfirst(obsid_list_rev.<parse(Int, obsid))
         if prev_idx > 0
-            prev_obsid_with_plot = obsid_list[prev_idx]
+            prev_obsid_with_plot = obsid_list_rev[prev_idx]
             write(f, "\t<a href=\"http://asimov.phys.soton.ac.uk/~robertr/obs/$prev_obsid_with_plot/details.html\">\n")
             write(f, "\t\t<button>Previous obs (with plot)</button>\n")
             write(f, "\t</a>\n")
         end
 
-        next_idx = findfirst(obsid_list_rev.>parse(Int, obsid))
+        next_idx = findfirst(obsid_list.>parse(Int, obsid))
         if next_idx > 0
-            next_obsid_with_plot = obsid_list_rev[next_idx]
+            next_obsid_with_plot = obsid_list[next_idx]
             write(f, "\t<a href=\"http://asimov.phys.soton.ac.uk/~robertr/obs/$next_obsid_with_plot/details.html\">\n")
             write(f, "\t\t<button>Next obs (with plot)</button>\n")
             write(f, "\t</a>\n")
