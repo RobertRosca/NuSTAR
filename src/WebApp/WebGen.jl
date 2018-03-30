@@ -220,6 +220,12 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
 
     obsid_list_rev = obsid_list[end:-1:1]
 
+    obsid_list_todo = @from i in df begin
+        @where i.LC!="NA" && i.Interesting=="NA"
+        @select parse(Int, i.obsid)
+        @collect
+    end
+
     for i in 1:size(df, 1)
         if !isdir("$folder_path/obs/$(df[i, :obsid])")
             mkdir("$folder_path/obs/$(df[i, :obsid])")
@@ -290,19 +296,27 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         write(f, "\t<input type=\"text\" value=\"$obsid\" id=\"obsidInput\" readonly>\n")
         write(f, "\t<button onclick=\"copyObsid()\">Copy obsid</button>\n")
 
-        next_idx = findfirst(obsid_list_rev.<parse(Int, obsid))
-        if next_idx > 0
-            prev_obsid_with_plot = obsid_list_rev[next_idx]
+        prev_idx = findfirst(obsid_list.<parse(Int, obsid))
+        if prev_idx > 0
+            prev_obsid_with_plot = obsid_list[prev_idx]
             write(f, "\t<a href=\"http://asimov.phys.soton.ac.uk/~robertr/obs/$prev_obsid_with_plot/details.html\">\n")
             write(f, "\t\t<button>Previous obs (with plot)</button>\n")
             write(f, "\t</a>\n")
         end
 
-        prev_idx = findfirst(obsid_list.>parse(Int, obsid))
-        if prev_idx > 0
-            next_obsid_with_plot = obsid_list[prev_idx]
+        next_idx = findfirst(obsid_list_rev.>parse(Int, obsid))
+        if next_idx > 0
+            next_obsid_with_plot = obsid_list_rev[next_idx]
             write(f, "\t<a href=\"http://asimov.phys.soton.ac.uk/~robertr/obs/$next_obsid_with_plot/details.html\">\n")
             write(f, "\t\t<button>Next obs (with plot)</button>\n")
+            write(f, "\t</a>\n")
+        end
+
+        next_idx_todo = findfirst(obsid_list_todo.>parse(Int, obsid))
+        if next_idx_todo > 0
+            next_obsid_with_plot_todo = obsid_list_todo[next_idx_todo]
+            write(f, "\t<a href=\"http://asimov.phys.soton.ac.uk/~robertr/obs/$next_obsid_with_plot_todo/details.html\">\n")
+            write(f, "\t\t<button>Next unchecked</button>\n")
             write(f, "\t</a>\n")
         end
 
