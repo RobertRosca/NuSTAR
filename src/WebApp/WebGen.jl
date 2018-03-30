@@ -225,6 +225,7 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
         @select parse(Int, i.obsid)
         @collect
     end
+    sort!(obsid_list_todo)
 
     for i in 1:size(df, 1)
         if !isdir("$folder_path/obs/$(df[i, :obsid])")
