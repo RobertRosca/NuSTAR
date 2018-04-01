@@ -183,7 +183,7 @@ function MakeSourceReg(path; check_skip=false)
             info("Fix later")
         elseif response == "b"
             info("Bad source, excluded from scientific data product")
-            mv(source_reg_file_unchecked, string(obs_path, "source_bad.reg"))
+            mv(source_reg_file_unchecked, string(obs_path, "source_bad.reg"), remove_destination=true)
         elseif response[1][1] == 'i'
             info("Interesting source, excluded, notes added")
 
