@@ -155,6 +155,11 @@ function MakeSourceReg(path; check_skip=false)
     elseif stats_flag == -2 # Manual
         info("Stats are uncertain, manual check")
 
+        if isfile(string(obs_path, "source_bad.reg"))
+            info("Removing old bad source")
+            rm(string(obs_path, "source_bad.reg"))
+        end
+
         if check_skip
             info("Auto skipping manual checks, check later")
             return
