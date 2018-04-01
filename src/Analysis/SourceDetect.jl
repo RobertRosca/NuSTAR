@@ -100,7 +100,7 @@ Takes in path, passes it to FWXM_Single_Source(path)
 Uses the returned α and δ coordinates as well as the flag_manual_check value
 to create a `.reg` file. Asks for user input it flag_manual_check is true
 """
-function MakeSourceReg(path; skip_bad=false)
+function MakeSourceReg(path; check_skip=false)
     _, _, (ra, dec), source_statistics = FWXM_Single_Source(path)
 
     header = "\# Region file format: SourceDetect.jl - Source auotgenerate for $path"
@@ -155,7 +155,7 @@ function MakeSourceReg(path; skip_bad=false)
     elseif stats_flag == -2 # Manual
         info("Stats are uncertain, manual check")
 
-        if skip_bad
+        if check_skip
             info("Auto skipping manual checks, check later")
             return
         end
@@ -279,14 +279,15 @@ end
 
 function RegBatch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"],
                    local_utility=ENV["NU_ARCHIVE_UTIL"], numaster_path="",
-                   batch_size=100, skip_bad=true, src_type="both", bad_only=false)
+                   batch_size=100, check_skip=true, src_type="both", check_only=false, redo_bad=false)
     if numaster_path == ""
         numaster_path = string(local_utility, "/numaster_df.csv")
     end
 
-    if bad_only
-        #skip_bad = false
+    if check_only
         src_include_val = -2 # Change checked value to -2 for @where below
+    elseif redo_bad
+        src_include_val = -1
     else
         src_include_val = 0
     end
@@ -310,7 +311,7 @@ function RegBatch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
 
         for obs_evt in queue_src
             info("Getting region for $obs_evt")
-            MakeSourceReg(obs_evt; skip_bad=skip_bad)
+            MakeSourceReg(obs_evt; check_skip=check_skip)
         end
 
         info("Updating Numaster table")
