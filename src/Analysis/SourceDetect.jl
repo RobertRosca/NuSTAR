@@ -129,7 +129,7 @@ function MakeSourceReg(path; skip_bad=false)
 
     if source_statistics["counts"] < 100
         stats_flag = -1
-    elseif source_statistics["covariance"] < 500
+    elseif abs(source_statistics["covariance"]) < 500
         stats_flag = -1 # Auto bad
     elseif source_statistics["bound_width"] > 300 && source_statistics["covariance"] < 1000
         stats_flag = -1 # Auto bad
