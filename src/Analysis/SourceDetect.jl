@@ -144,6 +144,11 @@ function MakeSourceReg(path; skip_bad=false)
         run(save_ds9_img)
 
         mv(source_reg_file_unchecked, string(obs_path, "source.reg"), remove_destination=true)
+
+        if isfile(string(obs_path, "source_bad.reg"))
+            info("Removing old bad source")
+            rm(string(obs_path, "source_bad.reg"))
+        end
     elseif stats_flag == -1 # Auto-bad
         warn("Stats appear bad, excluded from scientific data product")
         mv(source_reg_file_unchecked, string(obs_path, "source_bad.reg"))
@@ -169,6 +174,11 @@ function MakeSourceReg(path; skip_bad=false)
             #run(save_ds9_img)
 
             mv(source_reg_file_unchecked, string(obs_path, "source.reg"))
+
+            if isfile(string(obs_path, "source_bad.reg"))
+                info("Removing old bad source")
+                rm(string(obs_path, "source_bad.reg"))
+            end
         elseif response == "n"
             info("Fix later")
         elseif response == "b"
