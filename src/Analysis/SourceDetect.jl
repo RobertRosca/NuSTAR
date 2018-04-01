@@ -151,7 +151,7 @@ function MakeSourceReg(path; check_skip=false)
         end
     elseif stats_flag == -1 # Auto-bad
         warn("Stats appear bad, excluded from scientific data product")
-        mv(source_reg_file_unchecked, string(obs_path, "source_bad.reg"))
+        mv(source_reg_file_unchecked, string(obs_path, "source_bad.reg"), remove_destination=true)
     elseif stats_flag == -2 # Manual
         info("Stats are uncertain, manual check")
 
