@@ -103,7 +103,7 @@ do
 	path_b_lc="${path_mp}nu${ObsID}B01_lc.p"
 
 	echo "${highlight}MPfspec ${reset}"
-	MPfspec $path_a_lc $path_b_lc -k CPDS -o leahy --norm Leahy
+	MPfspec $path_a_lc $path_b_lc
 
 	path_cpds="${path_mp}leahy_cpds.p"
 
