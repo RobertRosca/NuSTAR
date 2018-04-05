@@ -298,6 +298,7 @@ function RegBatch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
     end
 
     if src_type=="both" || src_type=="src"
+        info("Updating Numaster table")
         Numaster(download=false)
         numaster_df = read_numaster(numaster_path)
 
@@ -320,10 +321,10 @@ function RegBatch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
         end
 
         info("Updating Numaster table")
+        Numaster(download=false)
     end
 
     if src_type=="both" || src_type=="bkg"
-        Numaster(download=false)
         numaster_df = read_numaster(numaster_path)
 
         # Background region creation
@@ -345,5 +346,6 @@ function RegBatch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
         end
 
         info("Updating Numaster table")
+        Numaster(download=false)
     end
 end
