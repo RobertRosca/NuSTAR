@@ -105,7 +105,9 @@ do
 	echo "${highlight}MPfspec ${reset}"
 	MPfspec $path_a_lc $path_b_lc
 
-	path_cpds="${path_mp}leahy_cpds.p"
+    MPplot "${path_mp}nu${ObsID}01_pds.p" --noplot --xlog --ylog
+    MPplot "${path_mp}nu${ObsID}01_cpds.p" --noplot --xlog --ylog
 
-	$SCRIPT_DIR/pickle2hdf5 $path_cpds
+	$SCRIPT_DIR/pickle2hdf5 "${path_mp}nu${ObsID}01_pds.p"
+    $SCRIPT_DIR/pickle2hdf5 "${path_mp}nu${ObsID}01_cpds.p"
 done
