@@ -1,0 +1,39 @@
+#!/usr/bin/python3
+ 
+# -*- coding: utf-8 -*-
+import re
+import sys
+import maltpynt
+import h5py
+import numpy
+import argparse
+import os
+ 
+def main(args=None):
+  description = \
+    'Convert maltpynt pickle files to HDF5 format'
+  parser = argparse.ArgumentParser(description=description)
+  parser.add_argument("files", help="List of files", nargs='+')
+ 
+  args = parser.parse_args(args)
+ 
+  for fname in args.files:
+    path_pickle = fname
+    path_hdf5 = os.path.splitext(path_pickle)[0] + ".hdf5"
+ 
+    rms_pickle = maltpynt.io._load_data_pickle(path_pickle)
+    f = h5py.File(path_hdf5, "w")
+ 
+    rms_pickle_types = [type(x) for x in rms_pickle.values()]
+ 
+    for item in rms_pickle:
+      if not type(rms_pickle[item]) is numpy.ndarray:
+        f.attrs[item] = rms_pickle[item]
+      else:
+        f.create_dataset(item, data=rms_pickle[item])
+ 
+    f.close()
+ 
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())
