@@ -1,22 +1,21 @@
 #!/bin/bash
 
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+
 # http://www.bahmanm.com/blogs/command-line-options-how-to-parse-in-bash-using-getopt
 
 # read the options
-TEMP=`getopt -o c:p:o: --long clean:,products:,obsids: -n 'run_native_nupipeline.sh' -- "$@"`
+TEMP=`getopt -o a:c:o: --long clean:,products:,obsids: -n 'run_native_nupipeline.sh' -- "$@"`
 eval set -- "$TEMP"
-
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
 # extract options and their arguments into variables.
 while true ; do
     case "$1" in
-        c|--clean)
+        a|--clean)
             case "$2" in
-                "") shift 2 ;;
                 *) clean=$2 ; shift 2 ;;
             esac ;;
-        p|--products)
+        c|--products)
             case "$2" in
                 "") shift 2 ;;
                 *) products=$2 ; shift 2 ;;
@@ -66,6 +65,8 @@ if [ -z "$obsids" ]; then
     echo "No obsids entered, exiting"
     exit
 fi
+
+exit
 
 echo "${highlight}Running for ${obsids[@]} ${reset}"
 
