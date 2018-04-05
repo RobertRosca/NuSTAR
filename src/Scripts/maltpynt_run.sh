@@ -67,7 +67,7 @@ do
 	path_b_lc="${path_mp}nu${ObsID}B01_E3-30_lc.p"
 
 	echo "${highlight}MPfspec ${reset}"
-	MPfspec $path_a_lc $path_b_lc -k CPDS -o leahy --norm leahy
+	MPfspec $path_a_lc $path_b_lc -k CPDS -o leahy --norm Leahy
 
 	path_rms_cpds="${path_mp}rms_cpds.p"
 
