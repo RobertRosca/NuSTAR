@@ -73,7 +73,8 @@ echo "${highlight}Running for ${obsids[@]} ${reset}"
 for ObsID in "${obsids[@]}"
 do
 	path_pipeline="$clean$ObsID/pipeline_out/"
-	path_mp="${path_pipeline}MP0/"
+	path_mp="${path_pipeline}MP/"
+    echo "${highlight}Saving to $path_mp ${reset}"
 
 	path_a="${path_pipeline}nu${ObsID}A01_cl.evt"
 	path_b="${path_pipeline}nu${ObsID}B01_cl.evt"
