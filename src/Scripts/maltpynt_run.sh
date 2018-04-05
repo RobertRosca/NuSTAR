@@ -99,8 +99,8 @@ do
 	echo "${highlight}MPlcurve ${reset}"
 	MPlcurve $path_a_calib $path_b_calib -b 0.002 --safe-interval 100 300
 
-	path_a_lc="${path_mp}nu${ObsID}A01_E3-30_lc.p"
-	path_b_lc="${path_mp}nu${ObsID}B01_E3-30_lc.p"
+	path_a_lc="${path_mp}nu${ObsID}A01_lc.p"
+	path_b_lc="${path_mp}nu${ObsID}B01_lc.p"
 
 	echo "${highlight}MPfspec ${reset}"
 	MPfspec $path_a_lc $path_b_lc -k CPDS -o leahy --norm Leahy
