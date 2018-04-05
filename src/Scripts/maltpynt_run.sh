@@ -66,8 +66,6 @@ if [ -z "$obsids" ]; then
     exit
 fi
 
-exit
-
 echo "${highlight}Running for ${obsids[@]} ${reset}"
 
 for ObsID in "${obsids[@]}"
