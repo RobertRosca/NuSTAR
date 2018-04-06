@@ -53,7 +53,7 @@ function MP_parse_calib(path)
     Instr  = data["Instr"]
     GTI    = MP_parse_gti(data["GTI"])
 
-    return MP_ev(MJDref, Tstop, time, PI, Tstart, Instr, GTI)
+    return MP_calib(MJDref, Tstop, time, PI, E, Tstart, Instr, GTI)
 end
 
 
