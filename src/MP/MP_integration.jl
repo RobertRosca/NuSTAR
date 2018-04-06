@@ -62,19 +62,19 @@ function MP_batch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
    end
 end
 
-type MP_pds
-    dynpds::Array{Float64,2}
-    edynpds::Array{Float64,2}
-    epds::Array{Float64,1}
-    freq::Array{Float64,1}
-    pds::Array{Float64,1}
-end
-
-type MP_cpds
-    cpds::Array{Complex,1}
-    ecpds::Array{Float64,1}
-    freq::Array{Float64,1}
-end
+# type MP_pds
+#     dynpds::Array{Float64,2}
+#     edynpds::Array{Float64,2}
+#     epds::Array{Float64,1}
+#     freq::Array{Float64,1}
+#     pds::Array{Float64,1}
+# end
+#
+# type MP_cpds
+#     cpds::Array{Complex,1}
+#     ecpds::Array{Float64,1}
+#     freq::Array{Float64,1}
+# end
 
 
 function MP_parse_cpds_compound(cpds_compound)
