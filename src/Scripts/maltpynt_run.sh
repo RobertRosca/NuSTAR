@@ -91,7 +91,7 @@ do
 	mv "${path_pipeline}nu${ObsID}B01_cl_ev.p" $path_b_ev
 
 	echo "${highlight}MPcalibrate ${reset}"
-	MPcalibrate $path_a_ev $path_b_ev
+	MPcalibrate $path_a_ev $path_b_ev -o no
 
 	path_a_calib="${path_mp}nu${ObsID}A01_ev_calib.p"
 	path_b_calib="${path_mp}nu${ObsID}B01_ev_calib.p"
@@ -118,11 +118,11 @@ do
             $SCRIPT_DIR/pickle2hdf5 "${path_mp}nu${ObsID}B01_pds.p"
             $SCRIPT_DIR/pickle2hdf5 "${path_mp}nu${ObsID}01_cpds.p"
 
-            mv "${path_mp}nu${ObsID}A01_pds.p" ./$bin/
-            mv "${path_mp}nu${ObsID}B01_pds.p" ./$bin/
-            mv "${path_mp}nu${ObsID}01_cpds.p" ./$bin/
-            mv "${path_mp}nu${ObsID}A01_pds.hdf5" ./$bin/
-            mv "${path_mp}nu${ObsID}B01_pds.hdf5" ./$bin/
-            mv "${path_mp}nu${ObsID}01_cpds.hdf5" ./$bin/
+            mv "${path_mp}nu${ObsID}A01_pds.p" ${path_mp}/$bin/
+            mv "${path_mp}nu${ObsID}B01_pds.p" ${path_mp}/$bin/
+            mv "${path_mp}nu${ObsID}01_cpds.p" ${path_mp}/$bin/
+            mv "${path_mp}nu${ObsID}A01_pds.hdf5" ${path_mp}/$bin/
+            mv "${path_mp}nu${ObsID}B01_pds.hdf5" ${path_mp}/$bin/
+            mv "${path_mp}nu${ObsID}01_cpds.hdf5" ${path_mp}/$bin/
     done
 done
