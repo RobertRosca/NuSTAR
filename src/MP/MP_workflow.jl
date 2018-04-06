@@ -1,12 +1,6 @@
 function MP_products(obsid; bintime = 2e-3,
         local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"])
 
-    try
-        ENV["CALDB"]
-    catch
-        rmf_file = "/home/sw-astro/caldb/data/nustar/fpm/cpf/rmfnuAdet3_20100101v002.rmf"
-    end
-
     path_pipeline = string(local_archive_cl, obsid, "/pipeline_out/")
     path_mp_out   = string(local_archive_pr, obsid, "/products/MP/")
     path_a = string(path_pipeline, "nu$(obsid)A01_cl.evt")
@@ -36,10 +30,18 @@ function MP_products(obsid; bintime = 2e-3,
     path_a_calib = string(path_mp_out, "nu$(obsid)A01_cl_calib.p")
     path_b_calib = string(path_mp_out, "nu$(obsid)B01_cl_calib.p")
 
-    info("MPcalibrate - $path_a_ev")
-    maltpynt.calibrate[:calibrate](path_a_ev, path_a_calib, rmf_file=rmf_file)
-    info("MPcalibrate - $path_b_ev")
-    maltpynt.calibrate[:calibrate](path_b_ev, path_b_calib, rmf_file=rmf_file)
+    rmf_file = "/home/sw-astro/caldb/data/nustar/fpm/cpf/rmfnuAdet3_20100101v002.rmf"
+    if isfile(rmf_file)
+        info("MPcalibrate - $path_a_ev")
+        maltpynt.calibrate[:calibrate](path_a_ev, path_a_calib, rmf_file=rmf_file)
+        info("MPcalibrate - $path_b_ev")
+        maltpynt.calibrate[:calibrate](path_b_ev, path_b_calib, rmf_file=rmf_file)
+    else
+        info("MPcalibrate - $path_a_ev")
+        maltpynt.calibrate[:calibrate](path_a_ev, path_a_calib)
+        info("MPcalibrate - $path_b_ev")
+        maltpynt.calibrate[:calibrate](path_b_ev, path_b_calib)
+    end
 
     @assert isfile(path_a_calib) && isfile(path_b_calib) "MP calib files not found, error while generating?"
 
