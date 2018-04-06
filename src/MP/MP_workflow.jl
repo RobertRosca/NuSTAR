@@ -1,4 +1,4 @@
-function MP_products(obsid; bintime = 2e-3, minimum_count_rate = 2, clobber=false
+function MP_products(obsid; bintime = 2e-3, minimum_count_rate = 2, clobber=false,
         local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"])
 
     path_pipeline = string(local_archive_cl, obsid, "/pipeline_out/")
