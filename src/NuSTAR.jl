@@ -12,6 +12,7 @@ using StatsBase
 using FileIO, JLD2
 using DSP
 using Wavelets
+using HDF5
 
 using Plots
 pyplot()
