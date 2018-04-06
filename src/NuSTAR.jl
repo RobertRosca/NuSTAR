@@ -36,7 +36,7 @@ include("Analysis/DS9Img.jl")
 include("Analysis/Plotters.jl")
 include("Analysis/ExtractEvents.jl")
 include("Analysis/LightCurve.jl")
-include("MP/MP_integration.jl")
+#include("MP/MP_integration.jl")
 include("MP/MP_io.jl")
 include("MP/MP_workflow.jl")
 
