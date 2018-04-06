@@ -1,3 +1,59 @@
+function MP_batch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"],
+                   local_utility=ENV["NU_ARCHIVE_UTIL"], log_file="", batches=4, to_cal=16, dry=false)
+
+   numaster_path = string(local_utility, "/numaster_df.csv")
+
+   numaster_df = read_numaster(numaster_path)
+
+   queue = @from i in numaster_df begin
+       @where i.RegSrc==1 && i.MP==0
+       @select i.obsid
+       @collect
+   end
+
+   if length(queue) > to_cal
+       queue = queue[1:to_cal]
+   else
+       to_cal = length(queue)
+   end
+
+   batch_remainder = to_cal % batches
+   no_rem_cal = to_cal - batch_remainder
+   no_rem_batch = Int(no_rem_cal / batches)
+
+   batch_sizes = []
+
+   for batch in 1:batches
+       append!(batch_sizes, no_rem_batch)
+   end
+
+   for remainder in 1:batch_remainder # Add remainder by one to each batch
+       batch_sizes[remainder] += 1
+   end
+
+   maltpynt_run = string(Pkg.dir(), "/NuSTAR/src/Scripts/maltpynt_run.sh")
+
+   for i = 1:batches
+       l = sum(batch_sizes[1:i]) - (batch_sizes[i] - 1)
+       u = sum(batch_sizes[1:i])
+
+       current_queue = queue[l:u]
+
+       if typeof(current_queue) == Array{String,1}
+           queue_native = join(current_queue, " ")
+       elseif typeof(current_queue) == String
+           queue_native = current_queue
+       end
+
+       if !dry
+           run(`gnome-terminal -e "$maltpynt_run --clean="$(ENV["NU_ARCHIVE_CL"])/" --products="$(ENV["NU_ARCHIVE_PR"])/" --obsids=\"$queue_native\""`)
+           info("Calibration started for $queue_native")
+       else
+           println("gnome-terminal -e \"$maltpynt_run --clean=\"$(ENV["NU_ARCHIVE_CL"])/\" --products=\"$(ENV["NU_ARCHIVE_PR"])/\" --obsids=\"$queue_native\"\"")
+       end
+   end
+end
+
 type MP_pds
     dynpds::Array{Float64,2}
     edynpds::Array{Float64,2}
