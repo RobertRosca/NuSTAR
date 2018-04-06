@@ -35,6 +35,11 @@ obsids=( $obsids )
 highlight=`tput setaf 6`
 reset=`tput sgr0`
 
+echo "${highlight}Running init ${reset}"
+source $HEADAS/headas-init.sh
+source $CALDB/software/tools/caldbinit.sh
+
+
 if [ -z "$clean" ]; then
     path_1="/home/robert/Scratch/.nustar_archive_cl/"
     path_2="/export/data/robertr/.nustar_archive_cl/"
