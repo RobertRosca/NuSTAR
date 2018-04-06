@@ -103,26 +103,27 @@ do
 	path_b_lc="${path_mp}nu${ObsID}B01_lc.p"
 
     for bin in 0.002 0.25 2
-        if [ ! -d "$path_mp/$bin" ]; then
-            mkdir $path_mp/$bin
-        fi
-        cd "$path_mp/$bin"
-    	echo "${highlight}MPfspec - $bin ${reset}"
-    	MPfspec $path_a_lc $path_b_lc -b $bin
+        do
+            if [ ! -d "$path_mp$bin" ]; then
+                mkdir $path_mp/$bin
+            fi
+            cd "$path_mp/$bin"
+        	echo "${highlight}MPfspec - $bin ${reset}"
+        	MPfspec $path_a_lc $path_b_lc -b $bin
 
-        echo "${highlight}MPfspec - dynamical - $bin ${reset}"
-        MPfspec $path_a_lc $path_b_lc -b $bin --save-dyn
+            echo "${highlight}MPfspec - dynamical - $bin ${reset}"
+            MPfspec $path_a_lc $path_b_lc -b $bin --save-dyn
 
-    	echo "${highlight}pickle2hdf5 - $bin ${reset}"
-    	$SCRIPT_DIR/pickle2hdf5 "${path_mp}nu${ObsID}A01_pds.p"
-        $SCRIPT_DIR/pickle2hdf5 "${path_mp}nu${ObsID}B01_pds.p"
-        $SCRIPT_DIR/pickle2hdf5 "${path_mp}nu${ObsID}01_cpds.p"
+        	echo "${highlight}pickle2hdf5 - $bin ${reset}"
+        	$SCRIPT_DIR/pickle2hdf5 "${path_mp}nu${ObsID}A01_pds.p"
+            $SCRIPT_DIR/pickle2hdf5 "${path_mp}nu${ObsID}B01_pds.p"
+            $SCRIPT_DIR/pickle2hdf5 "${path_mp}nu${ObsID}01_cpds.p"
 
-        mv "${path_mp}nu${ObsID}A01_pds.p" ./$bin
-        mv "${path_mp}nu${ObsID}B01_pds.p" ./$bin
-        mv "${path_mp}nu${ObsID}01_cpds.p" ./$bin
-        mv "${path_mp}nu${ObsID}A01_pds.hdf5" ./$bin
-        mv "${path_mp}nu${ObsID}B01_pds.hdf5" ./$bin
-        mv "${path_mp}nu${ObsID}01_cpds.hdf5" ./$bin
+            mv "${path_mp}nu${ObsID}A01_pds.p" ./$bin
+            mv "${path_mp}nu${ObsID}B01_pds.p" ./$bin
+            mv "${path_mp}nu${ObsID}01_cpds.p" ./$bin
+            mv "${path_mp}nu${ObsID}A01_pds.hdf5" ./$bin
+            mv "${path_mp}nu${ObsID}B01_pds.hdf5" ./$bin
+            mv "${path_mp}nu${ObsID}01_cpds.hdf5" ./$bin
     done
 done
