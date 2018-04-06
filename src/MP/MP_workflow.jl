@@ -1,5 +1,12 @@
 function MP_products(obsid; bintime = 2e-3,
         local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"])
+
+    try
+        ENV["CALDB"]
+    catch
+        ENV["CALDB"] = "/home/sw-astro/caldb"
+    end
+
     path_pipeline = string(local_archive_cl, obsid, "/pipeline_out/")
     path_mp_out   = string(local_archive_pr, obsid, "/products/MP/")
     path_a = string(path_pipeline, "nu$(obsid)A01_cl.evt")
