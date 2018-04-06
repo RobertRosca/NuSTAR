@@ -107,11 +107,12 @@ do
             if [ ! -d "$path_mp$bin" ]; then
                 mkdir $path_mp/$bin
             fi
-        	echo "${highlight}MPfspec - $bin ${reset}"
-        	MPfspec $path_a_lc $path_b_lc -b $bin
+            # dynamical includes normal pds
+        	# echo "${highlight}MPfspec - $bin ${reset}"
+        	# MPfspec $path_a_lc $path_b_lc -b $bin
 
             echo "${highlight}MPfspec - dynamical - $bin ${reset}"
-            MPfspec $path_a_lc $path_b_lc -b $bin --save-dyn
+            MPfspec $path_a_lc $path_b_lc -b $bin -f 128 --save-dyn
 
         	echo "${highlight}pickle2hdf5 - $bin ${reset}"
         	$SCRIPT_DIR/pickle2hdf5 "${path_mp}nu${ObsID}A01_pds.p"
