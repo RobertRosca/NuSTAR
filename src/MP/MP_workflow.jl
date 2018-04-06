@@ -4,7 +4,7 @@ function MP_products(obsid; bintime = 2e-3,
     try
         ENV["CALDB"]
     catch
-        ENV["CALDB"] = "/home/sw-astro/caldb"
+        rmf_file = "/home/sw-astro/caldb/data/nustar/fpm/cpf/rmfnuAdet3_20100101v002.rmf"
     end
 
     path_pipeline = string(local_archive_cl, obsid, "/pipeline_out/")
@@ -37,9 +37,9 @@ function MP_products(obsid; bintime = 2e-3,
     path_b_calib = string(path_mp_out, "nu$(obsid)B01_cl_calib.p")
 
     info("MPcalibrate - $path_a_ev")
-    maltpynt.calibrate[:calibrate](path_a_ev, path_a_calib)
+    maltpynt.calibrate[:calibrate](path_a_ev, path_a_calib, rmf_file=rmf_file)
     info("MPcalibrate - $path_b_ev")
-    maltpynt.calibrate[:calibrate](path_b_ev, path_b_calib)
+    maltpynt.calibrate[:calibrate](path_b_ev, path_b_calib, rmf_file=rmf_file)
 
     @assert isfile(path_a_calib) && isfile(path_b_calib) "MP calib files not found, error while generating?"
 
