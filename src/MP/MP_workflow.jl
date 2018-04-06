@@ -30,7 +30,7 @@ function MP_products(obsid; bintime = 2e-3,
     path_a_calib = string(path_mp_out, "nu$(obsid)A01_cl_calib.p")
     path_b_calib = string(path_mp_out, "nu$(obsid)B01_cl_calib.p")
 
-    rmf_file = "/home/sw-astro/caldb/data/nustar/fpm/cpf/rmfnuAdet3_20100101v002.rmf"
+    rmf_file = "/home/sw-astro/caldb/data/nustar/fpm/cpf/rmf/nuAdet3_20100101v002.rmf"
     if isfile(rmf_file)
         info("MPcalibrate - $path_a_ev")
         maltpynt.calibrate[:calibrate](path_a_ev, path_a_calib, rmf_file=rmf_file)
