@@ -89,6 +89,7 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
     lc           = fill("NA", numaster_df_n)
     interesting_flag = fill("NA", numaster_df_n)
     evt          = fill("NA", numaster_df_n)
+    mp           = zeros(Int, numaster_df_n)
 
     for (itr, obs) in enumerate(numaster_df[:obsid])
         if cleaned[itr] == 1
@@ -121,6 +122,11 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
             evt[itr] = "A"
         elseif isfile(evt_path_B)
             evt[itr] = "B"
+        end
+
+        mp_path = string(local_archive_pr, "/", obs, "/products/MP/")
+        if isdir(mp_path)
+            mp[itr] = 1
         end
 
         # Comments/manual intersting flagging
@@ -163,6 +169,7 @@ function Numaster(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
     numaster_df[:LC]       = lc
     numaster_df[:Interesting]  = interesting_flag
     numaster_df[:EVT]      = evt
+    numaster_df[:MP]       = mp
 
     # Convert modified Julian dates to readable dates
     numaster_df[:time] = map(x -> Base.Dates.julian2datetime(parse(Float64, x) + 2400000.5), numaster_df[:time])

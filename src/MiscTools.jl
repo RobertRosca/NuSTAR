@@ -103,7 +103,7 @@ function read_numaster(numaster_path)
     Int, String, Union{Missings.Missing, String}, Int, Int, # :cycle, :obs_type, :title, :data_gap, :nupsdout
     Union{Missings.Missing, String}, Union{Missings.Missing, String}, Int, Union{Missings.Missing, String}, String, #:solar_activity, :coordinated, :issue_flag, :comments, :status
     String, Int, Int, Int, Int, # :caldb_version, :Downloaded, :Cleaned, :ValidSci, :RegSrc
-    Int, String, String, String]; # :RegBkg, :LC, :Interesting, :EVT
+    Int, String, String, String, Int]; # :RegBkg, :LC, :Interesting, :EVT, :MP
 
     # This is absurdly stupid looking, but seems to be the best way to get the CSV
     # to be read properly
