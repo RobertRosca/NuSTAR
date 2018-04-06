@@ -13,6 +13,8 @@ using FileIO, JLD2
 using DSP
 using Wavelets
 using HDF5
+using PyCall
+@pyimport maltpynt
 
 using Plots
 pyplot()
