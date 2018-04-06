@@ -206,3 +206,75 @@ function MP_plot_overview(obsid::String; plot_width=1200, plot_height=300, local
 
     savefig(plt_overview, string(path_img_dir, "summary_MP.png"))
 end
+
+function MP_plot_overview_batch(;batch_size=10000, plot_width=1200, plot_height=300, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utility=ENV["NU_ARCHIVE_UTIL"], numaster_path=string(local_utility, "/numaster_df.csv"), overwrite=false)
+    numaster_df=read_numaster(numaster_path)
+
+    queue = @from i in numaster_df begin
+        @where contains(i.LC, "lc_05 lc_0 lc_1 lc_2") && i.MP==1
+        @select i.obsid
+        @collect
+    end
+
+    i = 0
+
+    for obsid in queue
+        img_path = string(string(local_archive_pr, obsid, "/images/"), "summary_MP.png")
+        lc_paths = string.(string(local_archive_pr, obsid, "/products/lc/"), ["lc_05.jld2", "lc_0.jld2", "lc_1.jld2", "lc_2.jld2"])
+
+        newest_lc = maximum(mtime.(lc_paths))
+        summary_age = mtime(img_path)
+
+        if summary_age - newest_lc < 0 || overwrite
+            println("$obsid - LC newer than image - plotting")
+            plot_overview(obsid; plot_width=plot_width, plot_height=plot_height, local_archive_pr=local_archive_pr)
+            i += 1
+        else
+            continue
+        end
+
+        if i >= batch_size
+            return
+        end
+    end
+end
+
+function MP_plt_batch(;batch_size=10000, plot_width=1200, plot_height=300, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utility=ENV["NU_ARCHIVE_UTIL"], numaster_path=string(local_utility, "/numaster_df.csv"), overwrite=false)
+    MP_plot_overview_batch(;batch_size=10000, plot_width=1200, plot_height=300, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utility=ENV["NU_ARCHIVE_UTIL"], numaster_path=string(local_utility, "/numaster_df.csv"), overwrite=false)
+end
+
+function MP_full_workflow(batch_size=10000)
+    NuSTAR.Numaster(download=false)
+
+    info("xsel_evt_batch")
+
+    NuSTAR.xsel_evt_batch(batch_size=batch_size)
+
+    info("PRESS ENTER ONCE XSELECT HAS FINISHED")
+
+    info("MP_batch")
+
+    NuSTAR.MP_batch(batches=6, to_cal=batch_size)
+
+    info("PRESS ENTER ONCE MP_batch HAS FINISHED")
+
+    readline(STDIN)
+
+    NuSTAR.Numaster(download=false)
+
+    info("generate_standard_lc_files_batch")
+
+    NuSTAR.generate_standard_lc_files_batch(batch_size=batch_size)
+
+    NuSTAR.Numaster(download=false)
+
+    info("plot_overview_batch")
+
+    NuSTAR.plot_overview_batch(batch_size=batch_size)
+
+    NuSTAR.Numaster(download=false)
+
+    info("WebGen")
+
+    NuSTAR.WebGen()
+end
