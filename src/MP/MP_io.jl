@@ -1,3 +1,12 @@
+function MP_parse_gti(py_gti::PyCall.PyObject)
+    GTI = []
+    for gti in py_gti
+        append!(GTI, [convert(Array{Float64,1}, gti)])
+    end
+
+    return GTI
+end
+
 type MP_ev
     MJDref::Float64
     Tstop::Float64
@@ -16,11 +25,7 @@ function MP_parse_ev(path)
     PI     = data["PI"]
     Tstart = convert(Float64, data["Tstart"])
     Instr  = data["Instr"]
-
-    GTI = []
-    for gti in data["GTI"]
-        append!(GTI, [convert(Array{Float64,1}, gti)])
-    end
+    GTI    = MP_parse_gti(data["GTI"])
 
     return MP_ev(MJDref, Tstop, time, PI, Tstart, Instr, GTI)
 end
