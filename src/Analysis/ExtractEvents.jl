@@ -19,7 +19,7 @@ function save_evt(evt_data_path; kwargs...)
     if !isdir(dirname(evt_data_path))
         mkpath(dirname(evt_data_path))
     end
-    
+
     jldopen(evt_data_path, "w") do file
         for kw in kwargs
             file[string(kw[1])] = kw[2]
@@ -79,7 +79,7 @@ function extract_evts(evt_path; gti_width_min::Number=128)
 end
 
 function bin_evts_lc(unbinned::Unbinned_event, bin_sec::Real)
-    if bin_sec < 2e-3
+    if bin_sec < 2e-6
         error("NuSTAR temportal resolution is 2e-3, cannot bin under that value, binsec $bin_sec is invalid")
     end
 
@@ -87,7 +87,6 @@ function bin_evts_lc(unbinned::Unbinned_event, bin_sec::Real)
 
     gti_intervals = size(unbinned.gtis, 1)
     evt_gtis = hcat(unbinned.gtis...)' # Convert to matrix
-    evt_gtis = evt_gtis # Fix floating point errors
 
     gtis = map(x->findfirst(evt_time_edges.>=x), evt_gtis) .- [zeros(Int, gti_intervals) ones(Int, gti_intervals)] # Subtract one from the GTI end bins
     if gtis[end] == -1; gtis[end] = length(evt_time_edges); end # Fix for GTI at end of time

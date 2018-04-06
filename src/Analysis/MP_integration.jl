@@ -1,5 +1,5 @@
 function MP_batch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"],
-                   local_utility=ENV["NU_ARCHIVE_UTIL"], log_file="", batches=4, to_cal=16, dry=false)
+                   local_utility=ENV["NU_ARCHIVE_UTIL"], log_file="", batches=4, to_cal=16, dry=false, mode="full")
 
    numaster_path = string(local_utility, "/numaster_df.csv")
 
@@ -31,7 +31,13 @@ function MP_batch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
        batch_sizes[remainder] += 1
    end
 
-   maltpynt_run = string(Pkg.dir(), "/NuSTAR/src/Scripts/maltpynt_run.sh")
+   if mode == "full"
+       maltpynt_run = string(Pkg.dir(), "/NuSTAR/src/Scripts/maltpynt_run.sh")
+   elseif mode == "lc"
+       maltpynt_run = string(Pkg.dir(), "/NuSTAR/src/Scripts/maltpynt_run.sh")
+   else
+       error("Invalid mode set for MP batch, use 'full' or 'lc'")
+   end
 
    for i = 1:batches
        l = sum(batch_sizes[1:i]) - (batch_sizes[i] - 1)
