@@ -36,6 +36,7 @@ include("Analysis/Plotters.jl")
 include("Analysis/ExtractEvents.jl")
 include("Analysis/LightCurve.jl")
 include("Analysis/plot_lc.jl")
+include("Analysis/MP_integration.jl")
 
 nustar_settings_file = string(homedir(), "/.config/julia-pkg/v0.6/NuSTAR/NuSTAR-settings.jl")
 
