@@ -39,7 +39,7 @@ function MP_batch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARC
        error("Invalid mode set for MP batch, use 'full' or 'lc'")
    end
 
-   @asser isfile(maltpynt_run) "$maltpynt_run not found"
+   @assert isfile(maltpynt_run) "$maltpynt_run not found"
 
    for i = 1:batches
        l = sum(batch_sizes[1:i]) - (batch_sizes[i] - 1)
