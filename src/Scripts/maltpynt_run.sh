@@ -92,27 +92,27 @@ do
 	echo "${highlight}MPreadevents ${reset}"
 	MPreadevents $path_a $path_b --nproc 2
 
-	path_a_ev="${path_mp}nu${ObsID}A01_ev.p"
-	path_b_ev="${path_mp}nu${ObsID}B01_ev.p"
+	path_a_ev="${path_mp}nu${ObsID}A01_ev.nc"
+	path_b_ev="${path_mp}nu${ObsID}B01_ev.nc"
 
     if [ ! -d "$path_mp" ]; then
         mkdir $path_mp
     fi
 
-	mv "${path_pipeline}nu${ObsID}A01_cl_ev.p" $path_a_ev
-	mv "${path_pipeline}nu${ObsID}B01_cl_ev.p" $path_b_ev
+	mv "${path_pipeline}nu${ObsID}A01_cl_ev.nc" $path_a_ev
+	mv "${path_pipeline}nu${ObsID}B01_cl_ev.nc" $path_b_ev
 
 	echo "${highlight}MPcalibrate ${reset}"
 	MPcalibrate $path_a_ev $path_b_ev --nproc 2
 
-	path_a_calib="${path_mp}nu${ObsID}A01_ev_calib.p"
-	path_b_calib="${path_mp}nu${ObsID}B01_ev_calib.p"
+	path_a_calib="${path_mp}nu${ObsID}A01_ev_calib.nc"
+	path_b_calib="${path_mp}nu${ObsID}B01_ev_calib.nc"
 
 	echo "${highlight}MPlcurve - 0.002 ${reset}"
 	MPlcurve $path_a_calib $path_b_calib -b 0.002 --safe-interval 100 300 --noclobber --nproc 2
 
-	path_a_lc="${path_mp}nu${ObsID}A01_lc.p"
-	path_b_lc="${path_mp}nu${ObsID}B01_lc.p"
+	path_a_lc="${path_mp}nu${ObsID}A01_lc.nc"
+	path_b_lc="${path_mp}nu${ObsID}B01_lc.nc"
 
     for bin in 0.002 0.25 2
         do
@@ -124,14 +124,14 @@ do
             echo "${highlight}MPfspec - dynamical - $bin ${reset}"
             MPfspec $path_a_lc $path_b_lc -b $bin -k CPDS --nproc 2
 
-        	echo "${highlight}pickle2hdf5 - $bin ${reset}"
-        	#$SCRIPT_DIR/pickle2hdf5 "${path_mp}nu${ObsID}A01_pds.p"
-            #$SCRIPT_DIR/pickle2hdf5 "${path_mp}nu${ObsID}B01_pds.p"
-            $SCRIPT_DIR/pickle2hdf5 "${path_mp}nu${ObsID}01_cpds.p"
+        	echo "${highlight}nc2hdf5 - $bin ${reset}"
+        	#$SCRIPT_DIR/nc2hdf5 "${path_mp}nu${ObsID}A01_pds.nc"
+            #$SCRIPT_DIR/nc2hdf5 "${path_mp}nu${ObsID}B01_pds.nc"
+            $SCRIPT_DIR/nc2hdf5 "${path_mp}nu${ObsID}01_cpds.nc"
 
-            #mv "${path_mp}nu${ObsID}A01_pds.p" ${path_mp}/$bin/
-            #mv "${path_mp}nu${ObsID}B01_pds.p" ${path_mp}/$bin/
-            mv "${path_mp}nu${ObsID}01_cpds.p" ${path_mp}/$bin/
+            #mv "${path_mp}nu${ObsID}A01_pds.nc" ${path_mp}/$bin/
+            #mv "${path_mp}nu${ObsID}B01_pds.nc" ${path_mp}/$bin/
+            mv "${path_mp}nu${ObsID}01_cpds.nc" ${path_mp}/$bin/
             #mv "${path_mp}nu${ObsID}A01_pds.hdf5" ${path_mp}/$bin/
             #mv "${path_mp}nu${ObsID}B01_pds.hdf5" ${path_mp}/$bin/
             mv "${path_mp}nu${ObsID}01_cpds.hdf5" ${path_mp}/$bin/
