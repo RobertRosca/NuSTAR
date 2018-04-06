@@ -78,7 +78,7 @@ do
 	path_b="${path_pipeline}nu${ObsID}B01_cl.evt"
 
 	echo "${highlight}MPreadevents ${reset}"
-	MPreadevents $path_a $path_b
+	MPreadevents $path_a $path_b --nproc 2
 
 	path_a_ev="${path_mp}nu${ObsID}A01_ev.p"
 	path_b_ev="${path_mp}nu${ObsID}B01_ev.p"
@@ -91,13 +91,13 @@ do
 	mv "${path_pipeline}nu${ObsID}B01_cl_ev.p" $path_b_ev
 
 	echo "${highlight}MPcalibrate ${reset}"
-	MPcalibrate $path_a_ev $path_b_ev
+	MPcalibrate $path_a_ev $path_b_ev --nproc 2
 
 	path_a_calib="${path_mp}nu${ObsID}A01_ev_calib.p"
 	path_b_calib="${path_mp}nu${ObsID}B01_ev_calib.p"
 
 	echo "${highlight}MPlcurve - 0.002 ${reset}"
-	MPlcurve $path_a_calib $path_b_calib -b 0.002 --safe-interval 100 300 --noclobber
+	MPlcurve $path_a_calib $path_b_calib -b 0.002 --safe-interval 100 300 --noclobber --nproc 2
 
 	path_a_lc="${path_mp}nu${ObsID}A01_lc.p"
 	path_b_lc="${path_mp}nu${ObsID}B01_lc.p"
@@ -110,7 +110,7 @@ do
             # dynamical includes normal pds
 
             echo "${highlight}MPfspec - dynamical - $bin ${reset}"
-            MPfspec $path_a_lc $path_b_lc -b $bin --save-dyn
+            MPfspec $path_a_lc $path_b_lc -b $bin --save-dyn --nproc 2
 
         	echo "${highlight}pickle2hdf5 - $bin ${reset}"
         	$SCRIPT_DIR/pickle2hdf5 "${path_mp}nu${ObsID}A01_pds.p"
