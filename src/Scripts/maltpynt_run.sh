@@ -122,18 +122,18 @@ do
             # dynamical includes normal pds
 
             echo "${highlight}MPfspec - dynamical - $bin ${reset}"
-            MPfspec $path_a_lc $path_b_lc -b $bin --save-dyn --nproc 2
+            MPfspec $path_a_lc $path_b_lc -b $bin -k CPDS --nproc 2
 
         	echo "${highlight}pickle2hdf5 - $bin ${reset}"
-        	$SCRIPT_DIR/pickle2hdf5 "${path_mp}nu${ObsID}A01_pds.p"
-            $SCRIPT_DIR/pickle2hdf5 "${path_mp}nu${ObsID}B01_pds.p"
+        	#$SCRIPT_DIR/pickle2hdf5 "${path_mp}nu${ObsID}A01_pds.p"
+            #$SCRIPT_DIR/pickle2hdf5 "${path_mp}nu${ObsID}B01_pds.p"
             $SCRIPT_DIR/pickle2hdf5 "${path_mp}nu${ObsID}01_cpds.p"
 
-            mv "${path_mp}nu${ObsID}A01_pds.p" ${path_mp}/$bin/
-            mv "${path_mp}nu${ObsID}B01_pds.p" ${path_mp}/$bin/
+            #mv "${path_mp}nu${ObsID}A01_pds.p" ${path_mp}/$bin/
+            #mv "${path_mp}nu${ObsID}B01_pds.p" ${path_mp}/$bin/
             mv "${path_mp}nu${ObsID}01_cpds.p" ${path_mp}/$bin/
-            mv "${path_mp}nu${ObsID}A01_pds.hdf5" ${path_mp}/$bin/
-            mv "${path_mp}nu${ObsID}B01_pds.hdf5" ${path_mp}/$bin/
+            #mv "${path_mp}nu${ObsID}A01_pds.hdf5" ${path_mp}/$bin/
+            #mv "${path_mp}nu${ObsID}B01_pds.hdf5" ${path_mp}/$bin/
             mv "${path_mp}nu${ObsID}01_cpds.hdf5" ${path_mp}/$bin/
     done
 done
