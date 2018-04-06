@@ -36,8 +36,9 @@ include("Analysis/DS9Img.jl")
 include("Analysis/Plotters.jl")
 include("Analysis/ExtractEvents.jl")
 include("Analysis/LightCurve.jl")
-include("Analysis/plot_lc.jl")
-include("Analysis/MP_integration.jl")
+include("MP/MP_integration.jl")
+include("MP/MP_io.jl")
+include("MP/MP_workflow.jl")
 
 nustar_settings_file = string(homedir(), "/.config/julia-pkg/v0.6/NuSTAR/NuSTAR-settings.jl")
 
