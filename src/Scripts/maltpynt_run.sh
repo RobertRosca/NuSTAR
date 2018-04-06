@@ -104,7 +104,7 @@ do
 
     for bin in 0.002 0.25 2
         if [ ! -d "$path_mp/$bin" ]; then
-            mkdir "$path_mp/$bin"
+            mkdir $path_mp/$bin
         fi
         cd "$path_mp/$bin"
     	echo "${highlight}MPfspec - $bin ${reset}"
