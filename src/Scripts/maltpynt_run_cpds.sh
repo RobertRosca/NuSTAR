@@ -101,7 +101,7 @@ do
             if [ -a "$path_a_pds_done" ]; then
                 echo "${highlight}Files already exist in $path_a_pds_done ${reset}"
                 echo "${highlight}EXITING ${reset}"
-                exit
+                continue
             fi
 
             echo "${highlight}MPfspec - dynamical - $bin ${reset}"
