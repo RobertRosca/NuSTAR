@@ -28,7 +28,7 @@ function MP_calib_total_crate(path_a_calib::String, path_b_calib::String; min_gt
 end
 
 
-function MP_produce_lc(obsid; bintime = 2e-3, minimum_count_rate = 2, clobber=false,
+@everywhere function MP_produce_lc(obsid; bintime = 2e-3, minimum_count_rate = 2, clobber=false,
         local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"])
 
     path_pipeline = string(local_archive_cl, obsid, "/pipeline_out/")
