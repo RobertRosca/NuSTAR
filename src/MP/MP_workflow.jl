@@ -34,7 +34,7 @@ function MP_calib_total_crate(path_a_calib::String, path_b_calib::String; min_gt
 end
 
 
-function MP_produce_lc(obsid; bintime = 2e-3, minimum_count_rate=2.5, clobber=false,
+function MP_produce_lc(obsid; bintime = 2e-3, minimum_count_rate=2, clobber=false,
         local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"])
 
     path_pipeline = string(local_archive_cl, obsid, "/pipeline_out/")
@@ -42,7 +42,11 @@ function MP_produce_lc(obsid; bintime = 2e-3, minimum_count_rate=2.5, clobber=fa
     path_a = string(path_pipeline, "nu$(obsid)A01_cl.evt")
     path_b = string(path_pipeline, "nu$(obsid)B01_cl.evt")
 
-    @assert isfile(path_a) && isfile(path_b) "cleaned evt files not found"
+    if !isfile(path_a) || !isfile(path_b)
+        warn("Cleaned evt files not found\n$path_a\n$path_b")
+        warn("Skipping")
+        return
+    end
 
     if !ispath(path_mp_out)
         mkpath(path_mp_out)
@@ -107,7 +111,7 @@ function MP_produce_lc(obsid; bintime = 2e-3, minimum_count_rate=2.5, clobber=fa
     end
 end
 
-function MP_produce_lc_batch(minimum_count_rate=2.5;
+function MP_produce_lc_batch(minimum_count_rate=2;
     local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"], local_utility=ENV["NU_ARCHIVE_UTIL"], procs_to_use=4, todo=16, dry=false)
 
    numaster_path = string(local_utility, "/numaster_df.csv")
@@ -145,14 +149,18 @@ function MP_produce_lc_batch(minimum_count_rate=2.5;
     end=#
 end
 
-function MP_produce_lc_one(obsid, instrument; bintime = 2e-3, minimum_count_rate=2.5, clobber=false,
+function MP_produce_lc_one(obsid, instrument; bintime = 2e-3, minimum_count_rate=2, clobber=false,
         local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"])
 
     path_pipeline = string(local_archive_cl, obsid, "/pipeline_out/")
     path_mp_out   = string(local_archive_pr, obsid, "/products/MP/")
     path = string(path_pipeline, "nu$(obsid)$(instrument)01_cl.evt")
 
-    @assert isfile(path) "cleaned evt files not found"
+    if !isfile(path)
+        warn("Cleaned evt files not found - $path")
+        warn("Skipping")
+        return
+    end
 
     if !ispath(path_mp_out)
         mkpath(path_mp_out)
@@ -204,7 +212,7 @@ function MP_produce_lc_one(obsid, instrument; bintime = 2e-3, minimum_count_rate
     end
 end
 
-function MP_produce_lc_batch_one(instrument; minimum_count_rate=2.5,
+function MP_produce_lc_batch_one(instrument; minimum_count_rate=2,
     local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"], local_utility=ENV["NU_ARCHIVE_UTIL"], procs_to_use=4, todo=16, dry=false)
 
    numaster_path = string(local_utility, "/numaster_df.csv")
