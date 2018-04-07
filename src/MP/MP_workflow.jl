@@ -90,6 +90,8 @@ end
         if total_count_rate < minimum_count_rate
             warn("Count rate too low, aborting!")
             return
+        else
+            info("Count rate: $total_count_rate /s")
         end
 
         info("MPlcurve - $path_a_calib")
