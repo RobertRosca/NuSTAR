@@ -88,7 +88,7 @@ end
         total_count_rate = MP_calib_total_crate(path_a_calib, path_b_calib)
 
         if total_count_rate < minimum_count_rate
-            warning("Count rate too low, aborting!")
+            warn("Count rate too low, aborting!")
             return
         end
 
