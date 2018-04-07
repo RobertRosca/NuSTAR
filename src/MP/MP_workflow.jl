@@ -147,8 +147,7 @@ function MP_produce_cpds_batch(;local_archive=ENV["NU_ARCHIVE"], local_archive_c
    numaster_df = read_numaster(numaster_path)
 
    queue = @from i in numaster_df begin
-       path_a_lc = string(local_archive_pr, obsid, "/products/MP/", "nu$(obsid)B01_cl_lc.p")
-       @where i.RegSrc==1 && i.MP==1 && isfile(path_a_lc)
+       @where i.RegSrc==1 && i.MP==1 && isfile(string(local_archive_pr, obsid, "/products/MP/", "nu$(obsid)B01_cl_lc.p"))
        @select i.obsid
        @collect
    end
