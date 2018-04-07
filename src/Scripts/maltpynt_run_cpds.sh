@@ -94,9 +94,9 @@ do
                 mkdir $path_mp/$bin
             fi
 
-            path_a_pds="${path_mp}nu${ObsID}A01_cl_pds.p"
-            path_b_pds="${path_mp}nu${ObsID}B01_cl_pds.p"
-            path_cpds="${path_mp}nu${ObsID}01_cl_cpds.p"
+            path_a_pds_done="${path_mp}/$bin/nu${ObsID}A01_cl_pds.p"
+            path_b_pds_done="${path_mp}/$bin/nu${ObsID}B01_cl_pds.p"
+            path_cpds_done="${path_mp}/$bin/nu${ObsID}01_cl_cpds.p"
 
             if [ ! -a "$path_a_pds" ]; then
                 echo "${highlight}MPfspec - dynamical - $bin ${reset}"
