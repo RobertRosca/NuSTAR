@@ -85,8 +85,8 @@ do
 	path_mp="$products$ObsID/products/MP/"
     echo "${highlight}Saving to $path_mp ${reset}"
 
-	path_a_lc="${path_mp}nu${ObsID}A01_lc.p"
-	path_b_lc="${path_mp}nu${ObsID}B01_lc.p"
+	path_a_lc="${path_mp}nu${ObsID}A01_cl_lc.p"
+	path_b_lc="${path_mp}nu${ObsID}B01_cl_lc.p"
 
     for bin in 0.002 0.25 2
         do
