@@ -92,7 +92,7 @@ do
         do
             if [ ! -d "$path_mp$bin" ]; then
                 mkdir $path_mp/$bin
-            else
+            fi
 
             path_a_pds_done="${path_mp}/$bin/nu${ObsID}A01_cl_pds.p"
             path_b_pds_done="${path_mp}/$bin/nu${ObsID}B01_cl_pds.p"
