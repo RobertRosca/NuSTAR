@@ -13,6 +13,12 @@ function MP_calib_total_crate(data_calib::MP_calib; min_gti_sec=512)
     return count_rate
 end
 
+function MP_calib_total_crate(path_calib::String; min_gti_sec=512)
+    data_calib = MP_parse_calib(path_calib)
+
+    return MP_calib_total_crate(data_calib; min_gti_sec=min_gti_sec)
+end
+
 function MP_calib_total_crate(data_a_calib::MP_calib, data_b_calib::MP_calib; min_gti_sec=512)
     count_rate_a = MP_calib_total_crate(data_a_calib; min_gti_sec=min_gti_sec)
     count_rate_b = MP_calib_total_crate(data_b_calib; min_gti_sec=min_gti_sec)
@@ -28,7 +34,7 @@ function MP_calib_total_crate(path_a_calib::String, path_b_calib::String; min_gt
 end
 
 
-function MP_produce_lc(obsid; bintime = 2e-3, minimum_count_rate = 2, clobber=false,
+function MP_produce_lc(obsid; bintime = 2e-3, minimum_count_rate=2, clobber=false,
         local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"])
 
     path_pipeline = string(local_archive_cl, obsid, "/pipeline_out/")
@@ -101,8 +107,8 @@ function MP_produce_lc(obsid; bintime = 2e-3, minimum_count_rate = 2, clobber=fa
     end
 end
 
-function MP_produce_lc_batch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"],
-                   local_utility=ENV["NU_ARCHIVE_UTIL"], procs_to_use=4, todo=16, dry=false)
+function MP_produce_lc_batch(minimum_count_rate=2.5;
+    local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"], local_utility=ENV["NU_ARCHIVE_UTIL"], procs_to_use=4, todo=16, dry=false)
 
    numaster_path = string(local_utility, "/numaster_df.csv")
 
@@ -121,7 +127,7 @@ function MP_produce_lc_batch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=
    for (i, obsid) in enumerate(queue)
        warn("On $i of $(length(queue))")
        info("Running on $obsid")
-       MP_produce_lc(obsid)
+       MP_produce_lc(obsid; minimum_count_rate=minimum_count_rate)
    end
 
    #=
@@ -137,6 +143,89 @@ function MP_produce_lc_batch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=
         println("Running on $obsid")
         MP_calib_total_crate(obsid)
     end=#
+end
+
+function MP_produce_lc_one(obsid, instrument; bintime = 2e-3, minimum_count_rate=2, clobber=false,
+        local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"])
+
+    path_pipeline = string(local_archive_cl, obsid, "/pipeline_out/")
+    path_mp_out   = string(local_archive_pr, obsid, "/products/MP/")
+    path = string(path_pipeline, "nu$(obsid)$(instrument)01_cl.evt")
+
+    @assert isfile(path) "cleaned evt files not found"
+
+    if !ispath(path_mp_out)
+        mkpath(path_mp_out)
+    end
+
+    info("MPread - $path")
+    maltpynt.read_events[:treat_event_file](path)
+
+    path_ev = string(path_pipeline, "nu$(obsid)$(instrument)01_cl_ev.p")
+    @assert isfile(path_ev) "MP ev files not found, error while generating?"
+
+    mv(path_ev, string(path_mp_out, "nu$(obsid)$(instrument)01_cl_ev.p"), remove_destination=true)
+
+    path_ev = string(path_mp_out, "nu$(obsid)$(instrument)01_cl_ev.p")
+
+    path_calib = string(path_mp_out, "nu$(obsid)$(instrument)01_cl_calib.p")
+
+    rmf_file = "/home/sw-astro/caldb/data/nustar/fpm/cpf/rmf/nuAdet3_20100101v002.rmf"
+    if isfile(path_calib) && isfile(path_calib) && !clobber
+        info("Calib files already exist, skipping - $path_ev")
+    else
+        if isfile(rmf_file)
+            info("MPcalibrate - $path_ev")
+            maltpynt.calibrate[:calibrate](path_ev, path_calib, rmf_file=rmf_file)
+        else
+            info("MPcalibrate - $path_ev")
+            maltpynt.calibrate[:calibrate](path_ev, path_calib)
+        end
+    end
+
+    @assert isfile(path_calib) "MP calib files not found, error while generating?"
+
+    path_lc = string(path_mp_out, "nu$(obsid)$(instrument)01_cl_lc.p")
+
+    if isfile(path_lc) && isfile(path_b_lc) && !clobber
+        info("Lightcurve files already exist, skipping - $path_ev")
+    else
+        total_count_rate = MP_calib_total_crate(path_calib)
+
+        if total_count_rate < minimum_count_rate
+            warn("Count rate too low, aborting!")
+            return
+        else
+            info("Count rate: $total_count_rate /s")
+        end
+
+        info("MPlcurve - $path_calib")
+        maltpynt.lcurve[:lcurve_from_events](path_calib, safe_interval=[100, 300], bintime=bintime)
+    end
+end
+
+function MP_produce_lc_batch_one(instrument; minimum_count_rate=2.5,
+    local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"], local_utility=ENV["NU_ARCHIVE_UTIL"], procs_to_use=4, todo=16, dry=false)
+
+   numaster_path = string(local_utility, "/numaster_df.csv")
+
+   numaster_df = read_numaster(numaster_path)
+
+   queue = @from i in numaster_df begin
+       @where i.RegSrc==1 && i.MP==0
+       @select i.obsid
+       @collect
+   end
+
+   if length(queue) > todo
+       queue = queue[1:todo]
+   end
+
+   for (i, obsid) in enumerate(queue)
+       warn("On $i of $(length(queue))")
+       info("Running on $obsid")
+       MP_produce_lc_one(obsid, instrument; minimum_count_rate=minimum_count_rate)
+   end
 end
 
 function MP_produce_cpds_batch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"],
