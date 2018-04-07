@@ -173,7 +173,7 @@ function MP_produce_cpds_batch(;local_archive=ENV["NU_ARCHIVE"], local_archive_c
        batch_sizes[remainder] += 1
    end
 
-   maltpynt_run = string(Pkg.dir(), "/NuSTAR/src/Scripts/maltpynt_run.sh")
+   maltpynt_run = string(Pkg.dir(), "/NuSTAR/src/Scripts/maltpynt_run_cpds.sh")
 
    @assert isfile(maltpynt_run) "$maltpynt_run not found"
 
