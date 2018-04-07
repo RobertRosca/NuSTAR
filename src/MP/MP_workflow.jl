@@ -44,7 +44,7 @@ function MP_produce_lc(obsid; bintime = 2e-3, minimum_count_rate=4, clobber=fals
 
     if !isfile(path_a) || !isfile(path_b)
         warn("Cleaned evt files not found\n$path_a\n$path_b")
-        warn("Skipping\n")
+        warn("Skipping")
         return
     end
 
@@ -93,7 +93,7 @@ function MP_produce_lc(obsid; bintime = 2e-3, minimum_count_rate=4, clobber=fals
     path_b_lc = string(path_mp_out, "nu$(obsid)B01_cl_lc.p")
 
     if isfile(path_a_lc) && isfile(path_b_lc) && !clobber
-        info("Lightcurve files already exist, skipping - $path_a_ev\n")
+        info("Lightcurve files already exist, skipping - $path_a_ev")
     else
         total_count_rate = MP_calib_total_crate(path_a_calib, path_b_calib)
 
@@ -106,7 +106,7 @@ function MP_produce_lc(obsid; bintime = 2e-3, minimum_count_rate=4, clobber=fals
 
         info("MPlcurve - $path_a_calib")
         maltpynt.lcurve[:lcurve_from_events](path_a_calib, safe_interval=[100, 300], bintime=bintime)
-        info("MPlcurve - $path_b_calib\n")
+        info("MPlcurve - $path_b_calib")
         maltpynt.lcurve[:lcurve_from_events](path_b_calib, safe_interval=[100, 300], bintime=bintime)
     end
 end
@@ -132,6 +132,7 @@ function MP_produce_lc_batch(minimum_count_rate=4;
        warn("On $i of $(length(queue))")
        info("Running on $obsid")
        MP_produce_lc(obsid; minimum_count_rate=minimum_count_rate)
+       print("\n\n")
    end
 
    #=
@@ -158,7 +159,7 @@ function MP_produce_lc_one(obsid, instrument; bintime = 2e-3, minimum_count_rate
 
     if !isfile(path)
         warn("Cleaned evt files not found - $path")
-        warn("Skipping\n")
+        warn("Skipping")
         return
     end
 
@@ -207,7 +208,7 @@ function MP_produce_lc_one(obsid, instrument; bintime = 2e-3, minimum_count_rate
             info("Count rate: $total_count_rate/s")
         end
 
-        info("MPlcurve - $path_calib\n")
+        info("MPlcurve - $path_calib")
         maltpynt.lcurve[:lcurve_from_events](path_calib, safe_interval=[100, 300], bintime=bintime)
     end
 end
@@ -233,6 +234,7 @@ function MP_produce_lc_batch_one(instrument; minimum_count_rate=2,
        warn("On $i of $(length(queue))")
        info("Running on $obsid")
        MP_produce_lc_one(obsid, instrument; minimum_count_rate=minimum_count_rate)
+       print("\n\n")
    end
 end
 
