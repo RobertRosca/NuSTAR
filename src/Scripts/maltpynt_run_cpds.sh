@@ -88,7 +88,7 @@ do
 	path_a_lc="${path_mp}nu${ObsID}A01_cl_lc.p"
 	path_b_lc="${path_mp}nu${ObsID}B01_cl_lc.p"
 
-    for bin in 0.002 0.25 2
+    for bin in 2 0.25 0.002
         do
             if [ ! -d "$path_mp$bin" ]; then
                 mkdir $path_mp/$bin
