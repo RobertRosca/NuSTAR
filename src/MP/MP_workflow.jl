@@ -115,14 +115,14 @@ function MP_produce_lc_batch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=
    if length(queue) > todo
        queue = queue[1:todo]
    end
-
+#=
    for (i, obsid) in enumerate(queue)
        warn("On $i of $(length(queue))")
        info("Running on $obsid")
-       MP_calib_total_crate(obsid)
+       MP_produce_lc(obsid)
    end
-
-   #=
+=#
+   
    if nprocs() < procs_to_use
         addprocs(procs_to_use - nprocs())
     end
@@ -134,5 +134,5 @@ function MP_produce_lc_batch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=
     @parallel for obsid in queue
         println("Running on $obsid")
         MP_calib_total_crate(obsid)
-    end=#
+    end
 end
