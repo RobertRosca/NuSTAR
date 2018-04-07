@@ -92,16 +92,20 @@ do
         do
             if [ ! -d "$path_mp$bin" ]; then
                 mkdir $path_mp/$bin
-            fi
+            else
 
             path_a_pds_done="${path_mp}/$bin/nu${ObsID}A01_cl_pds.p"
             path_b_pds_done="${path_mp}/$bin/nu${ObsID}B01_cl_pds.p"
             path_cpds_done="${path_mp}/$bin/nu${ObsID}01_cl_cpds.p"
 
-            if [ ! -a "$path_a_pds" ]; then
-                echo "${highlight}MPfspec - dynamical - $bin ${reset}"
-                MPfspec $path_a_lc $path_b_lc -b $bin --noclobber --nproc 3
+            if [ -a "$path_a_pds" ]; then
+                echo "${highlight}Files already exist in $path_a_pds_done ${reset}"
+                echo "${highlight}EXITING ${reset}"
+                exit
             fi
+
+            echo "${highlight}MPfspec - dynamical - $bin ${reset}"
+            MPfspec $path_a_lc $path_b_lc -b $bin --noclobber --nproc 3
 
         	echo "${highlight}nc2hdf5 - $bin ${reset}"
         	#$SCRIPT_DIR/nc2hdf5 "${path_mp}nu${ObsID}A01_pds.p"
