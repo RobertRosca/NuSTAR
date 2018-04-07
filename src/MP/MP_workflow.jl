@@ -179,7 +179,7 @@ function MP_produce_lc_one(obsid, instrument; bintime = 2e-3, minimum_count_rate
     path_calib = string(path_mp_out, "nu$(obsid)$(instrument)01_cl_calib.p")
 
     rmf_file = "/home/sw-astro/caldb/data/nustar/fpm/cpf/rmf/nuAdet3_20100101v002.rmf"
-    if isfile(path_calib) && isfile(path_calib) && !clobber
+    if isfile(path_calib) && !clobber
         info("Calib files already exist, skipping - $path_ev")
     else
         if isfile(rmf_file)
@@ -195,7 +195,7 @@ function MP_produce_lc_one(obsid, instrument; bintime = 2e-3, minimum_count_rate
 
     path_lc = string(path_mp_out, "nu$(obsid)$(instrument)01_cl_lc.p")
 
-    if isfile(path_lc) && isfile(path_b_lc) && !clobber
+    if isfile(path_lc) && !clobber
         info("Lightcurve files already exist, skipping - $path_ev")
     else
         total_count_rate = MP_calib_total_crate(path_calib)
