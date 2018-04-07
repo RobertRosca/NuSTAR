@@ -116,6 +116,12 @@ function MP_produce_lc_batch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=
        queue = queue[1:todo]
    end
 
+   for obsid in queue
+       println("Running on $obsid")
+       MP_calib_total_crate(obsid)
+   end
+
+   #=
    if nprocs() < procs_to_use
         addprocs(procs_to_use - nprocs())
     end
@@ -125,7 +131,7 @@ function MP_produce_lc_batch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=
     info("$(length(queue)) obs queued")
 
     @parallel for obsid in queue
-        info("Running on $obsid")
+        println("Running on $obsid")
         MP_calib_total_crate(obsid)
-    end
+    end=#
 end
