@@ -34,7 +34,7 @@ function MP_calib_total_crate(path_a_calib::String, path_b_calib::String; min_gt
 end
 
 
-function MP_produce_lc(obsid; bintime = 2e-3, minimum_count_rate=2, clobber=false,
+function MP_produce_lc(obsid; bintime = 2e-3, minimum_count_rate=4, clobber=false,
         local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"])
 
     path_pipeline = string(local_archive_cl, obsid, "/pipeline_out/")
@@ -44,7 +44,7 @@ function MP_produce_lc(obsid; bintime = 2e-3, minimum_count_rate=2, clobber=fals
 
     if !isfile(path_a) || !isfile(path_b)
         warn("Cleaned evt files not found\n$path_a\n$path_b")
-        warn("Skipping")
+        warn("Skipping\n")
         return
     end
 
@@ -93,12 +93,12 @@ function MP_produce_lc(obsid; bintime = 2e-3, minimum_count_rate=2, clobber=fals
     path_b_lc = string(path_mp_out, "nu$(obsid)B01_cl_lc.p")
 
     if isfile(path_a_lc) && isfile(path_b_lc) && !clobber
-        info("Lightcurve files already exist, skipping - $path_a_ev")
+        info("Lightcurve files already exist, skipping - $path_a_ev\n")
     else
         total_count_rate = MP_calib_total_crate(path_a_calib, path_b_calib)
 
         if total_count_rate < minimum_count_rate
-            warn("Count rate too low, aborting!")
+            warn("Count rate: $total_count_rate/s - too low, aborting!")
             return
         else
             info("Count rate: $total_count_rate/s")
@@ -106,12 +106,12 @@ function MP_produce_lc(obsid; bintime = 2e-3, minimum_count_rate=2, clobber=fals
 
         info("MPlcurve - $path_a_calib")
         maltpynt.lcurve[:lcurve_from_events](path_a_calib, safe_interval=[100, 300], bintime=bintime)
-        info("MPlcurve - $path_b_calib")
+        info("MPlcurve - $path_b_calib\n")
         maltpynt.lcurve[:lcurve_from_events](path_b_calib, safe_interval=[100, 300], bintime=bintime)
     end
 end
 
-function MP_produce_lc_batch(minimum_count_rate=2;
+function MP_produce_lc_batch(minimum_count_rate=4;
     local_archive=ENV["NU_ARCHIVE"], local_archive_cl=ENV["NU_ARCHIVE_CL"], local_utility=ENV["NU_ARCHIVE_UTIL"], procs_to_use=4, todo=16, dry=false)
 
    numaster_path = string(local_utility, "/numaster_df.csv")
@@ -158,7 +158,7 @@ function MP_produce_lc_one(obsid, instrument; bintime = 2e-3, minimum_count_rate
 
     if !isfile(path)
         warn("Cleaned evt files not found - $path")
-        warn("Skipping")
+        warn("Skipping\n")
         return
     end
 
@@ -201,13 +201,13 @@ function MP_produce_lc_one(obsid, instrument; bintime = 2e-3, minimum_count_rate
         total_count_rate = MP_calib_total_crate(path_calib)
 
         if total_count_rate < minimum_count_rate
-            warn("Count rate too low, aborting!")
+            warn("Count rate: $total_count_rate/s - too low, aborting!\n")
             return
         else
             info("Count rate: $total_count_rate/s")
         end
 
-        info("MPlcurve - $path_calib")
+        info("MPlcurve - $path_calib\n")
         maltpynt.lcurve[:lcurve_from_events](path_calib, safe_interval=[100, 300], bintime=bintime)
     end
 end
