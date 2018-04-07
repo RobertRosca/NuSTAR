@@ -123,6 +123,7 @@ function MP_produce_lc_batch(;local_archive=ENV["NU_ARCHIVE"], local_archive_cl=
     info("Using $(nprocs()) procs")
 
     @parallel for obsid in queue
+        info("Running on $obsid")
         MP_calib_total_crate(obsid)
     end
 end
