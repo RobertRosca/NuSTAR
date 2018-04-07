@@ -34,7 +34,7 @@ function MP_calib_total_crate(path_a_calib::String, path_b_calib::String; min_gt
 end
 
 
-function MP_produce_lc(obsid; bintime = 2e-3, minimum_count_rate=2, clobber=false,
+function MP_produce_lc(obsid; bintime = 2e-3, minimum_count_rate=2.5, clobber=false,
         local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"])
 
     path_pipeline = string(local_archive_cl, obsid, "/pipeline_out/")
@@ -97,7 +97,7 @@ function MP_produce_lc(obsid; bintime = 2e-3, minimum_count_rate=2, clobber=fals
             warn("Count rate too low, aborting!")
             return
         else
-            info("Count rate: $total_count_rate /s")
+            info("Count rate: $total_count_rate/s")
         end
 
         info("MPlcurve - $path_a_calib")
@@ -145,7 +145,7 @@ function MP_produce_lc_batch(minimum_count_rate=2.5;
     end=#
 end
 
-function MP_produce_lc_one(obsid, instrument; bintime = 2e-3, minimum_count_rate=2, clobber=false,
+function MP_produce_lc_one(obsid, instrument; bintime = 2e-3, minimum_count_rate=2.5, clobber=false,
         local_archive_cl=ENV["NU_ARCHIVE_CL"], local_archive_pr=ENV["NU_ARCHIVE_PR"])
 
     path_pipeline = string(local_archive_cl, obsid, "/pipeline_out/")
@@ -196,7 +196,7 @@ function MP_produce_lc_one(obsid, instrument; bintime = 2e-3, minimum_count_rate
             warn("Count rate too low, aborting!")
             return
         else
-            info("Count rate: $total_count_rate /s")
+            info("Count rate: $total_count_rate/s")
         end
 
         info("MPlcurve - $path_calib")
