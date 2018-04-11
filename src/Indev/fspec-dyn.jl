@@ -1,13 +1,14 @@
+### PDS
 struct Lc_pds
     obsid::String
+    binsize_sec::Number
     freqs::DSP.Util.Frequencies
     interval_powers::Array{Float64,2}
     mean_powers::Array{Float64,1}
     fft_length_sec::Number
-    bin::Number
 end
 
-function evt_fft(binned::Binned_event; fft_length_sec::Number=128, safe=(0, 0))
+function calc_pds(binned::Binned_event; fft_length_sec::Number=128, safe=(0, 0))
     if binned.binsize_sec < 2e-6
         warn("NuSTAR temportal resolution is 2e-6, cannot bin under that value, binsec $bin_sec is invalid\nSet to 2e-6")
         binned.binsize_sec = 2e-6
@@ -63,5 +64,51 @@ function evt_fft(binned::Binned_event; fft_length_sec::Number=128, safe=(0, 0))
     # Finds frequency axis
     freqs  = rfftfreq(length(0:binned.binsize_sec:fft_length_sec), 1/binned.binsize_sec)
 
-    return Lc_pds(binned.obsid, freqs, rffts, mean(rffts, 2)[:], fft_length_sec, binned.binsize_sec)
+    return Lc_pds(binned.obsid, binned.binsize_sec, freqs, rffts, mean(rffts, 2)[:], fft_length_sec)
+end
+
+
+### SPECTROGRAM
+struct Lc_spectrogram
+    obsid::String
+    binsize_sec::Number
+    stft_powers::Array{Complex{Float64},2}
+    stft_time::Array{Float64,1}
+    stft_freqs::StepRangeLen{Float64,Base.TwicePrecision{Float64},Base.TwicePrecision{Float64}}
+    gti_lengths::Array{Float64,1}
+    gti_bounds::Array{Float64,1}
+    stft_intervals::Real
+    safe::Tuple{Real,Real}
+end
+
+function calc_spectrogram(binned::Binned_event; safe=(100, 300), stft_intervals=1024)
+    counts_in_gti = []
+    times_in_gti  = []
+
+    gtis = [binned.gtis[x, :] for x in 1:size(binned.gtis, 1)]
+
+    for gti in gtis # For each GTI, store the selected times and count rate within that GTI
+        start = findfirst(binned.times.-safe[1] .> gti[1])
+        stop  = findfirst(binned.times.+safe[2] .> gti[2])
+
+        if stop - start > 0
+            append!(counts_in_gti, [binned.counts[start:stop]])
+            append!(times_in_gti, [binned.times[start:stop]])
+        end
+    end
+
+    counts_in_gti = vcat(counts_in_gti...)
+
+    dsp_stft      = stft(counts_in_gti, stft_intervals; fs=1/binned.binsize_sec)
+    dsp_stft_time = collect(1:size(dsp_stft, 2)).*(stft_intervals/2)
+    dsp_stft_freq  = linspace(0, 0.5*(1/binned.binsize_sec), size(dsp_stft, 1))
+
+    start = [x[1] for x in times_in_gti]
+    stop  = [x[end] for x in times_in_gti]
+
+    gti_lengths   = stop .- start
+    gti_bounds    = cumsum(gti_lengths)
+    gti_bounds[end] = maximum(dsp_stft_time)
+
+    Lc_spectrogram(binned.obsid, binned.binsize_sec, dsp_stft, dsp_stft_time, dsp_stft_freq, gti_lengths, gti_bounds, stft_intervals, safe)
 end
