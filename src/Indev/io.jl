@@ -6,12 +6,12 @@ struct Unbinned_event
     start::Float64
 end
 
-function save_evt(evt_data_path; kwargs...)
+function save_evt(evt_data_path, file_mode="w"; kwargs...)
     if !isdir(dirname(evt_data_path))
         mkpath(dirname(evt_data_path))
     end
 
-    jldopen(evt_data_path, "w") do file
+    jldopen(evt_data_path, file_mode) do file
         for kw in kwargs
             file[string(kw[1])] = kw[2]
         end
@@ -21,11 +21,7 @@ function save_evt(evt_data_path; kwargs...)
 end
 
 function save_evt!(evt_data_path; kwargs...)
-    jldopen(evt_data_path, "a+") do file
-        for kw in kwargs
-            file[string(kw[1])] = kw[2]
-        end
-    end
+    save_evt(evt_data_path, file_mode="a+"; kwargs...)
 
     return
 end
@@ -45,7 +41,7 @@ function read_evt(evt_data_path, item="")
     end
 end
 
-function extract_evts(evt_path; gti_width_min::Number=128)
+function extract_evts(evt_path::String; gti_width_min::Number=128)
     evt_file = FITS(evt_path)
     evt_obsid = read_key(evt_file[1], "OBS_ID")[1]
     evt_time_start = read_key(evt_file[1], "TSTART")[1]
@@ -57,7 +53,9 @@ function extract_evts(evt_path; gti_width_min::Number=128)
 
     evt_gti = DataFrame(START=read(evt_file[3], "START").-evt_time_start, STOP=read(evt_file[3], "STOP").-evt_time_start)
     evt_gti[:WIDTH] = evt_gti[:STOP] .- evt_gti[:START] # GTI interval width in seconds
-    evt_gti[:GOOD]  = evt_gti[:WIDTH] .>= gti_width_min;
+    evt_gti[:GOOD]  = evt_gti[:WIDTH] .>= gti_width_min
+
+    warn("$(count(evt_gti[:GOOD].==0)) GTIs under $gti_width_min s excluded")
 
     # Create tuple of GTI start and stop times, [sec] since evt_time_start
     evt_gtis = @from gti in evt_gti begin
