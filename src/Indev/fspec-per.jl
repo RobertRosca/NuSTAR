@@ -1,3 +1,4 @@
+### PERIODOGRAM
 struct Lc_periodogram
     obsid::String
     binsize_sec::Number
