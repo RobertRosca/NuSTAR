@@ -13,6 +13,10 @@ function _log_formatter(axis_number)
     round(axis_number) % 10 == 0 ? round(axis_number) : ""
 end
 
+function _universal_plot_format()
+    return plot!(title_location=:left, titlefontsize=10, margin=2mm, xguidefontsize=10, yguidefontsize=10)
+end
+
 
 ### LIGHTCURVE
 function plot_lc(times, counts, obsid, binsize_sec, gtis;
@@ -20,7 +24,7 @@ function plot_lc(times, counts, obsid, binsize_sec, gtis;
     plot(times, counts, xlab="Time [s]", ylab="Counts [/s]", lab="Count", title=title)
     vline!([minimum(gtis, 2)], color=:green, lab="GTI Start")
     vline!([maximum(gtis, 2)], color=:red, lab="GTI Stop")
-    plot!(title_location=:left, titlefontsize=10, margin=2mm, xguidefontsize=10, yguidefontsize=10)
+    _universal_plot_format()
 end
 
 function plot_lc(binned_lc::Binned_event; title="")
@@ -40,7 +44,8 @@ end
 
 
 ### FFT
-function plot_pds(lc_pds::Lc_pds; title="Full FFT - Leahy norm.", logx=false, logy=true, hz_min=2*2e-3, hz_max=0)
+function plot_pds(lc_pds::Lc_pds;
+        title="Full FFT - Leahy norm.", logx=false, logy=true, hz_min=2*2e-3, hz_max=0)
     freqs  = lc_pds.freqs
     powers = lc_pds.mean_powers
 
@@ -56,15 +61,41 @@ function plot_pds(lc_pds::Lc_pds; title="Full FFT - Leahy norm.", logx=false, lo
     yticks!(10.^(1:1000))
     plot!(yformatter = yi->_log_formatter(yi))
 
-    plot!(title_location=:left, titlefontsize=10, margin=2mm, xguidefontsize=10, yguidefontsize=10)
+    _universal_plot_format()
 end
 
 
 ### SPECTROGRAM
-function plot_spectrogram(lc_spectrogram::Lc_spectrogram)
+function plot_spectrogram(lc_spectrogram::Lc_spectrogram;
+        title="STFT - binned $(lc_spectrogram.binsize_sec) s - pow2db2 - GTI only - $(lc_spectrogram.stft_intervals) s intervals")
     powers_no_zero_freq = lc_spectrogram.stft_powers[1, :] = NaN
 
     heatmap(lc_spectrogram.stft_freqs[1:end], lc_spectrogram.stft_time, (pow2db.(abs.(lc_spectrogram.stft_powers)').^2), legend=false)
-    plot!(size=(900, 400), title="Easy to Read Spectrogram", xlab="Frequency [Hz]", ylab="Time Inside GTI (gapless) [s]")
+    plot!(size=(900, 400), title=title, xlab="Frequency [Hz]", ylab="Time Inside GTI (gapless) [s]")
     hline!(lc_spectrogram.gti_bounds, color=:cyan, style=:dash)
+
+    _universal_plot_format()
+end
+
+
+### PERIODOGRAM
+function plot_periodogram(lc_periodogram::Lc_periodogram;
+        title="Periodogram - binned $(lc_periodogram.binsize_sec) s")
+
+    lc_periodogram.powers[1] = NaN
+
+
+    sg_filtered  = sgolayfilt(lc_periodogram.powers, 2, floor(Int, length(lc_periodogram.powers)/200))
+    mean_powers  = mean(lc_periodogram.powers[.!isnan.(lc_periodogram.powers)])
+    mean_filterd = mean(sg_filtered[.!isnan.(sg_filtered)])
+    scaling      = mean_powers/mean_filterd
+    sg_filtered  = sg_filtered.*scaling
+
+    println(scaling)
+
+    plot(lc_periodogram.freqs, lc_periodogram.powers, title=title, lab="")
+
+    plot!(lc_periodogram.freqs, sg_filtered, title=title, lab="")
+
+    _universal_plot_format()
 end
