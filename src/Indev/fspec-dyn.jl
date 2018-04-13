@@ -59,12 +59,14 @@ function calc_pds(binned::Binned_event; fft_length_sec::Number=128, safe=(0, 0))
 
     rffts = rfft(fft_intervals)
     rffts[1, :] = 0 # Zero the 0-freq power
-    rffts = 2*(abs.(rffts).^2)./sum(fft_intervals) # Leahy normalised
+    rffts = 2.*(abs.(rffts).^2)./(sum(fft_intervals)) # Leahy normalised
+
+    rffts_mean = (mean(rffts, 2)[:])
 
     # Finds frequency axis
     freqs  = rfftfreq(length(0:binned.binsize_sec:fft_length_sec), 1/binned.binsize_sec)
 
-    return Lc_pds(binned.obsid, binned.binsize_sec, freqs, rffts, mean(rffts, 2)[:], fft_length_sec)
+    return Lc_pds(binned.obsid, binned.binsize_sec, freqs, rffts, rffts_mean, fft_length_sec)
 end
 
 
@@ -81,9 +83,10 @@ struct Lc_spectrogram
     safe::Tuple{Real,Real}
 end
 
-function calc_spectrogram(binned::Binned_event; safe=(100, 300), stft_intervals=1024)
+function calc_spectrogram(binned::Binned_event; safe=(100, 300), stft_intervals=1024, interval_auto_scale=true)
     counts_in_gti = []
     times_in_gti  = []
+
 
     gtis = [binned.gtis[x, :] for x in 1:size(binned.gtis, 1)]
 
@@ -99,9 +102,14 @@ function calc_spectrogram(binned::Binned_event; safe=(100, 300), stft_intervals=
 
     counts_in_gti = vcat(counts_in_gti...)
 
+    if interval_auto_scale
+        stft_intervals = round(Int, stft_intervals/(binned.binsize_sec))
+        #stft_intervals = round(Int, stft_intervals * (length(counts_in_gti)/12000))
+    end
+
     dsp_stft      = stft(counts_in_gti, stft_intervals; fs=1/binned.binsize_sec)
-    dsp_stft_time = collect(1:size(dsp_stft, 2)).*(stft_intervals/2)
-    dsp_stft_freq  = linspace(0, 0.5*(1/binned.binsize_sec), size(dsp_stft, 1))
+    dsp_stft_time = collect(1:size(dsp_stft, 2)).*(binned.binsize_sec*stft_intervals/2)
+    dsp_stft_freq = linspace(0, 0.5*(1/binned.binsize_sec), size(dsp_stft, 1))
 
     start = [x[1] for x in times_in_gti]
     stop  = [x[end] for x in times_in_gti]
