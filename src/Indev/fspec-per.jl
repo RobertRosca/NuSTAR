@@ -5,10 +5,10 @@ struct Lc_periodogram
     freqs::Array{Float64,1}
     powers::Array{Float64,1}
     freqs_welch::Array{Float64,1}
-    pwers_welch::Array{Float64,1}
+    powers_welch::Array{Float64,1}
 end
 
-function calc_periodogram(binned::Binned_event; safe=(100, 300), stft_intervals=1024)
+function calc_periodogram(binned::Binned_event; safe=(100, 300))
     counts_in_gti = []
     times_in_gti  = []
 

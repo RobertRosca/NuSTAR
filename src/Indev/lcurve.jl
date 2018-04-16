@@ -6,7 +6,7 @@ struct Binned_event
     gtis::Array{Float64,2}
 end
 
-function bin_lc(unbinned, binsize_sec::Real)#::Unbinned_event
+function calc_bin_lc(unbinned, binsize_sec::Real)#::Unbinned_event
     if binsize_sec < 2e-6
         warn("NuSTAR temportal resolution is 2e-6, cannot bin under that value, binsec $bin_sec is invalid\nSet to 2e-6")
         binsize_sec = 2e-6

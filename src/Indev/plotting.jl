@@ -45,7 +45,7 @@ function plot_lc(binned_lc::Binned_event; title="", u_plot=1)
 end
 
 function plot_lc(unbinned, binsize_sec::Real; title="", u_plot=1)
-    binned_lc = bin_lc(unbinned, binsize_sec)
+    binned_lc = calc_bin_lc(unbinned, binsize_sec)
 
     plot_lc(binned_lc; title=title, u_plot=u_plot)
 end
@@ -151,7 +151,7 @@ function plot_periodogram(lc_periodogram::Lc_periodogram; p_type="Welch",
 
     if p_type == "Welch"
         freqs  = lc_periodogram.freqs_welch
-        powers = lc_periodogram.pwers_welch
+        powers = lc_periodogram.powers_welch
     elseif p_type == "Standard"
         freqs  = lc_periodogram.freqs
         powers = lc_periodogram.powers
@@ -159,7 +159,7 @@ function plot_periodogram(lc_periodogram::Lc_periodogram; p_type="Welch",
         warn("Invalid periodogram type, use either 'Welch' or 'Standard'\nSet to Welch by default")
         p_type = "Welch"
         freqs  = lc_periodogram.freqs_welch
-        powers = lc_periodogram.pwers_welch
+        powers = lc_periodogram.powers_welch
     end
 
     nyquist = 0.5/lc_periodogram.binsize_sec
@@ -187,7 +187,7 @@ function plot_spect_peri_tiled(lc_spectrogram::Lc_spectrogram, lc_periodogram::L
 end
 
 function plot_spect_peri_tiled(unbinned, binsize_sec)#Unbinned_event
-    binned = bin_lc(unbinned, binsize_sec)
+    binned = calc_bin_lc(unbinned, binsize_sec)
 
     lc_spectrogram = calc_spectrogram(binned)
     lc_periodogram = calc_periodogram(binned)
@@ -196,38 +196,39 @@ function plot_spect_peri_tiled(unbinned, binsize_sec)#Unbinned_event
 end
 
 
-function plot_overview(plt_lc::Plots.Plot{Plots.PyPlotBackend}, plt_fft_pulse_tiled::Plots.Plot{Plots.PyPlotBackend}, plt_stft_05::Plots.Plot{Plots.PyPlotBackend}, plt_periodogram_05::Plots.Plot{Plots.PyPlotBackend}, plt_stft_2::Plots.Plot{Plots.PyPlotBackend}, plt_periodogram_2::Plots.Plot{Plots.PyPlotBackend}; section_size=(1200, 150))
+### OVERVIEW
+function plot_overview(plt_lc::Plots.Plot{Plots.PyPlotBackend}, plt_fft_pulse_tiled::Plots.Plot{Plots.PyPlotBackend}, plt_stft_1::Plots.Plot{Plots.PyPlotBackend}, plt_periodogram_1::Plots.Plot{Plots.PyPlotBackend}, plt_stft_2::Plots.Plot{Plots.PyPlotBackend}, plt_periodogram_2::Plots.Plot{Plots.PyPlotBackend}; section_size=(1200, 150))
 
     # lc->1, fft_pulse_tiled->4, spectrograms->2, periodograms->1
-    plot(plt_lc, plt_fft_pulse_tiled, plt_stft_05, plt_periodogram_05, plt_stft_2, plt_periodogram_2, layout=grid(6, 1, heights=[1/11, 4/11, 2/11, 1/11, 2/11, 1/11]), size=(section_size[1], section_size[2]*11))
+    plot(plt_lc, plt_fft_pulse_tiled, plt_stft_1, plt_periodogram_1, plt_stft_2, plt_periodogram_2, layout=grid(6, 1, heights=[1/11, 4/11, 2/11, 1/11, 2/11, 1/11]), size=(section_size[1], section_size[2]*11))
 end
 
+function plot_overview(lightcurve::Binned_event, pds::Lc_pds, spect_1::Lc_spectrogram, peri_1::Lc_periodogram, spect_2::Lc_spectrogram, peri_2::Lc_periodogram; section_size=(1200, 150))
+    plt_lc = plot_lc(lightcurve)
 
+    plt_fft_pulse_tiled = plot_fft_pulse_tiled(pds)
 
-# function plot_overview(binned_lc_1::Binned_event, lc_ub_fft::Lc_fft, lc_05_stft::Lc_stft, lc_05_periodogram::Lc_periodogram, lc_2_stft::Lc_stft, lc_2_periodogram::Lc_periodogram; plot_width=1200, plot_height=300)
-#     plt_lc = NuSTAR.plot_lc(binned_lc_1)
-#
-#     plt_fft_tiled = Plots.Plot{Plots.PyPlotBackend}; try
-#         plt_fft_tiled = NuSTAR.plot_fft_tiled(lc_ub_fft)
-#     catch plot_error
-#         warn("Error plotting plt_fft_tiled - $plot_error")
-#         plt_fft_tiled = plot([1], [1], title="Plot error")
-#     end
-#
-#     plt_per_stft_tiled_05 = Plots.Plot{Plots.PyPlotBackend}; try
-#         plt_per_stft_tiled_05 = plot_per_stft_tiled(lc_05_stft, lc_05_periodogram)
-#     catch plot_error
-#         warn("Error plotting plt_per_stft_tiled_05 - $plot_error")
-#         plt_per_stft_tiled_05 = plot([1], [1], title="Plot error")
-#     end
-#
-#     plt_per_stft_tiled_2 = Plots.Plot{Plots.PyPlotBackend}; try
-#         plt_per_stft_tiled_2 = plot_per_stft_tiled(lc_2_stft, lc_2_periodogram)
-#     catch plot_error
-#         warn("Error plotting plt_per_stft_tiled_2 - $plot_error")
-#         plt_per_stft_tiled_2 = plot([1], [1], title="Plot error")
-#     end
-#
-#     plot(plt_lc, plt_fft_tiled, plt_per_stft_tiled_05, plt_per_stft_tiled_2, layout=grid(4, 1, heights=[1/9, 4/9, 2/9, 2/9]), size=(plot_width, plot_height*(9/2)))
-#     plot!(title_location=:left, titlefontsize=10, margin=2mm, xguidefontsize=10, yguidefontsize=10)
-# end
+    plt_stft_1 = plot_spectrogram(spect_1)
+    plt_periodogram_1 = plot_periodogram(peri_1)
+
+    plt_stft_2 = plot_spectrogram(spect_2)
+    plt_periodogram_2 = plot_periodogram(peri_2)
+
+    plot_overview(plt_lc, plt_fft_pulse_tiled, plt_stft_1, plt_periodogram_1, plt_stft_2, plt_periodogram_2; section_size=section_size)
+end
+
+function plot_overview(unbinned::Unbinned_event; bin_lc=1, bin_pds=2e-3, bin_stft_peri_1=0.5, bin_stft_peri_2=2, section_size=(1200, 150))
+    lightcurve = calc_bin_lc(unbinned, bin_lc)
+
+    pds = calc_pds(calc_bin_lc(unbinned, bin_pds))
+
+    binned_1 = calc_bin_lc(unbinned, bin_stft_peri_1)
+    spect_1  = calc_spectrogram(binned_1)
+    peri_1   = calc_periodogram(binned_1)
+
+    binned_2 = calc_bin_lc(unbinned, bin_stft_peri_2)
+    spect_2  = calc_spectrogram(binned_2)
+    peri_2   = calc_periodogram(binned_2)
+
+    plot_overview(lightcurve, pds, spect_1, peri_1, spect_2, peri_2; section_size=section_size)
+end

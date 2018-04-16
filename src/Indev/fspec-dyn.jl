@@ -21,14 +21,14 @@ function calc_pds(binned::Binned_event; fft_length_sec::Number=128, safe=(0, 0))
     # so each GTI is stored as an array of [start; finish]
     # and each of those GTI arrays is an array itself
     # makes life a bit easier for the following `for gti in gtis` loop
-    gtis = [evt_binned.gtis[x, :] for x in 1:size(evt_binned.gtis, 1)]
+    gtis = [binned.gtis[x, :] for x in 1:size(binned.gtis, 1)]
 
     for gti in gtis # For each GTI, store the selected times and count rate within that GTI
         start = findfirst(binned.times.+safe[1] .>= gti[1])
         stop  = findfirst(binned.times.-safe[1] .>= gti[2])-1
 
         if stop - start > fft_length_sec
-            append!(counts_in_gti, [evt_binned.counts[start:stop]])
+            append!(counts_in_gti, [binned.counts[start:stop]])
             append!(times_in_gti, [binned.times[start:stop].-gti[1]]) # Subtract GTI start time from all times, so all start from t=0
         end
     end
