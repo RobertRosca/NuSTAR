@@ -16,7 +16,7 @@ function plot_overview_batch(;batch_size=10000, section_size=(1200, 150), local_
         newest_lc = maximum(mtime.(lc_paths))
         summary_age = mtime(img_path)
 
-        if summary_age - newest_lc < 0
+        if summary_age - newest_lc < 0 || overwrite
             println("$obsid - LC newer than image - plotting")
             plot_overview(obsid; section_size=section_size, local_archive_pr=local_archive_pr)
             i += 1
