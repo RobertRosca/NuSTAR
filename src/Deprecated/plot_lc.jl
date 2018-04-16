@@ -1,7 +1,7 @@
 using Measures
 
 function plot_lc(binned_lc::Binned_event)
-    plot(binned_lc.time_edges, binned_lc.counts, xlab="Time [s]", ylab="Counts [per s]", lab="Count", title="$(binned_lc.obsid) - $(binned_lc.bin)s $(binned_lc.typeof)")
+    plot(binned_lc.time_edges, binned_lc.counts, xlab="Time [s]", ylab="Counts [/s]", lab="Count", title="$(binned_lc.obsid) - $(binned_lc.bin)s $(binned_lc.typeof)")
     vline!(binned_lc.time_edges[minimum.(binned_lc.gtis)], color=:green, lab="GTI Start")
     vline!(binned_lc.time_edges[maximum.(binned_lc.gtis)], color=:red, lab="GTI Stop")
 end
