@@ -29,7 +29,7 @@ end
 ### LIGHTCURVE
 function plot_lc(times, counts, obsid, binsize_sec, gtis;
         title="$(obsid) - $(binsize_sec) s lightcurve", u_plot=1)
-    plot(times, counts, xlab="Time [s]", ylab="Counts [/s]", lab="Count", title=title)
+    plot(times, counts, xlab="Time [s]", ylab="Counts [/s]", lab="", title=title)
     vline!([minimum(gtis, 2)], color=:green, lab="GTI Start")
     vline!([maximum(gtis, 2)], color=:red, lab="GTI Stop")
     _universal_plot_format(u_plot)
@@ -37,17 +37,17 @@ end
 
 function plot_lc(binned_lc::Binned_event; title="", u_plot=1)
     if title == ""
-        plot_lc(binned_lc.times, binned_lc.counts, binned_lc.obsid, binned_lc.binsize_sec, binned_lc.gtis)
+        plot_lc(binned_lc.times, binned_lc.counts, binned_lc.obsid, binned_lc.binsize_sec, binned_lc.gtis; u_plot=u_plot)
     else
         plot_lc(binned_lc.times, binned_lc.counts, binned_lc.obsid, binned_lc.binsize_sec, binned_lc.gtis;
-            title=title)
+            title=title, u_plot=u_plot)
     end
 end
 
 function plot_lc(unbinned, binsize_sec::Real; title="", u_plot=1)
     binned_lc = bin_lc(unbinned, binsize_sec)
 
-    plot_lc(binned_lc; title=title)
+    plot_lc(binned_lc; title=title, u_plot=u_plot)
 end
 
 
@@ -146,23 +146,53 @@ end
 
 
 ### PERIODOGRAM
-function plot_periodogram(lc_periodogram::Lc_periodogram;
-        title="Periodogram - binned $(lc_periodogram.binsize_sec) s", u_plot=1)
+function plot_periodogram(lc_periodogram::Lc_periodogram; p_type="Welch",
+        title="$p_type Periodogram - binned $(lc_periodogram.binsize_sec) s", u_plot=1)
 
-    lc_periodogram.powers[1] = NaN
+    if p_type == "Welch"
+        freqs  = lc_periodogram.freqs_welch
+        powers = lc_periodogram.pwers_welch
+    elseif p_type == "Standard"
+        freqs  = lc_periodogram.freqs
+        powers = lc_periodogram.powers
+    else
+        warn("Invalid periodogram type, use either 'Welch' or 'Standard'\nSet to Welch by default")
+        p_type = "Welch"
+        freqs  = lc_periodogram.freqs_welch
+        powers = lc_periodogram.pwers_welch
+    end
 
+    nyquist = 0.5/lc_periodogram.binsize_sec
 
-    sg_filtered  = sgolayfilt(lc_periodogram.powers, 2, floor(Int, length(lc_periodogram.powers)/200))
-    mean_powers  = mean(lc_periodogram.powers[.!isnan.(lc_periodogram.powers)])
-    mean_filterd = mean(sg_filtered[.!isnan.(sg_filtered)])
-    scaling      = mean_powers/mean_filterd
-    sg_filtered  = sg_filtered.*scaling
+    min_freq_idx = findfirst(freqs .>= nyquist*1e-2)[1]-1
 
-    plot(lc_periodogram.freqs, lc_periodogram.powers, title=title, lab="")
+    ymax = maximum(powers[min_freq_idx:end]) *1.25
 
-    plot!(lc_periodogram.freqs, abs.(sg_filtered), title=title, lab="Smoothed")
+    plot(freqs, powers, title=title, lab="")
+
+    plot!(xlab="Frequency [Hz]", ylab="Power")
+
+    ylims!(0, ymax)
 
     _universal_plot_format(u_plot)
+end
+
+
+### PERIODOGRAM SPECTROGRAM TILE
+function plot_spect_peri_tiled(lc_spectrogram::Lc_spectrogram, lc_periodogram::Lc_periodogram)
+    plt_stft = plot_spectrogram(lc_spectrogram)
+    plt_peri = plot_periodogram(lc_periodogram)
+
+    plot(plt_stft, plt_peri, layout=(2, 1))
+end
+
+function plot_spect_peri_tiled(unbinned, binsize_sec)#Unbinned_event
+    binned = bin_lc(unbinned, binsize_sec)
+
+    lc_spectrogram = calc_spectrogram(binned)
+    lc_periodogram = calc_periodogram(binned)
+
+    plot_spect_peri_tiled(lc_spectrogram, lc_periodogram)
 end
 
 
