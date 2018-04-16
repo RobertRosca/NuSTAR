@@ -1,4 +1,4 @@
-function plot_overview_batch(;batch_size=10000, plot_width=1200, plot_height=300, local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utility=ENV["NU_ARCHIVE_UTIL"], numaster_path=string(local_utility, "/numaster_df.csv"), overwrite=false)
+function plot_overview_batch(;batch_size=10000, section_size=(1200, 300), local_archive_pr=ENV["NU_ARCHIVE_PR"], local_utility=ENV["NU_ARCHIVE_UTIL"], numaster_path=string(local_utility, "/numaster_df.csv"), overwrite=false)
     numaster_df=read_numaster(numaster_path)
 
     queue = @from i in numaster_df begin
@@ -18,7 +18,7 @@ function plot_overview_batch(;batch_size=10000, plot_width=1200, plot_height=300
 
         if summary_age - newest_lc < 0
             println("$obsid - LC newer than image - plotting")
-            plot_overview(obsid; plot_width=plot_width, plot_height=plot_height, local_archive_pr=local_archive_pr)
+            plot_overview(obsid; section_size=section_size, local_archive_pr=local_archive_pr)
             i += 1
         else
             continue
