@@ -13,9 +13,10 @@ using FileIO, JLD2
 using DSP
 using Wavelets
 using HDF5
-using PyCall
-@pyimport maltpynt
+#using PyCall
+#@pyimport maltpynt
 
+using Measures
 using Plots
 pyplot()
 #gr()
@@ -36,6 +37,13 @@ include("Analysis/Xselect.jl")
 include("WebApp/WebGen.jl")
 include("Analysis/DS9Img.jl")
 include("Analysis/Plotters.jl")
+include("Indev/io.jl")
+include("Indev/lcurve.jl")
+include("Indev/fspec-dyn.jl")
+include("Indev/fspec-per.jl")
+include("Indev/plotting.jl")
+include("Analysis/NuSTAR_batch_files.jl")
+include("Analysis/NuSTAR_batch_plot.jl")
 #include("Analysis/ExtractEvents.jl")
 #include("Analysis/LightCurve.jl")
 #include("Analysis/plot_lc.jl")

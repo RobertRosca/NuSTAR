@@ -204,17 +204,17 @@ function plot_overview(plt_lc::Plots.Plot{Plots.PyPlotBackend}, plt_fft_pulse_ti
 end
 
 function plot_overview(lightcurve::Binned_event, pds::Lc_pds, spect_1::Lc_spectrogram, peri_1::Lc_periodogram, spect_2::Lc_spectrogram, peri_2::Lc_periodogram; section_size=(1200, 150))
-    plt_lc = plot_lc(lightcurve)
+    plt_lc = plot_lc(lightcurve); print(".")
 
-    plt_fft_pulse_tiled = plot_fft_pulse_tiled(pds)
+    plt_fft_pulse_tiled = plot_fft_pulse_tiled(pds); print(".")
 
-    plt_stft_1 = plot_spectrogram(spect_1)
-    plt_periodogram_1 = plot_periodogram(peri_1)
+    plt_stft_1 = plot_spectrogram(spect_1); print(".")
+    plt_periodogram_1 = plot_periodogram(peri_1); print(".")
 
-    plt_stft_2 = plot_spectrogram(spect_2)
-    plt_periodogram_2 = plot_periodogram(peri_2)
+    plt_stft_2 = plot_spectrogram(spect_2); print(".")
+    plt_periodogram_2 = plot_periodogram(peri_2); print(".")
 
-    plot_overview(plt_lc, plt_fft_pulse_tiled, plt_stft_1, plt_periodogram_1, plt_stft_2, plt_periodogram_2; section_size=section_size)
+    plot_overview(plt_lc, plt_fft_pulse_tiled, plt_stft_1, plt_periodogram_1, plt_stft_2, plt_periodogram_2; section_size=section_size); print(".")
 end
 
 function plot_overview(unbinned::Unbinned_event; bin_lc=1, bin_pds=2e-3, bin_stft_peri_1=0.5, bin_stft_peri_2=2, section_size=(1200, 150))
@@ -231,4 +231,20 @@ function plot_overview(unbinned::Unbinned_event; bin_lc=1, bin_pds=2e-3, bin_stf
     peri_2   = calc_periodogram(binned_2)
 
     plot_overview(lightcurve, pds, spect_1, peri_1, spect_2, peri_2; section_size=section_size)
+end
+
+function plot_overview(obsid::String; section_size=(1200, 150), local_archive_pr=ENV["NU_ARCHIVE_PR"])
+    path_lc_dir = string(local_archive_pr, obsid, "/products/lc/")
+    path_img_dir = string(local_archive_pr, obsid, "/images/")
+
+    binned_lc_1 = read_evt(string(path_lc_dir, "lc_1.jld2"), "lc")
+    lc_ub_fft = read_evt(string(path_lc_dir, "lc_0.jld2"), "pds")
+    lc_05_stft = read_evt(string(path_lc_dir, "lc_05.jld2"), "stft")
+    lc_05_periodogram = read_evt(string(path_lc_dir, "lc_05.jld2"), "periodogram")
+    lc_2_stft = read_evt(string(path_lc_dir, "lc_2.jld2"), "stft")
+    lc_2_periodogram = read_evt(string(path_lc_dir, "lc_2.jld2"), "periodogram")
+
+    plt_overview = plot_overview(binned_lc_1, lc_ub_fft, lc_05_stft, lc_05_periodogram, lc_2_stft, lc_2_periodogram; section_size=section_size)
+
+    savefig(plt_overview, string(path_img_dir, "summary_v2.png"))
 end
