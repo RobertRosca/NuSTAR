@@ -113,7 +113,7 @@ end
 
 ### TILED FFT AND PULSATION
 function plot_fft_pulse_tiled(lc_pds::Lc_pds; u_plot=1)
-    nyquist = 0.5/(0.002)
+    nyquist = 0.5/(lc_pds.binsize_sec)
 
     c_hz_max = 10
     c_hz_min = 10
@@ -121,9 +121,9 @@ function plot_fft_pulse_tiled(lc_pds::Lc_pds; u_plot=1)
     a1 = plot_pds(lc_pds; logy=false, hz_max=c_hz_max, title="FFT 0 to $c_hz_max Hz")
     a2 = plot_pds(lc_pds; logy=false, laby=false, hz_min=c_hz_min, hz_max=nyquist, title="FFT $c_hz_max Hz+")
     b1 = plot_pds(lc_pds; logy=true, hz_max=c_hz_max, title="semi-log")
-    b2 = plot_pds(lc_pds; logy=true, laby=false, hz_min=2, hz_max=nyquist, title="semi-log")
+    b2 = plot_pds(lc_pds; logy=true, laby=false, hz_min=c_hz_min, hz_max=nyquist, title="semi-log")
     c1 = plt_pulses(lc_pds; logy=true, hz_max=c_hz_max, title="semi-log pulses")
-    c2 = plt_pulses(lc_pds; logy=true, laby=false, hz_min=2, hz_max=nyquist, title="semi-log pulses")
+    c2 = plt_pulses(lc_pds; logy=true, laby=false, hz_min=c_hz_min, hz_max=nyquist, title="semi-log pulses")
 
     ly = @layout [ [a1{0.5w} a2{0.5w}]; [b1{0.5w} b2{0.5w}]; [c1{0.5w} c2{0.5w}]]
 
