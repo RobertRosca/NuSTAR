@@ -214,7 +214,7 @@ function plot_overview(lightcurve::Binned_event, pds::Lc_pds, spect_1::Lc_spectr
     plt_stft_2 = plot_spectrogram(spect_2); print(".")
     plt_periodogram_2 = plot_periodogram(peri_2); print(".")
 
-    plot_overview(plt_lc, plt_fft_pulse_tiled, plt_stft_1, plt_periodogram_1, plt_stft_2, plt_periodogram_2; section_size=section_size); print(".")
+    return plot_overview(plt_lc, plt_fft_pulse_tiled, plt_stft_1, plt_periodogram_1, plt_stft_2, plt_periodogram_2; section_size=section_size)
 end
 
 function plot_overview(unbinned::Unbinned_event; bin_lc=1, bin_pds=2e-3, bin_stft_peri_1=0.5, bin_stft_peri_2=2, section_size=(1200, 150))
