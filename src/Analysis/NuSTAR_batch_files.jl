@@ -7,6 +7,23 @@ function generate_all_binned(unbinned_evt::Unbinned_event, bin::Number)
     return lc, lc_fft, lc_stft, lc_periodogram
 end
 
+function __wrap_generate_checks(path_file, unbinned_evt, binsize_sec; overwrite=false)
+    if !isfile(path_file) || overwrite
+        print("lc_$binsize_sec")
+        try
+            lc, lc_pds, lc_stft, lc_periodogram = generate_all_binned(unbinned_evt, binsize_sec)
+            save_evt(path_file, lc=lc, periodogram=lc_periodogram, stft=lc_stft, pds=lc_pds); print(". ")
+        catch e
+            println("Saving blank file due to error - $(typeof(e))")
+            lc = Binned_event(unbinned_evt.obsid, binsize_sec, sparse([]), 0.0:0.0, [0 0; 0 0])
+            lc_pds = Lc_pds(unbinned_evt.obsid, binsize_sec, DSP.Util.Frequencies(0, 0, 0), [0 0; 0 0], [], 0)
+            lc_stft = Lc_spectrogram(unbinned_evt.obsid, binsize_sec, Array{Complex{Float64},2}(0, 0), [], 0.0:0.0, [], [], 0, (0,0))
+            lc_periodogram = Lc_periodogram(unbinned_evt.obsid, binsize_sec, [], [], [], [])
+            save_evt(path_file, lc=lc, periodogram=lc_periodogram, stft=lc_stft, pds=lc_pds); print(". ")
+        end
+    end
+end
+
 function generate_standard_lc_files(path_evt, path_evt_unbinned, path_lc_dir; overwrite=false)
     if !isfile(path_evt_unbinned) || overwrite
         unbinned_evt = extract_evts(path_evt; gti_width_min=128)
@@ -22,23 +39,11 @@ function generate_standard_lc_files(path_evt, path_evt_unbinned, path_lc_dir; ov
         save_evt(string(path_lc_dir, "lc_0.jld2"), lc=lc_ub, pds=lc_ub_pds); print(". ")
     end
 
-    if !isfile(string(path_lc_dir, "lc_05.jld2")) || overwrite
-        print("lc_05")
-        lc_05, lc_05_pds, lc_05_stft, lc_05_periodogram = generate_all_binned(unbinned_evt, 0.5)
-        save_evt(string(path_lc_dir, "lc_05.jld2"), lc=lc_05, periodogram=lc_05_periodogram, stft=lc_05_stft, pds=lc_05_pds); print(". ")
-    end
+    __wrap_generate_checks(string(path_lc_dir, "lc_05.jld2"), unbinned_evt, 0.5; overwrite=overwrite)
 
-    if !isfile(string(path_lc_dir, "lc_1.jld2")) || overwrite
-        print("lc_1")
-        lc_1, lc_1_pds, lc_1_stft, lc_1_periodogram = generate_all_binned(unbinned_evt, 1)
-        save_evt(string(path_lc_dir, "lc_1.jld2"), lc=lc_1, periodogram=lc_1_periodogram, stft=lc_1_stft, pds=lc_1_pds); print(". ")
-    end
+    __wrap_generate_checks(string(path_lc_dir, "lc_1.jld2"), unbinned_evt, 1; overwrite=overwrite)
 
-    if !isfile(string(path_lc_dir, "lc_2.jld2")) || overwrite
-        print("lc_2")
-        lc_2, lc_2_pds, lc_2_stft, lc_2_periodogram = generate_all_binned(unbinned_evt, 2)
-        save_evt(string(path_lc_dir, "lc_2.jld2"), lc=lc_2, periodogram=lc_2_periodogram, stft=lc_2_stft, pds=lc_2_pds); print(". ")
-    end
+    __wrap_generate_checks(string(path_lc_dir, "lc_2.jld2"), unbinned_evt, 2; overwrite=overwrite)
 
     print("\n")
 end
