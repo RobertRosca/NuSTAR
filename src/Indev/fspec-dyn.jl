@@ -76,7 +76,7 @@ struct Lc_spectrogram
     binsize_sec::Number
     stft_powers::Array{Complex{Float64},2}
     stft_time::Array{Float64,1}
-    stft_freqs::StepRangeLen{Float64,Base.TwicePrecision{Float64},Base.TwicePrecision{Float64}}
+    stft_freqs::StepRangeLen
     gti_lengths::Array{Float64,1}
     gti_bounds::Array{Float64,1}
     stft_intervals::Real
@@ -86,7 +86,6 @@ end
 function calc_spectrogram(binned::Binned_event; safe=(100, 300), stft_intervals=1024, interval_auto_scale=true)
     counts_in_gti = []
     times_in_gti  = []
-
 
     gtis = [binned.gtis[x, :] for x in 1:size(binned.gtis, 1)]
 
