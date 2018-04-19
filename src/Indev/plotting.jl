@@ -139,7 +139,7 @@ function plot_spectrogram(lc_spectrogram::Lc_spectrogram;
 
     heatmap(lc_spectrogram.stft_freqs[1:end], lc_spectrogram.stft_time, (pow2db.(abs.(lc_spectrogram.stft_powers)').^2), legend=false)
     plot!(size=(900, 400), title=title, xlab="Frequency [Hz]", ylab="Time Inside GTI (gapless) [s]")
-    if size(lc_spectrogram.gti_bounds, 1) > 10
+    if size(lc_spectrogram.gti_bounds, 1) > 25
         plot!(title=string(title, " - GTI bound lines disabled"))
     else
         hline!(lc_spectrogram.gti_bounds, color=:cyan, style=:dash, alpha=0.75)
