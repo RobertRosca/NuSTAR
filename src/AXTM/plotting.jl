@@ -25,6 +25,16 @@ function _universal_plot_format(u_plot)
     end
 end
 
+function _wrap_plot_errors(plot_function, plot_arg)
+    try
+        plt = plot_function(plot_arg)
+    catch
+        plt = plot(title="Error plotting")
+    end
+
+    return plt
+end
+
 
 ### LIGHTCURVE
 function plot_lc(times, counts, obsid, binsize_sec, gtis;
@@ -208,15 +218,15 @@ function plot_overview(plt_lc::Plots.Plot{Plots.PyPlotBackend}, plt_fft_pulse_ti
 end
 
 function plot_overview(lightcurve::Binned_event, pds::Lc_pds, spect_1::Lc_spectrogram, peri_1::Lc_periodogram, spect_2::Lc_spectrogram, peri_2::Lc_periodogram; section_size=(1200, 150))
-    plt_lc = plot_lc(lightcurve); print(".")
+    plt_lc = _wrap_plot_errors(plot_lc, lightcurve); print(".")
 
-    plt_fft_pulse_tiled = plot_fft_pulse_tiled(pds); print(".")
+    plt_fft_pulse_tiled = _wrap_plot_errors(plot_fft_pulse_tiled, pds); print(".")
 
-    plt_stft_1 = plot_spectrogram(spect_1); print(".")
-    plt_periodogram_1 = plot_periodogram(peri_1); print(".")
+    plt_stft_1 = _wrap_plot_errors(plot_spectrogram, spect_1); print(".")
+    plt_periodogram_1 = _wrap_plot_errors(plot_periodogram, peri_1); print(".")
 
-    plt_stft_2 = plot_spectrogram(spect_2); print(".")
-    plt_periodogram_2 = plot_periodogram(peri_2); print(".")
+    plt_stft_2 = _wrap_plot_errors(plot_spectrogram, spect_2); print(".")
+    plt_periodogram_2 = _wrap_plot_errors(plot_periodogram, peri_2); print(".")
 
     return plot_overview(plt_lc, plt_fft_pulse_tiled, plt_stft_1, plt_periodogram_1, plt_stft_2, plt_periodogram_2; section_size=section_size)
 end
