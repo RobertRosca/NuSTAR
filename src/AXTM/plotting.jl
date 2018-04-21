@@ -27,12 +27,10 @@ end
 
 function _wrap_plot_errors(plot_function, plot_arg)
     try
-        plt = plot_function(plot_arg)
+        return plot_function(plot_arg)
     catch
-        plt = plot(title="Error plotting")
+        return plot(title="Error plotting")
     end
-
-    return plt
 end
 
 
