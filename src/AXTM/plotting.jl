@@ -260,5 +260,9 @@ function plot_overview(obsid::String; section_size=(1200, 150), local_archive_pr
 
     plt_overview = plot_overview(binned_lc_1, lc_ub_fft, lc_05_stft, lc_05_periodogram, lc_2_stft, lc_2_periodogram; section_size=section_size)
 
-    savefig(plt_overview, string(path_img_dir, "summary_v2.png"))
+    try
+        savefig(plt_overview, string(path_img_dir, "summary_v2.png"))
+    catch y
+        warn(y)
+    end
 end
