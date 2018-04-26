@@ -333,9 +333,12 @@ function WebGen_subpages(;folder_path="/home/robertr/public_html/", df=load_numa
             img_contents = readdir(img_dir)
             img_lc_dir = string(img_dir, "/lc/")
 
-            if isfile("$img_dir/summary.png")
-                write(f, "\t<hr>\n")
-                write(f, "\t\t<h4>Lightcurves</h4>\n")
+            write(f, "\t<hr>\n")
+            write(f, "\t\t<h4>Lightcurves</h4>\n")
+
+            if isfile("$img_dir/summary_v2.png")
+                write(f, "\t\t\t<div><img src=\"./images/summary_v2.png\" alt=\"summary\" width=\"100%\"></div>\n")
+            elseif isfile("$img_dir/summary.png")
                 write(f, "\t\t\t<div><img src=\"./images/summary.png\" alt=\"summary\" width=\"100%\"></div>\n")
             end
 
